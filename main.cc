@@ -109,9 +109,6 @@ int main() {
 
 int main() {
 
-    unsigned int cw;
-    fpu_fix_start(&cw);
-
     srand(time(NULL));
 
     cout << setprecision(15);
@@ -163,9 +160,6 @@ int main() {
 
 //    cout << n << endl;
 //    cout << S << endl;
-
     
-    fpu_fix_end(&cw);
-
     return 0;
 }

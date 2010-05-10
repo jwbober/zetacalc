@@ -2,14 +2,11 @@
 #include <complex>
 #include <string>
 #include <cmath>
-#include <qd/qd_real.h>
-#include <qd/dd_real.h>
-
 
 #include "mpfr.h"
 
-typedef dd_real Double;
-typedef std::complex<dd_real> Complex;
+typedef double Double;
+typedef std::complex<double> Complex;
 
 const Double PI = 3.14159265358979323846264338327950288;
 const Double E = 2.7182818284590452353602874713526624977572470936999595749670;
@@ -25,24 +22,6 @@ inline int to_int(int x) {
 
 inline double to_double(double x) {
     return x;
-}
-
-inline qd_real LOG(qd_real x) {
-    if(x == 0) {
-        return qd_real(-1.0/0.0);
-    }
-    else {
-        return log(x);
-    }
-}
-
-inline dd_real LOG(dd_real x) {
-    if(x == 0) {
-        return dd_real(-1.0/0.0);
-    }
-    else {
-        return log(x);
-    }
 }
 
 inline double LOG(double x) {

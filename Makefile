@@ -1,7 +1,7 @@
 OPTIONS = -O2 -msse2 -mfpmath=387 -Wall
 
 a.out: theta_sums.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o
-	g++ -O3 theta_sums.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o -lmpfr -lgmp -ffast-math -msse -mfpmath=sse -lprofiler -lqd
+	g++ -O3 theta_sums.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o -lmpfr -lgmp -ffast-math -msse -mfpmath=sse -lprofiler
 
 main.o: main.cc theta_sums.h
 	g++ -c main.cc
