@@ -464,6 +464,7 @@ Complex compute_exponential_sum_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b, 
     Complex C4 = -I;
     Complex C5 = -C1;
     Complex C8 = -I * ExpB(mp_b, K);
+    Complex CF = ExpAB(mp_a, mp_b);
 
     int q = to_int(a + 2 * b * K);
     Double w = a + 2 * b * K - (Double)q;
@@ -491,7 +492,8 @@ Complex compute_exponential_sum_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b, 
     s1 = s1 - C2*( JBulk(w1, b, p1, K, epsilon/12) + IC7(K, w1, b, epsilon/12) );
     s1 = s1 - C3 * (Complex)exp(-(Complex)2 * (Complex)PI * w * (Complex)K) * (Complex)sqrt(2.0) * IC9E(K, w, b, (epsilon/12) * exp((Double)2 * PI * w * K));
 
-    Complex z = exp(-I * PI * (a * a/(2.0 * b) - .25))/sqrt((Double)2 * b);
+    //Complex z = exp(-I * PI * (a * a/(2.0 * b) - .25))/sqrt((Double)2 * b);
+    Complex z = exp(I * PI * .25) * CF/sqrt( (Double)2 * b );
 
 
     mpfr_t a1, b1;
@@ -580,7 +582,7 @@ Complex compute_exponential_sum(mpfr_t mp_a, mpfr_t mp_b, int K, Double epsilon,
     Complex S = (Complex)0;
 
     if(method == 1) {
-        S = direct_exponential_sum_evaluation(a, b, 0, K);
+        S = direct_exponential_sum_evaluation(mp_a, mp_b, 0, K);
     }
     else if(method == 3) {
         S = compute_exponential_sum_for_small_b(mp_a, mp_b, K, epsilon);

@@ -109,11 +109,36 @@ int main() {
 
 int main() {
 
-    srand(time(NULL));
 
     cout << setprecision(15);
+/* 
+    mpfr_t mp_a, mp_b;
+    mpfr_init2(mp_a, 300);
+    mpfr_init2(mp_b, 300);
+    mpfr_set_str(mp_a, ".24288677062973695886", 10, GMP_RNDN);
+    mpfr_set_str(mp_b, ".034307894196504679085", 10, GMP_RNDN);
+    int K = 80417;
+    Double epsilon = exp(-30);
+
+    Double a = mpfr_get_d(mp_a, GMP_RNDN);
+    Double b = mpfr_get_d(mp_b, GMP_RNDN);
+
+
+    Complex z1 = direct_exponential_sum_evaluation(mp_a, mp_b, 0, K);
+    Complex z2 = compute_exponential_sum(mp_a, mp_b, K, epsilon);
+    Double z3 = abs(z2 - z1);
+    cout << z1 << endl;
+    cout << z2 << endl;
+    cout << endl;
+    cout << z3 << endl;    
+    cout << -log(z3) << endl;    
+    cout << endl;
+*/
+
+ //   srand(time(NULL));
+
     
-    test2(exp(-40), exp(-40));
+    test2(exp(-20), exp(-20));
     return 0;
 /*
     mpfr_t mp_a, mp_b;

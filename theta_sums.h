@@ -12,7 +12,7 @@ const Double PI = 3.14159265358979323846264338327950288;
 const Double E = 2.7182818284590452353602874713526624977572470936999595749670;
 const Complex I = Complex(0, 1);
 
-const int Kmin = 1000;
+const int Kmin = 100;
 
 using namespace std;
 
@@ -148,6 +148,42 @@ inline Complex ExpB(mpfr_t B, int K) {
 
     return S;
 }
+
+
+inline Complex ExpAB(mpfr_t A, mpfr_t B){
+	// return exp(- pi i A^2 / (2 B) )
+	//
+	// We use mpfr to avoid loss of precision. Loss of 
+	// precision can occur because B can be as small 
+	// as 1/K, so A^2/B can  be as large as K.
+	//
+	
+    mpfr_t real_part;
+    mpfr_t imag_part;
+    mpfr_t tmp;
+
+    mpfr_init2(real_part, 53);
+    mpfr_init2(imag_part, 53);
+    mpfr_init2(tmp, mpfr_get_prec(A));
+    
+    mpfr_const_pi(tmp, GMP_RNDN);
+    mpfr_mul_si(tmp, tmp, -1, GMP_RNDN);
+    mpfr_mul(tmp, tmp, A, GMP_RNDN);
+    mpfr_mul(tmp, tmp, A, GMP_RNDN);
+    mpfr_div(tmp, tmp, B, GMP_RNDN);
+    mpfr_div_ui(tmp, tmp, 2, GMP_RNDN);
+
+    mpfr_sin_cos(imag_part, real_part, tmp, GMP_RNDN);
+
+    Complex S(mpfr_get_d(real_part, GMP_RNDN), mpfr_get_d(imag_part, GMP_RNDN));
+
+    mpfr_clear(real_part);
+    mpfr_clear(imag_part);
+    mpfr_clear(tmp);
+
+    return S;
+}
+
 
 inline Complex EXP(Complex z) {                                                 //--------------------------------------------
     stats::exp++;                                                               // This is just here for counting purposes.
