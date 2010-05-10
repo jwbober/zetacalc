@@ -113,7 +113,7 @@ int main() {
 
     cout << setprecision(15);
     
-    test2(exp(-30), exp(-30));
+    test2(exp(-40), exp(-40));
     return 0;
 /*
     mpfr_t mp_a, mp_b;

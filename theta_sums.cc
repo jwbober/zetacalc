@@ -157,8 +157,8 @@ Double infinite_sum_of_differenced_inverse_powers(Double a1, Double a2, int m, i
 
         m_plus_a1_power = m_plus_a1_power / (m + a1);
         m_plus_a1_power = m_plus_a1_power / (m + a1);
-        m_plus_a2_power = m_plus_a1_power / (m + a2);
-        m_plus_a2_power = m_plus_a1_power / (m + a2);
+        m_plus_a2_power = m_plus_a2_power / (m + a2);
+        m_plus_a2_power = m_plus_a2_power / (m + a2);
 
         error = abs(z);
         //cout << error << endl;
