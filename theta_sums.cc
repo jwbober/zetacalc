@@ -561,12 +561,18 @@ Complex compute_exponential_sum(mpfr_t mp_a, mpfr_t mp_b, int K, Double epsilon,
     if(verbose::compute_exponential_sum) {
         cout << "After normalization, a = " << a << ", b = " << b << ", K = " << K << endl;
     }
+
+   
+    int q = to_int(a + 2 * b * K);
+    int p = to_int(ceil(a));
+
     if(method == 0) {
         if(K <= 2 * pow((-LOG(epsilon)/(2 * PI)), 2) || K <= Kmin) {
             method = 1;
         }
         //else if(2.0 * b * K < 1 && b > pow((-log(epsilon))/((Double)K/(Double)8), 2)) {
-        else if(2.0 * b * K < 1) {
+        //else if(2.0 * b * K < 1) {
+        else if(q <= p) {
             stats::exponential_sum_euler_maclaurin++;
             method = 3;
         }
