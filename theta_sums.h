@@ -45,6 +45,7 @@ namespace stats {
     extern int H_method1;
     extern int H_method2;
     extern int H_method3;
+    extern int H_method4;
 
     extern int G_method1;
     extern int G_method2;
@@ -67,6 +68,7 @@ inline void print_stats() {
     std::cout << "    Method 1 used " << stats::H_method1 << " times." << std::endl;
     std::cout << "    Method 2 used " << stats::H_method2 << " times." << std::endl;
     std::cout << "    Method 3 used " << stats::H_method3 << " times." << std::endl;
+    std::cout << "    Method 4 used " << stats::H_method4 << " times." << std::endl;
 
     std::cout << "In function G():" << std::endl;
     std::cout << "    Method 1 used " << stats::G_method1 << " times." << std::endl;
@@ -216,8 +218,9 @@ Complex H_method4(int j, Complex alpha, Double epsilon);                        
                                                                                 //    / 1
                                                                                 //    |
 Complex G(Complex alpha, Complex b, Double epsilon, int method = 0);            //    |  exp(2 pi i alpha t + 2 pi i b t^2) dt
+Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method = 0);  //
 Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, Double epsilon);        //    |
-                                                                                //    / 0
+Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double epsilon); //    / 0
                                                                                 //  For complex parameters alpha and b.
                                                                                 //  (Defined in G_functions.cc)
                                                                                 //----------------------------------------------
@@ -481,3 +484,5 @@ inline Complex compute_C12(mpfr_t mp_a, mpfr_t mp_b, int K) {
  
     return w * z;
 }
+
+Complex theta_sum2(Double a, Double b, int K, Double epsilon);

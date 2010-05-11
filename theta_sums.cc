@@ -748,4 +748,10 @@ int normalize(mpfr_t a, mpfr_t b) {
     return -1; // this point should not be reachable.
 }
 
+Complex theta_sum2(Double a, Double b, int K, Double epsilon) {
+    Double h = 1/(Double)K;
+    Complex z1 = compute_exponential_sum(a + h, b, K, epsilon);
+    Complex z2 = compute_exponential_sum(a - h, b, K, epsilon);
 
+    return (Double)1/((Double)2 * PI * I * (Double)K) * (z1 - z2)/(2 * h);
+}

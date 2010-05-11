@@ -12,6 +12,7 @@ namespace stats {
     int H_method1 = 0;
     int H_method2 = 0;
     int H_method3 = 0;
+    int H_method4 = 0;
 
     int G_method1 = 0;
     int G_method2 = 0;
@@ -111,6 +112,9 @@ int main() {
 
 
     cout << setprecision(15);
+
+    cout << G(.2, .5, 0, 10, exp(-20), 1) << endl;
+    cout << G(.2, .5, 0, 10, exp(-20), 2) << endl;
 /* 
     mpfr_t mp_a, mp_b;
     mpfr_init2(mp_a, 300);
@@ -138,8 +142,8 @@ int main() {
  //   srand(time(NULL));
 
     
-    test2(exp(-20), exp(-20));
-    return 0;
+//    test2(exp(-20), exp(-20));
+//    return 0;
 /*
     mpfr_t mp_a, mp_b;
     mpfr_init2(mp_a, 100);
@@ -173,8 +177,8 @@ int main() {
     }
 */
 
-    cout << H(13, Complex(2, 1), exp(-25)) << endl;
-    cout << H_method3(13, Complex(2, 1), exp(-25)) << endl;
+//    cout << H(13, Complex(2, 1), exp(-25)) << endl;
+//    cout << H_method3(13, Complex(2, 1), exp(-25)) << endl;
     
 //    cout << "---"  << IC0(K, a, b, 0.0, 0.0, mp_a, mp_b, epsilon) << endl;
 

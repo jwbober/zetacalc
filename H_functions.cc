@@ -168,7 +168,9 @@ Complex H_method4(int j, Complex alpha, Double epsilon) {
     // Compute H(j, alpha) using a continued fraction expansion
     //
     // This code is largely copied from lcalc.
-    
+   
+    stats::H_method4++;
+
     Complex P1 = (Double)1;
     Complex P2 = (Double)(j + 1);
     Complex P3 = (Complex)0;
