@@ -246,7 +246,7 @@ inline Complex JBoundary(Double a1, Double a2, Double b, int K, Double epsilon){
 }                                                                               //----------------------------------------------
 
 inline Complex JBulk(Double a, Double b, int j, int M, int K, Double epsilon) {         //                         
-    return J_Integral_0(a, b, j, M, epsilon/2)                                          // See H_and_J_integrals.cc
+    return J_Integral_0(a, b, j, M, K, epsilon/2)                                          // See H_and_J_integrals.cc
                                         + J_Integral_1(a, b, j, M, K, epsilon/2);       //
 }                                                                                       //
                                                                                         //
@@ -260,12 +260,13 @@ inline Complex JBoundary(Double a1, Double a2, Double b, int j, int K, Double ep
 
 
 
+Complex IC0(int K, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mpfr_t mp_b, Double epsilon);
 Complex IC1(int K, Double a, Double b, Complex C11, Complex C12, Double epsilon);//----------------------------------------------
 Complex IC1c(int K, Double a, Double b, Complex C8, Double epsilon);            //
 inline Complex IC3(Double a, Double b, Double epsilon);                         //
-inline Complex IC3c(Double a, Double b, Double epsilon);                         //
-inline Complex IC4(int K, Double a, Double b, Complex C11, Double epsilon);            //
-inline Complex IC4c(int K, Double a, Double b, Complex C11, Double epsilon);            //
+inline Complex IC3c(Double a, Double b, Double epsilon);                        //
+inline Complex IC4(int K, Double a, Double b, Complex C11, Double epsilon);     //
+inline Complex IC4c(int K, Double a, Double b, Complex C11, Double epsilon);    //
 Complex IC5(Double a, Double b, Double epsilon);                                //  Computations of the integral of the function
 Complex IC6(int K, Double a, Double b, Double epsilon);                         //      
 Complex IC7(int K, Double a, Double b, Double epsilon);                         //       exp(2 pi i a t + 2 pi i b t^2)
@@ -277,99 +278,6 @@ inline Complex IC9H(Double a, Double b, Double epsilon);                        
                                                                                 //
 inline Complex IC8(Double a, Double b, Double epsilon) {                        //
     return exp(I * PI * (.25 - a * a/(2.0 * b)))/sqrt((Double)2 * b);           //----------------------------------------------
-}
-
-inline Complex IC0(int K, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mpfr_t mp_b, Double epsilon) {
-    if(b <= (-LOG(epsilon)) * (-LOG(epsilon))/((Double)K * (Double)K)) {
-        //std::cout << "Warning: Not implemented yet." << std::endl;
-        //return 0.0/0.0;
-
-        //std::cout << "here" << std::endl;
-
-        int N = to_int(ceil(std::max ((Double)1.0, -LOG(epsilon)) ));
-        mpfr_t mp_a2, mp_b2, tmp;
-        mpfr_init2(mp_a2, mpfr_get_prec(mp_a));
-        mpfr_init2(mp_b2, mpfr_get_prec(mp_b));
-        mpfr_init2(tmp, mpfr_get_prec(mp_a));
-
-        mpfr_mul_si(mp_a2, mp_a, K, GMP_RNDN);
-        mpfr_div_si(mp_a2, mp_a2, N, GMP_RNDN);
-
-        Double a2 = mpfr_get_d(mp_a2, GMP_RNDN);
-        
-        mpfr_floor(tmp, mp_a2);
-        mpfr_sub(mp_a2, mp_a2, tmp, GMP_RNDN);
-
-        mpfr_mul_si(mp_b2, mp_b, K, GMP_RNDN);
-        mpfr_mul_si(mp_b2, mp_b2, K, GMP_RNDN);
-        mpfr_div_si(mp_b2, mp_b2, N * N, GMP_RNDN);
-
-        Double b2 = mpfr_get_d(mp_b2, GMP_RNDN);
-
-        mpfr_floor(tmp, mp_b2);
-        mpfr_sub(mp_b2, mp_b2, tmp, GMP_RNDN);
-
-        Double a2_mod1 = mpfr_get_d(mp_a2, GMP_RNDN);
-        Double b2_mod1 = mpfr_get_d(mp_b2, GMP_RNDN);
-
-        mpfr_clear(mp_a2);
-        mpfr_clear(mp_b2);
-        mpfr_clear(tmp);
-
-        Complex S = (Complex)0;
-        //std::cout << N << std::endl;
-
-        for(int n = 0; n < N; n++) {
-            Complex C = exp((Double)2 * PI * I * (Double)n * (a2_mod1 + b2_mod1 * (Double)n));
-            Complex z = G(a2 + (Double) 2 * (Double)n * b2, b2, (epsilon)/(abs(C) * K));
-            
-            //std::cout << C << std::endl;
-            //std::cout << (epsilon)/(abs(C) * K) << "   " << b2 << std::endl;
-
-            S = S + C * z;
-        }
-        S = S * (Double)K;
-        S = S / (Double)(N);
-
-        return S;
-    }
-    if(-a/(2 * b) >= 0 && -a/(2 * b) <= K) {
-        Complex A = IC8(a, b, epsilon/4);
-        Complex B = IC6(K, a, b, epsilon/4);
-        Complex C = IC5(a, b, epsilon/4);
-        Complex D = IC1(K, a, b, C11, C12, epsilon/4);
-        if(verbose::IC0) {
-            std::cout << "   IC1:" << D << std::endl;
-            std::cout << "   IC5:" << C << std::endl;
-            std::cout << "   IC6:" << B << std::endl;
-            std::cout << "   IC8:" << A << std::endl;
-        }
-        // Really here we are computing IC2 - IC1...
-        return A - B - C - D;
-        //return IC8(a, b, epsilon/4) - IC6(K, a, b, epsilon/4) - IC5(a, b, epsilon/4) - IC1(K, a, b, C11, C12, epsilon/4);
-    }
-    else {
-        if(-a/(2 * b) > K) {
-            Complex A = IC3(a, b, epsilon/2);
-            Complex B = IC4(K, a, b, C11, epsilon/2);
-            if(verbose::IC0) {
-                std::cout << "   IC3:" << A << std::endl;
-                std::cout << "   IC4:" << B << std::endl;
-            }
-            return A - B;
-        }
-        else {// -a/(2b) < 0
-            Complex A = IC3c(a, b, epsilon/2);
-            Complex B = IC4c(K, a, b, C11, epsilon/2);
-            if(verbose::IC0) {
-                std::cout << "   IC3c:" << A << std::endl;
-                std::cout << "   IC4c:" << B << std::endl;
-            }
-            return A - B;
-        }
-        std::cout << "Warning: Not implemented yet." << std::endl;
-        return (Complex)(0.0/0.0);
-    }
 }
 
 inline Complex IC3(Double a, Double b, Double epsilon) {
@@ -403,11 +311,6 @@ inline Complex IC9H(Double a, Double b, Double epsilon) {
     // after a change of contour, this is well approximated by IC7(K, a, b) with large K
     //
 
-    //int K = (int)(10 * -log(epsilon * sqrt(b)));
-    //if(K < 0) {
-    //    K = 10;
-    //}
-    
     int K = to_int(10 * ceil( max(-LOG(epsilon * sqrt(b)), 1.0)/sqrt(b) ));
     return IC7(K, a, b, epsilon);
 }

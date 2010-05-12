@@ -147,7 +147,7 @@ int main() {
  //   srand(time(NULL));
 
     
-//    test2(exp(-20), exp(-20));
+    test2(exp(-20), exp(-20));
 //    return 0;
 /*
     mpfr_t mp_a, mp_b;

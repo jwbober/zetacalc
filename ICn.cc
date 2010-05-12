@@ -5,6 +5,90 @@
 
 using namespace std;
 
+
+Complex IC0(int K, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mpfr_t mp_b, Double epsilon) {
+    if(b <= (-LOG(epsilon)) * (-LOG(epsilon))/((Double)K * (Double)K)) {
+
+        int N = to_int(ceil(std::max ((Double)1.0, -LOG(epsilon)) ));
+        mpfr_t mp_a2, mp_b2, tmp;
+        mpfr_init2(mp_a2, mpfr_get_prec(mp_a));
+        mpfr_init2(mp_b2, mpfr_get_prec(mp_b));
+        mpfr_init2(tmp, mpfr_get_prec(mp_a));
+
+        mpfr_mul_si(mp_a2, mp_a, K, GMP_RNDN);
+        mpfr_div_si(mp_a2, mp_a2, N, GMP_RNDN);
+
+        Double a2 = mpfr_get_d(mp_a2, GMP_RNDN);
+        
+        mpfr_floor(tmp, mp_a2);
+        mpfr_sub(mp_a2, mp_a2, tmp, GMP_RNDN);
+
+        mpfr_mul_si(mp_b2, mp_b, K, GMP_RNDN);
+        mpfr_mul_si(mp_b2, mp_b2, K, GMP_RNDN);
+        mpfr_div_si(mp_b2, mp_b2, N * N, GMP_RNDN);
+
+        Double b2 = mpfr_get_d(mp_b2, GMP_RNDN);
+
+        mpfr_floor(tmp, mp_b2);
+        mpfr_sub(mp_b2, mp_b2, tmp, GMP_RNDN);
+
+        Double a2_mod1 = mpfr_get_d(mp_a2, GMP_RNDN);
+        Double b2_mod1 = mpfr_get_d(mp_b2, GMP_RNDN);
+
+        mpfr_clear(mp_a2);
+        mpfr_clear(mp_b2);
+        mpfr_clear(tmp);
+
+        Complex S = (Complex)0;
+
+        for(int n = 0; n < N; n++) {
+            Complex C = exp((Double)2 * PI * I * (Double)n * (a2_mod1 + b2_mod1 * (Double)n));
+            Complex z = G(a2 + (Double) 2 * (Double)n * b2, b2, (epsilon)/(abs(C) * K));
+            
+            S = S + C * z;
+        }
+        S = S * (Double)K;
+        S = S / (Double)(N);
+
+        return S;
+    }
+    if(-a/(2 * b) >= 0 && -a/(2 * b) <= K) {
+        Complex A = IC8(a, b, epsilon/4);
+        Complex B = IC6(K, a, b, epsilon/4);
+        Complex C = IC5(a, b, epsilon/4);
+        Complex D = IC1(K, a, b, C11, C12, epsilon/4);
+        if(verbose::IC0) {
+            std::cout << "   IC1:" << D << std::endl;
+            std::cout << "   IC5:" << C << std::endl;
+            std::cout << "   IC6:" << B << std::endl;
+            std::cout << "   IC8:" << A << std::endl;
+        }
+        // Really here we are computing IC2 - IC1...
+        return A - B - C - D;
+    }
+    else {
+        if(-a/(2 * b) > K) {
+            Complex A = IC3(a, b, epsilon/2);
+            Complex B = IC4(K, a, b, C11, epsilon/2);
+            if(verbose::IC0) {
+                std::cout << "   IC3:" << A << std::endl;
+                std::cout << "   IC4:" << B << std::endl;
+            }
+            return A - B;
+        }
+        else {// -a/(2b) < 0
+            Complex A = IC3c(a, b, epsilon/2);
+            Complex B = IC4c(K, a, b, C11, epsilon/2);
+            if(verbose::IC0) {
+                std::cout << "   IC3c:" << A << std::endl;
+                std::cout << "   IC4c:" << B << std::endl;
+            }
+            return A - B;
+        }
+    }
+}
+
+
 Complex IC1(int K, Double a, Double b, Complex C11, Complex C12, Double epsilon) {
     //
     // C11 should be passed as I * exp(2 pi I a K + 2 PI i b K^2)
@@ -18,28 +102,13 @@ Complex IC1(int K, Double a, Double b, Complex C11, Complex C12, Double epsilon)
     }
 
     Complex z = IC7(K, a + 2 * b * K, b, epsilon/2);
-    //cout << "------------------------------------------------------------------------------------" << endl;
-    //cout << z << endl;
-    //cout << "------------------------------------------------------------------------------------" << endl;
     Complex S = z;
  
     if( a + 2 * b * K <= - LOG(epsilon * sqrt(b))/((Double)2 * PI * K) + 1) {
         z = G((a + 2 * b * K)/sqrt(2 * PI * b) + I * (Double)2 * sqrt(b) * (Double)K/sqrt(2 * PI), (Double)1/(2 * PI), sqrt(2 * PI * b) * epsilon/(abs(C12) * (Double)2));
-    //cout << "------------------------------------------------------------------------------------" << endl;
-    //cout << C12 << endl;
-    //cout << z << endl;
-    //cout << "------------------------------------------------------------------------------------" << endl;
-
         S = S + C12 * z;
     }
 
-
-    //cout << "------------------------------------------------------------------------------------" << endl;
-    //cout << C12 << endl;
-    //cout << z << endl;
-    //cout << z * C12 << endl;
-    //cout << C11 << endl;
-    //cout << "------------------------------------------------------------------------------------" << endl;
     S *= C11;
 
     return S;
@@ -67,8 +136,6 @@ Complex IC1c(int K, Double a, Double b, Complex C8, Double epsilon) {
         cout << "            L = " << L << endl;
     }
 
-    //cout << L << endl;
-
     for(int n = 0; n <= L - 1; n++) {
         S = S + EXP(2.0 * PI * n * (I * a - 2.0 * b * (Double)K + I * b * (Double)n) ) * G(a + (Double)2.0 * I * b * (Double)K + (Double)2.0 * b * (Double)n, b, epsilon * exp(4 * PI * b * K * (Double)n + 2 *
          PI * a * K) );
@@ -88,6 +155,13 @@ Complex IC1c(int K, Double a, Double b, Complex C8, Double epsilon) {
     return S;
 }
 
+// IC2 not defined anywhere
+
+// IC3  defined inline in theta_sums.h
+// IC3c defined inline in theta_sums.h
+// IC4  defined inline in theta_sums.h
+// IC4c defined inline in theta_sums.h
+
 Complex IC5(Double a, Double b, Double epsilon) {
     //
     // Compute the integral int_0^\infty exp(-2 pi i exp(i pi /4) a - 2 pi b t^2) dt 
@@ -97,9 +171,6 @@ Complex IC5(Double a, Double b, Double epsilon) {
     return I * IC7(-1, -a, b, epsilon);
 }
 
-//Complex IC8(Double a, Double b, Double epsilon) {
-//    return exp(I * PI * (.25 - a * a/(2.0 * b)))/sqrt((Double)2 * b);
-//}
 
 Complex IC6(int K, Double a, Double b, Double epsilon) {
     //
@@ -130,7 +201,6 @@ Complex IC6(int K, Double a, Double b, Double epsilon) {
     Complex S = (Complex)0;
     
     for(int n = 0; n < L; n++) {
-        //Complex w1 = exp(2 * PI * (Double)n *  (alpha + 2 * beta + beta * (Double)n));
         Complex w1 = exp(2 * PI * alpha * (Double)n + 2 * PI * beta * (Double)n * (Double)n);
         Complex w2 = G(-I * alpha - (Double)2 * I * beta * (Double)n, -I * beta , epsilon/(abs(z) * abs(w1)));
         if(verbose::IC6) {
@@ -138,8 +208,6 @@ Complex IC6(int K, Double a, Double b, Double epsilon) {
         }
         S = S + z * w1 * w2;
     }
-
-    //S = S * z;
 
     return S;
 }
@@ -185,7 +253,6 @@ Complex IC7(int K, Double a, Double b, Double epsilon) {
     //check_condition(L <= K, "Warning: In IC7, K was too small.");
 
     if(K != -1) {
-        //L = min(L, (int)(sqrt(2.0 * b)*K));
         L = min(L, to_int(sqrt((Double)4 * PI * b) * K));
     }
 
@@ -194,11 +261,8 @@ Complex IC7(int K, Double a, Double b, Double epsilon) {
     Complex x2 = (Double)2 * PI * Complex(-x, x);
     Complex x3 = Complex(x, x);
     for(Double n = (Double)0; n <= L-1; n = n + 1) {
-        //Complex z2 = exp(x2*n/(sqrt((Double(2) * PI)) - n * n));
         Complex z2 = exp( 2 * PI * I * C10 * a / sqrt((Double)2 * PI * b) * n - n * n);
-        //Complex z = G(x3 + (Double)2 * I * n, I, epsilon/(abs(z2) * Double(L)));
         Complex z = G( C10 * a / sqrt((Double)2 * PI * b) + I * n/PI, I/( (Double)2 * PI), epsilon * sqrt((Double)2 * PI * b)/(abs(z2) * Double(L)));
-        //Complex z = G( (x3/sqrt( (Double)2 * PI)) + I * n/(Double)PI, I/((Double)2 * PI), epsilon/(abs(z2) * Double(L)));
         z = z * z2;
         S = S + z;
     }
@@ -231,20 +295,5 @@ Complex IC9E(int K, Double a, Double b, Double epsilon) {
     return S;
 }
 
-/*
-Complex IC9H(Double a, Double b, Double epsilon) {
-    //
-    // Compute the integral int_0^\infty exp(-2 pi a t - 2 pi i b t^2)
-    //
-    // after a change of contour, this is well approximated by IC7(K, a, b) with large K
-    //
+// IC9H is an inline function in the header file
 
-    //int K = (int)(10 * -log(epsilon * sqrt(b)));
-    //if(K < 0) {
-    //    K = 10;
-    //}
-    
-    int K = (int)(10 * ceil( max(-log(epsilon * sqrt(b)), 1.0)/sqrt(b) ));
-    return IC7(K, a, b, epsilon);
-}
-*/

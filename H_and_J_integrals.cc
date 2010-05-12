@@ -31,13 +31,10 @@ Complex H_Integral_0(int j, Double a, int M, Double epsilon) {
 
     Complex S = (Complex)0;
 
-    //int C = min(M, max(j, (int)ceil(-log(epsilon)/(2 * PI) ) ));
     int C = min(M, max(to_int(ceil(j/(2 * PI * E))), to_int(ceil(-LOG(epsilon)/(2 * PI))) ));
-//    int C = M;
 
     for(int m = 1; m <= C; m++) {
         Complex z = H(j, a + m, epsilon/(C + 1));
-//        cout << z << endl;
         S = S + z;
     }
 
@@ -77,7 +74,6 @@ Complex J_Integral_0(Double a, Double b, int M, Double epsilon) {
 
     Complex Ib_power = (Complex)1.0/(I * b);
     while(error > epsilon) {
-        //cout << r << endl;
         sign = -sign;
         Ib_power *= (I * b);
         Complex z = sign * two_pi_over_factorial_power(r) * Ib_power;
@@ -86,7 +82,6 @@ Complex J_Integral_0(Double a, Double b, int M, Double epsilon) {
                                                                                 // this much precision usually. We really should figure
                                                                                 // our how many terms we are going to compute
                                                                                 // and then divide appropriately.
-//        cout << r << endl;
         S = S + z;
         r++;
     }
@@ -123,7 +118,6 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, Double epsilon) {
 
     Complex Ib_power = (Complex)1.0/(I * b);
     while(error > epsilon) {
-        //cout << r << endl;
         sign = -sign;
         Ib_power *= (I * b);
         Complex z = sign * two_pi_over_factorial_power(r) * Ib_power;
@@ -132,7 +126,6 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, Double epsilon) {
                                                                                 // this much precision usually. We really should figure
                                                                                 // our how many terms we are going to compute
                                                                                 // and then divide appropriately.
-//        cout << r << endl;
         S = S + z;
         r++;
     }
@@ -161,8 +154,6 @@ Complex J_Integral_1(Double a, Double b, int M, int K, Double epsilon) {
     // to a sum of exponentials times G()
 
     Complex S = (Complex)0;
-
-    //cout << L << endl;
 
     for(Double n = (Double)1; n <= L - 1; n = n + 1) {
         int end_point;
@@ -206,8 +197,6 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, Double epsilon) {
 
     Complex S = (Complex)0;
 
-    //cout << L << endl;
-
     for(Double n = (Double)1; n <= L - 1; n = n + 1) {
         int end_point;
         if(M == -1) {
@@ -222,11 +211,8 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, Double epsilon) {
         Complex S1 = 0;
 
         for(Double m = (Double)1; m <= end_point; m = m + 1) {
-   //         cout << n << " " << m << endl;
             Complex z =  G(I*(m + a + (Complex)2.0 * I * b * n), -b, n, j, epsilon * exp( 2 * PI * (m + a) * n)/(end_point * Double(L - 1) * two_n_over_K_power));
-   //         cout << z << endl;
             z *= EXP(-2.0 * PI * n * (m + a + I * b * n));
-   //         cout << z << endl;
             S1 = S1 + z;
         }
         S1 = S1 * two_n_over_K_power;
@@ -247,11 +233,9 @@ Complex H_Integral_2(int j, Double a1, Double a2, Double epsilon) {
     Complex S = (Complex)0;
 
     int C = max(to_int(ceil(j/(2*PI*E))), to_int(ceil(-LOG(epsilon)/(2 * PI) ) ));
-//    int C = M;
 
     for(int m = 1; m <= C; m++) {
         Complex z = H(j, m + a1, epsilon/(C + 1)) - H(j, m + a2, epsilon/(C + 1));
-//        cout << z << endl;
         S = S + z;
     }
 
@@ -293,12 +277,11 @@ Complex J_Integral_2(Double a1, Double a2, Double b, int j, int K, Double epsilo
         Ib_power *= (I * b);
         Complex z = sign * two_pi_over_factorial_power(r) * Ib_power;
         error = abs(z);
-        //cout << error << endl;
+        
         z *= H_Integral_2(2 * r + j, a1, a2, epsilon/(error * N));  // TODO: We really don't need to compute this term to
                                                                                 // this much precision usually. We really should figure
                                                                                 // our how many terms we are going to compute
                                                                                 // and then divide appropriately.
-//        cout << r << endl;
         S = S + z;
         r++;
     }
@@ -337,12 +320,11 @@ Complex J_Integral_2(Double a1, Double a2, Double b, Double epsilon) {
         Ib_power *= (I * b);
         Complex z = sign * two_pi_over_factorial_power(r) * Ib_power;
         error = abs(z);
-        //cout << error << endl;
+        
         z *= H_Integral_2(2 * r, a1, a2, epsilon/(error * N));  // TODO: We really don't need to compute this term to
                                                                                 // this much precision usually. We really should figure
                                                                                 // our how many terms we are going to compute
                                                                                 // and then divide appropriately.
-//        cout << r << endl;
         S = S + z;
         r++;
     }

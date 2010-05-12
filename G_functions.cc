@@ -18,17 +18,8 @@ Complex G(Complex alpha, Complex b, Double epsilon, int method) {
     //
     
     
-    //if(beta < 0) {
-    //    // do something
-    //}
-    //if(b < 0 || b > 1) {
-    //    // do something
-    //}
-
     check_condition(imag(alpha) >= 0, "In function G(), Imag(alpha) should be nonnegative, but it isn't");
     //check_condition(b >= -1 && b <= 1, "In function G(), b should be between 0 and 1, but it isn't");
-
-    //cout << alpha << "  " << abs(alpha) << endl;
 
     if(verbose::G) {
         cout << "G() called with:  " << endl;
@@ -54,7 +45,6 @@ Complex G(Complex alpha, Complex b, Double epsilon, int method) {
             stats::G_method2++;
         }
         else if( (1.5 <= abs(alpha)) && (abs(alpha) <= 2.5) && abs(b) > .024) {
-            //cout << "here" << endl;
             method = 2;
             stats::G_method2++;
         }
@@ -81,12 +71,8 @@ Complex G(Complex alpha, Complex b, Double epsilon, int method) {
 
     int N = max(1, to_int(ceil( -LOG(epsilon) )));
 
-    //cout << "in G, using N = " << N << endl;
-
     Complex S = (Complex)0;
-//    Double j_factorial = 1;
 
-    //for(int j = 0; j < N + 1; j++) {
     Double error = epsilon + 1;
     int j = 0;
     Complex Ib_power = (Complex)1;
@@ -128,26 +114,12 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, Double epsilon) {
     //
     // (These heuristics might not work well when b is larger, but b will be at most .25 in our applications.)
 
-    //int n =  a * (2 * m + ceil(2 * PI * (abs(alpha) + abs((Double)2 * b))));
-
     if(epsilon >= 1) {
         return (Complex)0;
     }
 
     int n = 4 * to_int(ceil(abs(alpha) + abs((Complex)2.0 * b) - LOG(epsilon)/(2 * PI)));
     
-    //cout << epsilon << endl;
-
-    //cout << alpha << endl;
-    //cout << b << endl;
-    //cout << epsilon << endl;
-
-    //cout << n << endl;
-
-    //int n = 10000;
-
-    //cout << n << endl;
-
     Complex S = (Complex)0;
     for(int j = 0; j <= n; j++) {
         S = S + g(alpha, b, (Double)j/(Double)n);
@@ -155,19 +127,7 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, Double epsilon) {
     S = S - (Double)(.5) * (g(alpha, b, 0) + g(alpha, b, 1));
     S = S/(Double)n;
 
-    //cout << S << endl;
-
-    
-    //if(2 * m - 3 > 21) {
-    //    cout << "I can't compute that many derivatives. Sorry." << endl;
-    //    return Complex(0, 0);
-    //}
-
-    //cout << m << endl;
-
-//    initialize_power_arrays(21, alpha, b);
     Double n_power = 1;
-//    for(int r = 1; r <= m - 1; r++) {
 
     Double error = epsilon + 1; 
     int r = 1;
@@ -176,8 +136,6 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, Double epsilon) {
     Complex * p_prev = new Complex[0];
 
     while(error > epsilon/2) {
-       // cout << error << endl;
-    
         p = new Complex[2 * r - 2 + 1];
         g_derivative_polynomial(2 * r - 2, p, p_prev, alpha, b);
         delete [] p_prev;
@@ -195,20 +153,11 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, Double epsilon) {
         Complex derivative_at_0 = p[0];
 
         n_power *= ((Double)n * (Double)n);
-//        Complex z = bernoulli_table[2 * r]/(factorial(2 * r) * n_power) * (g_derivative_at_1(2 * r - 1) - g_derivative_at_0(2 * r - 1));
         Complex z = bernoulli_table[2 * r]/(factorial(2 * r) * n_power) * (derivative_at_1 - derivative_at_0);
 
-//        cout << g_derivative_at_1(2 * r - 1) << "    " << derivative_at_1 << endl;
-//        cout << g_derivative_at_0(2 * r - 1) << "    " << derivative_at_0 << endl;
-//        cout << "    " << bernoulli_table[2*r] << endl;
-//        cout << "    " << factorial(2 * r) << endl;
-//        cout << "    " n_power << endl;
-
-//        cout << z << "   " << g_derivative_at_1(2 * r - 1) << "   " <<  g_derivative_at_0(2 * r - 1)  << endl;
         S = S - z;
         r = r + 1;
         error = abs(z);
-       // cout << error << endl;
     }
 
      delete [] p;
@@ -233,21 +182,11 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
     //
     
     
-    //if(beta < 0) {
-    //    // do something
-    //}
-    //if(b < 0 || b > 1) {
-    //    // do something
-    //}
-    
     if(j == 0) {
         return G(alpha, b, epsilon, method);
     }
 
     check_condition(imag(alpha) >= 0, "In function G(), Imag(alpha) should be nonnegative, but it isn't");
-    //check_condition(b >= -1 && b <= 1, "In function G(), b should be between 0 and 1, but it isn't");
-
-    //cout << alpha << "  " << abs(alpha) << endl;
 
     if(verbose::G) {
         cout << "G() called with:  " << endl;
@@ -273,7 +212,6 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
             stats::G_method2++;
         }
         else if( (1.5 <= abs(alpha)) && (abs(alpha) <= 2.5) && abs(b) > .024) {
-            //cout << "here" << endl;
             method = 2;
             stats::G_method2++;
         }
@@ -309,12 +247,8 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
 
     int N = max(1, to_int(ceil( -LOG(epsilon) )));
 
-    //cout << "in G, using N = " << N << endl;
-
     Complex S = (Complex)0;
-//    Double j_factorial = 1;
 
-    //for(int j = 0; j < N + 1; j++) {
     Double error = epsilon + 1;
     int r = 0;
     Complex Ib_power = (Complex)1;
@@ -367,8 +301,6 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
     //
     // (These heuristics might not work well when b is larger, but b will be at most .25 in our applications.)
 
-    //int n =  a * (2 * m + ceil(2 * PI * (abs(alpha) + abs((Double)2 * b))));
-
     if(j == 0) {
         return G_via_Euler_MacLaurin(alpha, b, epsilon);
     }
@@ -386,18 +318,6 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
         two_n_to_the_j = 1;
     Double one_over_two_n_to_the_j = 1/two_n_to_the_j;
 
-    //cout << epsilon << endl;
-
-    //cout << alpha << endl;
-    //cout << b << endl;
-    //cout << epsilon << endl;
-
-    //cout << n << endl;
-
-    //int n = 10000;
-
-    //cout << n << endl;
-
     Complex S = (Complex)0;
     for(int s = 0; s <= N; s++) {
         S = S + g(alpha, b, n, j, (Double)s/(Double)N) * one_over_two_n_to_the_j;
@@ -405,19 +325,7 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
     S = S - (Double)(.5) * (g(alpha, b, n, j, 0) + g(alpha, b, n, j, 1)) * one_over_two_n_to_the_j;
     S = S/(Double)N;
 
-    //cout << S << endl;
-
-    
-    //if(2 * m - 3 > 21) {
-    //    cout << "I can't compute that many derivatives. Sorry." << endl;
-    //    return Complex(0, 0);
-    //}
-
-    //cout << m << endl;
-
-//    initialize_power_arrays(21, alpha, b);
     Double N_power = 1;
-//    for(int r = 1; r <= m - 1; r++) {
 
     Double error = epsilon + 1; 
     int r = 1;
@@ -438,7 +346,6 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
 
 
     while(error > epsilon/2) {
-       // cout << error << endl;
     
         if(r > 1) {
             p = new Complex[2 * r - 2 + 1 + j];
@@ -459,23 +366,14 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
         Complex derivative_at_0 = p[0];
 
         N_power *= ((Double)N * (Double)N);
-//        Complex z = bernoulli_table[2 * r]/(factorial(2 * r) * n_power) * (g_derivative_at_1(2 * r - 1) - g_derivative_at_0(2 * r - 1));
         Complex z = bernoulli_table[2 * r]/(factorial(2 * r) * N_power) * (derivative_at_1 - derivative_at_0);
 
-//        cout << g_derivative_at_1(2 * r - 1) << "    " << derivative_at_1 << endl;
-//        cout << g_derivative_at_0(2 * r - 1) << "    " << derivative_at_0 << endl;
-//        cout << "    " << bernoulli_table[2*r] << endl;
-//        cout << "    " << factorial(2 * r) << endl;
-//        cout << "    " n_power << endl;
-
-//        cout << z << "   " << g_derivative_at_1(2 * r - 1) << "   " <<  g_derivative_at_0(2 * r - 1)  << endl;
         S = S - z;
         r = r + 1;
         error = abs(z);
-       // cout << error << endl;
     }
 
-     delete [] p;
+    delete [] p;
  
     if(verbose::G) {
         cout << "In G(), using Euler-Maclaurin computed G(" << alpha << ", " << b << ") = " << S << endl;

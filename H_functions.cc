@@ -82,34 +82,26 @@ inline Complex H_method2(int j, Complex alpha, Double epsilon) {
     //
     // H(j, alpha) = sum_{m=0}^\infty (-2 pi alpha)^m / (m! (j + m + 1) )
     //
-    //const Double alpha_0 = 1/(2*PI);
-    
     //int N = max(ceil(-log(epsilon)), ceil(2 * PI * alpha_0 * E * E));; // the number of terms we will use in the taylor expansion
 
     stats::H_method2++;
 
-    Complex alpha_power = (Complex)1;
-//    Double m_factorial = 1;
 
     Complex S = (Complex)0;
-    //for(int m = 0; m <= N; m++) {
+    
     Double error = epsilon + 1.0;
     int m = 0;
+    Complex alpha_power = (Complex)1;
     while(error > epsilon/2.0) {
         if(m > 0) {
-            //two_pi_alpha_power *= (-2 * PI * alpha);
             alpha_power *= -alpha;
-            //m_factorial *= m;
         }
-        //Complex z = two_pi_alpha_power/(m_factorial * (j + m + 1) );
         Complex z = two_pi_over_factorial_power(m) * alpha_power / Double(j + m + 1);
         S = S + z;
         error = abs(z);
         m++;
     }
 
-    //cout << m << endl;
-    
     return S;
 }
 
@@ -128,13 +120,9 @@ Complex H_method3(int j, Complex alpha, Double epsilon) {
 
     Complex S = (Complex)0;
 
-    //cout << j << endl;
-
     Complex H_table[j + 1];
     for(int m = 0; m <= j; m++) {
-        //H_table[m] = H(m, alpha/(Double)M, 2 * PI * epsilon/M);
         H_table[m] = H_method2(m, alpha/(Double)M, j * epsilon);
-        //H_table[m] = 1;
     }
 
 
@@ -151,11 +139,9 @@ Complex H_method3(int j, Complex alpha, Double epsilon) {
             Complex z = binomial_coefficient(j, r) * m_power * H_table[j-r];
             S2 = S2 + z;
         }
-        //Complex z = EXP(-2.0 * PI * alpha  * (Double)m/ (Double)M) * S2;
 
         exponential_factor *= exponential_multiplication_factor;
         Complex z = exponential_factor * S2; // Here we should be multiplying S2 by exp(-2 pi alpha m/M), if we are doing things correctly.
-        //Complex z = EXP(-2.0 * PI * alpha  * (Double)m/ (Double)M) * S2;
         S = S + z;
 
 
