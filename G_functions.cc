@@ -297,7 +297,6 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
     if(n > 0) {
         Complex S = 0;
         for(int s = 0; s <= j; s++) {
-            cout << "here" << endl;
             Double z = binomial_coefficient(j, s) * pow(2, -j) * pow(n, -s);
             S = S + z * G(alpha, b, 0, s, epsilon/(z * j));
         }

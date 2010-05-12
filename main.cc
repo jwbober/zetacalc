@@ -113,8 +113,13 @@ int main() {
 
     cout << setprecision(15);
 
-    cout << G(.2, .5, 0, 10, exp(-20), 1) << endl;
-    cout << G(.2, .5, 0, 10, exp(-20), 2) << endl;
+//    cout << G(.2, .5, 0, 10, exp(-20), 1) << endl;
+//    cout << G(.2, .5, 0, 10, exp(-20), 2) << endl;
+
+    //cout << J_Integral_0(.41, 0, 2, 20, 400, exp(-60)) << endl;
+
+    cout << J_Integral_2(.2, .3, .2, 1, 400, exp(-20)) << endl;
+
 /* 
     mpfr_t mp_a, mp_b;
     mpfr_init2(mp_a, 300);
