@@ -55,7 +55,7 @@ Complex IC0(int K, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mp
     }
     if(-a/(2 * b) >= 0 && -a/(2 * b) <= K) {
         Complex A = IC8(a, b, epsilon/4);
-        Complex B = IC6(K, a, b, epsilon/4);
+        Complex B = IC6(K, a, b, mp_a, epsilon/4);
         Complex C = IC5(a, b, epsilon/4);
         Complex D = IC1(K, a, b, C11, C12, epsilon/4);
         if(verbose::IC0) {
@@ -223,6 +223,20 @@ Complex IC1c(int K, int j, Double a, Double b, Complex C8, Double epsilon) {
 // IC4  defined inline in theta_sums.h
 // IC4c defined inline in theta_sums.h
 
+Complex IC4c(int K, int j, Double a, Double b, Complex C11, Double epsilon) {
+    // needs a + 2bK <= 0
+    // b is always positive, so this will be satisfied if 
+    
+    Complex S = 0;
+    for(int r = 0; r <= j; r++) {
+        Double z = binomial_coefficient(j, r);
+        S = S + z * pow(I, r) * IC9H(K, r, (a + 2 * b * (Double)K), b, epsilon/z);
+    }
+    return S * C11;
+}
+
+
+
 Complex IC5(Double a, Double b, Double epsilon) {
     //
     // Compute the integral int_0^\infty exp(-2 pi i exp(i pi /4) a - 2 pi b t^2) dt 
@@ -241,14 +255,17 @@ Complex IC5(int K, int j, Double a, Double b, Double epsilon) {
     return pow(-1, j) * pow(I, j + 1) * IC7(-1, j, -a, b, epsilon * pow(K, j)) * pow(K, -j);
 }
 
-
 Complex IC6(int K, Double a, Double b, Double epsilon) {
     //
-    // After some changes of variables this integral is equal to
+    // Compute the integral of exp(2 pi i a t + 2 pi i b t^2) over the
+    // contour C_6 = {t exp(i pi/4) | sqrt{2} K < t < infinity}.
+    //
+    //
+    // After some changes of variables this integral is equal (within epsilon) to
     //
     // (1/sqrt(2 pi b)) exp( i pi/4 + 2 pi (i - 1)a K - 4 PI b K^2) int_0^L exp(pi (i - 1) a t/sqrt(pi b) - 4 sqrt(pi b) K t - t^2
     //
-    // 
+    // where L is defined below.
 
     
 
@@ -263,7 +280,9 @@ Complex IC6(int K, Double a, Double b, Double epsilon) {
         cout << "              y = " << y << endl;
     }
 
+
     Complex z = (Double)1/sqrt(2 * PI * b) * exp(I * PI/(Double)4 + 2 * PI*(I - (Double)1) * a * (Double)K - 4 * PI * b * (Double)K * Double(K));
+    //Complex z = (Double)1/sqrt(2 * PI * b) * exp(I * PI/(Double)4 + 2 * PI*( -(Double)1) * a * (Double)K - 4 * PI * b * (Double)K * Double(K)) * z1;
 
     Complex alpha = (I - (Double)1)*a/(2 * sqrt(PI * b)) - 2 * sqrt(b) * (Double)K / sqrt(PI);
     Double beta = -1/(2 * PI);
@@ -281,6 +300,120 @@ Complex IC6(int K, Double a, Double b, Double epsilon) {
 
     return S;
 }
+
+
+
+
+
+Complex IC6(int K, Double a, Double b, mpfr_t mp_a, Double epsilon) {
+    //
+    // Compute the integral of exp(2 pi i a t + 2 pi i b t^2) over the
+    // contour C_6 = {t exp(i pi/4) | sqrt{2} K < t < infinity}.
+    //
+    //
+    // After some changes of variables this integral is equal (within epsilon) to
+    //
+    // (1/sqrt(2 pi b)) exp( i pi/4 + 2 pi (i - 1)a K - 4 PI b K^2) int_0^L exp(pi (i - 1) a t/sqrt(pi b) - 4 sqrt(pi b) K t - t^2
+    //
+    // where L is defined below.
+
+    
+
+    Double x = sqrt(PI/b) * a + 4 * sqrt(PI * b) * (Double)K;
+    Double y = max(-LOG(epsilon * sqrt(2 * PI) * b) - (Double)2 * PI * (Double)K*(a + (Double)2 * b * (Double)K), (Double)0);
+
+    int L = to_int(ceil(min(sqrt(y), y/x)));
+
+    if(verbose::IC6) {
+        cout << "In IC6, using L = " << L << endl;
+        cout << "              x = " << x << endl;
+        cout << "              y = " << y << endl;
+    }
+
+    Complex z1 = 1.0/ExpA(mp_a, K);
+
+    //Complex z = (Double)1/sqrt(2 * PI * b) * exp(I * PI/(Double)4 + 2 * PI*(I - (Double)1) * a * (Double)K - 4 * PI * b * (Double)K * Double(K));
+    Complex z = (Double)1/sqrt(2 * PI * b) * exp(I * PI/(Double)4 - 2 * PI* a * (Double)K - 4 * PI * b * (Double)K * Double(K)) * z1;
+
+    Complex alpha = (I - (Double)1)*a/(2 * sqrt(PI * b)) - 2 * sqrt(b) * (Double)K / sqrt(PI);
+    Double beta = -1/(2 * PI);
+
+    Complex S = (Complex)0;
+    
+    for(int n = 0; n < L; n++) {
+        Complex w1 = exp(2 * PI * alpha * (Double)n + 2 * PI * beta * (Double)n * (Double)n);
+        Complex w2 = G(-I * alpha - (Double)2 * I * beta * (Double)n, -I * beta , epsilon/(abs(z) * abs(w1)));
+        if(verbose::IC6) {
+            cout << "For n = " << n << ", z * w1 * w2 = " << z * w1 * w2 << endl;
+        }
+        S = S + z * w1 * w2;
+    }
+
+    return S;
+}
+
+
+Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, Double epsilon) {
+    //
+    // Compute the integral of exp(2 pi i a t + 2 pi i b t^2) over the
+    // contour C_6 = {t exp(i pi/4) | sqrt{2} K < t < infinity}.
+    //
+    //
+    // After some changes of variables this integral is equal (within epsilon) to
+    //
+    // (1/sqrt(2 pi b)) exp( i pi/4 + 2 pi (i - 1)a K - 4 PI b K^2) int_0^L exp(pi (i - 1) a t/sqrt(pi b) - 4 sqrt(pi b) K t - t^2
+    //
+    // where L is defined below.
+
+    
+
+    Double x = sqrt(PI/b) * a + 4 * sqrt(PI * b) * (Double)K;
+    Double y = max(-LOG(epsilon * sqrt(2 * PI) * b) - (Double)2 * PI * (Double)K*(a + (Double)2 * b * (Double)K), (Double)0);
+
+    int L = to_int(ceil(min(sqrt(y), y/x)));
+
+    if(verbose::IC6) {
+        cout << "In IC6, using L = " << L << endl;
+        cout << "              x = " << x << endl;
+        cout << "              y = " << y << endl;
+    }
+
+    Complex z1 = 1.0/ExpA(mp_a, K);
+
+    //Complex z = (Double)1/sqrt(2 * PI * b) * exp(I * PI/(Double)4 + 2 * PI*(I - (Double)1) * a * (Double)K - 4 * PI * b * (Double)K * Double(K));
+    //Complex z = (Double)1/sqrt(2 * PI * b) * exp(I * PI/(Double)4 - 2.0 * PI* a * (Double)K - 4 * PI * b * (Double)K * Double(K)) * z1;
+
+    //Complex z = pow(2.0 * PI * b, -((Double)j + 1.0)/2) * exp(I * PI * ((Double)j + 1)/(Double)4 - 2.0 * PI* a * (Double)K - 4 * PI * b * (Double)K * Double(K)) * z1;
+    Complex z = exp(I * PI * ((Double)j + 1)/(Double)4 - 2.0 * PI* a * (Double)K - 4 * PI * b * (Double)K * Double(K)) * z1;
+
+    Complex alpha = (I - (Double)1)*a/(2 * sqrt(PI * b)) - 2 * sqrt(b) * (Double)K / sqrt(PI);
+    Double beta = -1/(2 * PI);
+
+    Complex S = (Complex)0;
+    
+    for(int r = 0; r <= j; r++) {
+     
+        Complex S1 = 0;
+
+        Double z2 = pow(K, r) * pow(2.0 * PI * b, ((Double)r + 1)/2) / ( pow(2, ((Double)(j-r))/2) * binomial_coefficient(j, r));
+
+        for(int n = 0; n < L; n++) {
+            Complex w1 = exp(2 * PI * alpha * (Double)n + 2 * PI * beta * (Double)n * (Double)n);
+            Complex w2 = G(-I * alpha - (Double)2 * I * beta * (Double)n, -I * beta, n, r, epsilon * z2/(abs(z) * abs(w1)));
+            if(verbose::IC6) {
+                cout << "For n = " << n << ", z * w1 * w2 = " << z * w1 * w2 << endl;
+            }
+            S1 = S1 + z * w1 * w2;
+        }
+        S1 = S1/z2;
+        S = S + S1;
+    }
+    S = S;
+
+    return S;
+}
+
+
 
 Complex IC7(int K, Double a, Double b, Double epsilon) {
     //
@@ -311,7 +444,7 @@ Complex IC7(int K, Double a, Double b, Double epsilon) {
         L = to_int(ceil( -LOG(epsilon*sqrt(b))/(2.0 * PI * x)));
     }
     else {
-        L = to_int(ceil( -LOG(epsilon*sqrt(b))/(2.0 * PI)));
+        L = to_int(ceil( -LOG(epsilon*sqrt(b))));
     }
 
     L = max(0, L);
@@ -393,6 +526,11 @@ Complex IC7(int K, int j, Double a, Double b, Double epsilon) {
     // integral at an integer.
     //
     
+    //
+    // TODO: When K == -1 and j > 1, we are not truncating this integral
+    // as early as we should. We should think about this a little bit more.
+    //
+
     int L = 0;
     if(x > 1) {
         L = to_int(ceil( -LOG(epsilon*sqrt(b))/(2.0 * PI * x)));
@@ -400,14 +538,12 @@ Complex IC7(int K, int j, Double a, Double b, Double epsilon) {
             L = max((int)ceil(((Double)j + 1.0) * pow(log(j + (Double)1), 2) / x), L);
     }
     else {
-        L = to_int(ceil( -LOG(epsilon*sqrt(b))/(2.0 * PI)));
+        L = to_int(ceil( -LOG(epsilon*sqrt(b))));
         if(K == -1)
             L = max((int)ceil(((Double)j + 1.0) * pow(log(j + (Double)1), 2)), L);
     }
     if(K != -1)
         L = max(0, L);
-
-    cout << L << endl;
 
     if(verbose::IC7) {
         cout << "In IC7(): L = " << L << endl;
@@ -429,7 +565,8 @@ Complex IC7(int K, int j, Double a, Double b, Double epsilon) {
     Double K_to_the_j;
     if(K == -1) {
         K_to_the_j = 1.0;       // This is potentially quite confusing. We treat K = -1 as infinity,
-                                // so we don't want to do any normalization.
+                                // so we don't want to do any normalization, so we just set this
+                                // variable to be 1.
     }
     else {
         K_to_the_j = pow(K, j);

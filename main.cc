@@ -123,17 +123,36 @@ int main() {
     //cout << G(.1, .1, 5, 20, 100) << endl;
     //cout << G(.1, .1, 5, 20, exp(-20)) << endl;
     
+    mpfr_t mp_a;
+    mpfr_t mp_b;
 
-    //cout << IC5(100, 20, -.1, .1, exp(-150)) << endl;
-    cout << IC7(-1, 15, .1, .1, pow(10, 9)) << endl;
-    cout << IC7(-1, 15, .1, .1, pow(10, 7)) << endl;
-    cout << IC7(-1, 15, .1, .1, pow(10, 5)) << endl;
-    cout << IC7(-1, 15, .1, .1, pow(10, 3)) << endl;
-    cout << IC7(-1, 15, .1, .1, pow(10, 1)) << endl;
-    cout << IC7(-1, 15, .1, .1, pow(10, -1)) << endl;
-    cout << IC7(-1, 15, .1, .1, pow(10, -5)) << endl;
-    cout << IC7(-1, 15, .1, .1, pow(10, -10)) << endl;
-    cout << IC7(-1, 15, .1, .1, pow(10, -15)) << endl;
+    mpfr_init2(mp_a, 100);
+    mpfr_set_str(mp_a, ".001", 10, GMP_RNDN);
+
+    mpfr_init2(mp_b, 100);
+    mpfr_set_str(mp_b, ".01", 10, GMP_RNDN);
+
+    Double a = mpfr_get_d(mp_a, GMP_RNDN);
+    Double b = mpfr_get_d(mp_b, GMP_RNDN);
+/*
+    cout << IC6(10, a, b, exp(-20)) << endl;
+    cout << IC6(10, a, b, mp_a, exp(-20)) << endl;
+    cout << IC6(10, 2, a, b, mp_a, exp(-20)) << endl;
+    cout << IC6(10, 2, a, b, mp_a, exp(-50)) << endl;
+*/
+        
+    int K = 100;
+    Complex C11 = compute_C11(mp_a, mp_b, K);
+
+    cout << IC4c(K, a, b, C11, exp(-20)) << endl;
+    cout << IC4c(K, a, b, C11, exp(-50)) << endl;
+    cout << IC4c(K, 0, a, b, C11, exp(-50)) << endl;
+    cout << IC4c(K, 2, a, b, C11, exp(-20)) << endl;
+    cout << IC4c(K, 2, a, b, C11, exp(-50)) << endl;
+
+//    cout << IC5(100, 20, -.1, .1, exp(-150)) << endl;
+//    cout << IC5(100, 20, -.1, .1, exp(-10)) << endl;
+//    cout << IC5(100, 20, -.1, .1, exp(-20)) << endl;
     //cout << IC7(-1, 20, .1, .1, exp(-50)) << endl;
     //cout << IC5(-.1, .1, exp(-20)) << endl;
     
