@@ -116,9 +116,29 @@ int main() {
 //    cout << G(.2, .5, 0, 10, exp(-20), 1) << endl;
 //    cout << G(.2, .5, 0, 10, exp(-20), 2) << endl;
 
-    //cout << J_Integral_0(.41, 0, 2, 20, 400, exp(-60)) << endl;
+    //cout << J_Integral_1(.41, .1, 1, 20, 400, exp(-60)) << endl;
 
-    cout << J_Integral_2(.2, .3, .2, 1, 400, exp(-20)) << endl;
+    //cout << J_Integral_2(.2, .3, .2, 1, 400, exp(-20)) << endl;
+    
+    //cout << G(.1, .1, 5, 20, 100) << endl;
+    //cout << G(.1, .1, 5, 20, exp(-20)) << endl;
+    
+
+    //cout << IC5(100, 20, -.1, .1, exp(-150)) << endl;
+    cout << IC7(-1, 15, .1, .1, pow(10, 9)) << endl;
+    cout << IC7(-1, 15, .1, .1, pow(10, 7)) << endl;
+    cout << IC7(-1, 15, .1, .1, pow(10, 5)) << endl;
+    cout << IC7(-1, 15, .1, .1, pow(10, 3)) << endl;
+    cout << IC7(-1, 15, .1, .1, pow(10, 1)) << endl;
+    cout << IC7(-1, 15, .1, .1, pow(10, -1)) << endl;
+    cout << IC7(-1, 15, .1, .1, pow(10, -5)) << endl;
+    cout << IC7(-1, 15, .1, .1, pow(10, -10)) << endl;
+    cout << IC7(-1, 15, .1, .1, pow(10, -15)) << endl;
+    //cout << IC7(-1, 20, .1, .1, exp(-50)) << endl;
+    //cout << IC5(-.1, .1, exp(-20)) << endl;
+    
+    //cout << IC1c(100, 1, .01, .2, 1, exp(-20)) << endl;
+    //cout << IC1c(100, .01, .2, 1, exp(-20)) << endl;
 
 /* 
     mpfr_t mp_a, mp_b;
@@ -147,7 +167,7 @@ int main() {
  //   srand(time(NULL));
 
     
-    test2(exp(-20), exp(-20));
+    //test2(exp(-20), exp(-20));
 //    return 0;
 /*
     mpfr_t mp_a, mp_b;

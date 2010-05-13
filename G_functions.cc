@@ -173,7 +173,7 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, Double epsilon) {
 
 Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
     // We compute the integral int_0^1 g(t),
-    // where g(t) = (t + n)^j exp(2 pi i alpha t + 2 pi i b t^2)/(2n)^j
+    // where g(t) = (t + n)^j exp(2 pi i alpha t + 2 pi i b t^2)
     //
     // For certain cases of input we call a different function that computes
     // this integral using Euler-Maclaurin summation. Otherwise the integrand
@@ -195,7 +195,7 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
         cout << "        epsilon = " << epsilon << endl;
     }
 
-    if(epsilon >= 1) {
+    if(epsilon >= pow((Double)n + 1, (Double)j)) {
         if(verbose::G) {
             cout << "in G: epsilon >= 1, so returning 0" << endl;
         }
@@ -235,11 +235,13 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
     if(n > 0) {
         Complex S = 0;
         for(int s = 0; s <= j; s++) {
-            Double z = binomial_coefficient(j, s) * pow(2, -j) * pow(n, -s);
+            Double z = binomial_coefficient(j, s);// * pow(2, -j) * pow(n, -s);
             S = S + z * G(alpha, b, 0, s, epsilon/(z * j));
         }
         return S;
     }
+
+    // At this point we assume that n == 0
 
     if(b == Complex(0, 0)) {
         return H(j, -I * alpha, epsilon);
@@ -267,7 +269,7 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
         }
         S = S + z;
         r++;
-        error = abs(s/(Complex)max( PI * abs(alpha) / (r + 1.0),  (Double)(2.0 * r + 1.0)));
+        error = abs(s/(Complex)max( PI * abs(alpha) / (r + 1.0 + j/2),  (Double)(2.0 * r + 1.0 + j)));
     }
 
 
@@ -305,24 +307,28 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
         return G_via_Euler_MacLaurin(alpha, b, epsilon);
     }
 
-    if(epsilon >= 1) {
-        return (Complex)0;
-    }
+    //if(epsilon >= 1) {
+    //    return (Complex)0;
+    //}
 
-    int N = 4 * to_int(ceil(abs(alpha) + abs((Complex)2.0 * b) - LOG(epsilon)/(2 * PI)));
-    
-    Double two_n_to_the_j;
+    int N = 4 * to_int(ceil(  ( abs(alpha) + abs((Complex)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 0.0) ) * (1 + j * log(n + 1)/4.0) ));
+
+    /*
+    Double two_n_to_the_j = 1;
     if(n != 0)
         two_n_to_the_j = pow(2 * n, j);
     else
         two_n_to_the_j = 1;
     Double one_over_two_n_to_the_j = 1/two_n_to_the_j;
+    */
 
     Complex S = (Complex)0;
     for(int s = 0; s <= N; s++) {
-        S = S + g(alpha, b, n, j, (Double)s/(Double)N) * one_over_two_n_to_the_j;
+        //S = S + g(alpha, b, n, j, (Double)s/(Double)N) * one_over_two_n_to_the_j;
+        S = S + g(alpha, b, n, j, (Double)s/(Double)N);
     }
-    S = S - (Double)(.5) * (g(alpha, b, n, j, 0) + g(alpha, b, n, j, 1)) * one_over_two_n_to_the_j;
+    //S = S - (Double)(.5) * (g(alpha, b, n, j, 0) + g(alpha, b, n, j, 1)) * one_over_two_n_to_the_j;
+    S = S - (Double)(.5) * (g(alpha, b, n, j, 0) + g(alpha, b, n, j, 1));
     S = S/(Double)N;
 
     Double N_power = 1;
@@ -340,7 +346,8 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
     }
     else {
         for(int s = 0; s <= j; s++) {
-            p_prev[s] = pow(2, -j) * pow(n, -s) * binomial_coefficient(j, s);
+            //p_prev[s] = pow(2, -j) * pow(n, -s) * binomial_coefficient(j, s);
+            p_prev[s] = pow(n, j - s) * binomial_coefficient(j, s);
         }
     }
 

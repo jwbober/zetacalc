@@ -263,15 +263,19 @@ inline Complex JBoundary(Double a1, Double a2, Double b, int j, int K, Double ep
 Complex IC0(int K, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mpfr_t mp_b, Double epsilon);
 Complex IC1(int K, Double a, Double b, Complex C11, Complex C12, Double epsilon);//----------------------------------------------
 Complex IC1c(int K, Double a, Double b, Complex C8, Double epsilon);            //
+Complex IC1c(int K, int j, Double a, Double b, Complex C8, Double epsilon);     //
 inline Complex IC3(Double a, Double b, Double epsilon);                         //
 inline Complex IC3c(Double a, Double b, Double epsilon);                        //
 inline Complex IC4(int K, Double a, Double b, Complex C11, Double epsilon);     //
 inline Complex IC4c(int K, Double a, Double b, Complex C11, Double epsilon);    //
 Complex IC5(Double a, Double b, Double epsilon);                                //  Computations of the integral of the function
+Complex IC5(int K, int j, Double a, Double b, Double epsilon);                  //
 Complex IC6(int K, Double a, Double b, Double epsilon);                         //      
 Complex IC7(int K, Double a, Double b, Double epsilon);                         //       exp(2 pi i a t + 2 pi i b t^2)
+Complex IC7(int K, int j, Double a, Double b, Double epsilon);                  //
 inline Complex IC8(Double a, Double b, Double epsilon);                         //
 Complex IC9E(int K, Double a, Double b, Double epsilon);                        //
+Complex IC9E(int K, int j, Double a, Double b, Double epsilon);                 //
 inline Complex IC9H(Double a, Double b, Double epsilon);                        //  along various contours in the complex plane.
                                                                                 //  (Defined in ICn.cc, unless defined inline below)
                                                                                 //
@@ -315,16 +319,31 @@ inline Complex IC9H(Double a, Double b, Double epsilon) {
     return IC7(K, a, b, epsilon);
 }
 
+inline Complex IC9H(int K, int j, Double a, Double b, Double epsilon) {
+    //
+    // Compute the integral (1/K^j)int_0^\infty t^j exp(-2 pi a t - 2 pi i b t^2)
+    //
+    // after a change of contour, this is well approximated by IC7(K, a, b) with large K
+    //
+
+    int endpoint = to_int(10 * ceil( max(-LOG(epsilon * sqrt(b)), 1.0)/sqrt(b) ));
+    Double z = pow((Double)endpoint/(Double)K, j);
+    Complex S = IC7(endpoint, a, b, epsilon/z);
+    S = S * z;
+    return S;
+}
+
+
                                                                                 //-----------------------------------------------------------
                                                                                 //
                                                                                 // Derivatives of the function
                                                                                 //
                                                                                 // g(t) = exp(2 pi i alpha t + 2 pi i b t^2)
                                                                                 //
-//void initialize_power_arrays(int n, Complex alpha, Complex b);                  // at 0, 1, and K. Only supports derivatives up
-//Complex g_derivative_at_1(int n);                                               // to the 21st, and initialize_power_arrays() must
-//Complex g_derivative_at_0(int n);                                               // be called before the other functions, with n
-//Complex g_derivative_at_K_without_exponential_factor(int n, int K);             // at least as large as any derivatives to be
+//void initialize_power_arrays(int n, Complex alpha, Complex b);                // at 0, 1, and K. Only supports derivatives up
+//Complex g_derivative_at_1(int n);                                             // to the 21st, and initialize_power_arrays() must
+//Complex g_derivative_at_0(int n);                                             // be called before the other functions, with n
+//Complex g_derivative_at_K_without_exponential_factor(int n, int K);           // at least as large as any derivatives to be
                                                                                 // computed. For the function ...without_exponential_factor()
                                                                                 // the answer needs to be multiplied by
                                                                                 //

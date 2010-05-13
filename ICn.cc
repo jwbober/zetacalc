@@ -1,4 +1,5 @@
 #include "theta_sums.h"
+#include "precomputed_tables.h"
 
 #include <iostream>
 #include <cmath>
@@ -120,6 +121,8 @@ Complex IC1c(int K, Double a, Double b, Complex C8, Double epsilon) {
     //
     // ( where we expect that C8 = -i exp(-2 pi i b K^2) )
     //
+    //
+    // Requires the 2bK >= 1
 
     if(verbose::IC1c) {
         cout << "Inside IC1c:C8 = " << C8 << endl;
@@ -155,6 +158,64 @@ Complex IC1c(int K, Double a, Double b, Complex C8, Double epsilon) {
     return S;
 }
 
+Complex IC1c(int K, int j, Double a, Double b, Complex C8, Double epsilon) {
+    //
+    // Compute C8 * exp(-2 pi a K) int_0^K t^j exp(2 pi i a t - 4 pi b K t + 2 pi i b t^2),
+    //
+    // ( where we expect that C8 = -i exp(-2 pi i b K^2) )
+    //
+    // requires that 2bK >= 1
+
+    if(verbose::IC1c) {
+        cout << "Inside IC1c:C8 = " << C8 << endl;
+        cout << "            a  = " << a << endl;
+        cout << "            b  = " << b << endl;
+        cout << "            K  = " << K << endl;
+        cout << "      epsilon  = " << epsilon << endl;
+    }
+    Complex S = (Complex)0;
+
+    int L = min(K, max(0, to_int(ceil(-LOG(epsilon) - 2 * PI * a * (Double)K/(4 * PI * b * K)) ) ));
+
+    if(verbose::IC1c) {
+        cout << "            L = " << L << endl;
+    }
+
+    Complex minus_i_power(0, 1);
+    for(int l = 0; l <= j; l++) {
+        minus_i_power *= -I;
+        Complex S1 = 0;
+        Double z = pow(K, l)/binomial_coefficient(j, l);
+        for(int n = 0; n <= L - 1; n++) {
+            S1 = S1 + EXP(2.0 * PI * n * (I * a - 2.0 * b * (Double)K + I * b * (Double)n) ) 
+                    * G(a + (Double)2.0 * I * b * (Double)K + (Double)2.0 * b * (Double)n, b, n, l, epsilon * exp(4 * PI * b * K * (Double)n + 2 * PI * a * K) * z);
+        }
+        S1 = S1 * minus_i_power/z;
+        S = S + S1;
+    }
+
+    //for(int n = 0; n <= L - 1; n++) {
+    //    S = S + EXP(2.0 * PI * n * (I * a - 2.0 * b * (Double)K + I * b * (Double)n) ) * G(a + (Double)2.0 * I * b * (Double)K + (Double)2.0 * b * (Double)n, b, epsilon * exp(4 * PI * b * K * (Double)n + 2 *
+    //     PI * a * K) );
+    //}
+
+    S *= EXP(-2 * PI * a * K);
+    S *= C8;
+
+    if(verbose::IC1c) {
+        cout << "Computed IC1c(";
+        cout << K << ", ";
+        cout << a << ", ";
+        cout << b << ") = ";
+        cout << S << endl;
+    }
+
+    return S;
+}
+
+
+
+
 // IC2 not defined anywhere
 
 // IC3  defined inline in theta_sums.h
@@ -165,10 +226,19 @@ Complex IC1c(int K, Double a, Double b, Complex C8, Double epsilon) {
 Complex IC5(Double a, Double b, Double epsilon) {
     //
     // Compute the integral int_0^\infty exp(-2 pi i exp(i pi /4) a - 2 pi b t^2) dt 
-    // assuming that a is positive
+    // assuming that a is negative (??)
     //
 
     return I * IC7(-1, -a, b, epsilon);
+}
+
+Complex IC5(int K, int j, Double a, Double b, Double epsilon) {
+    //
+    // Compute the integral int_0^\infty exp(-2 pi i exp(i pi /4) a - 2 pi b t^2) dt 
+    // assuming that a is negative (??)
+    //
+
+    return pow(-1, j) * pow(I, j + 1) * IC7(-1, j, -a, b, epsilon * pow(K, j)) * pow(K, -j);
 }
 
 
@@ -241,7 +311,7 @@ Complex IC7(int K, Double a, Double b, Double epsilon) {
         L = to_int(ceil( -LOG(epsilon*sqrt(b))/(2.0 * PI * x)));
     }
     else {
-        L = to_int(ceil( -LOG(epsilon*sqrt(b))));
+        L = to_int(ceil( -LOG(epsilon*sqrt(b))/(2.0 * PI)));
     }
 
     L = max(0, L);
@@ -272,6 +342,121 @@ Complex IC7(int K, Double a, Double b, Double epsilon) {
     return S;
 }
 
+Complex IC7(int K, int j, Double a, Double b, Double epsilon) {
+    //
+    // We compute C9 * int_0^{sqrt(2) K} exp(-sqrt(2) PI a t + sqrt(2) PI i a t - 2 PI b t^2) dt
+    // where C9 = exp(-I pi/4)
+    //
+    // K = -1 corresponds to infinity
+    //
+    // K, b, and epsilon should satisfy:
+    //   
+    //  (1) K > 2 * (-log(epsilon)/2pi)^2
+    //  (2) 2bK >= 1
+    //
+
+    Complex C9;
+    switch(j % 8) {
+        case 0:
+            C9 = Complex(sqrt(2.0)/2.0, -sqrt(2.0)/2.0);
+            break;
+        case 1:
+            C9 = Complex(0, -1);
+            break;
+        case 2:
+            C9 = Complex(-sqrt(2.0)/2.0, -sqrt(2.0)/2.0);
+            break;
+        case 3:
+            C9 = Complex(-1, 0);
+            break;
+        case 4:
+            C9 = Complex(-sqrt(2.0)/2.0, sqrt(2.0)/2.0);
+            break;
+        case 5:
+            C9 = Complex(0, 1);
+            break;
+        case 6:
+            C9 = Complex(sqrt(2.0)/2.0, sqrt(2.0)/2.0);
+            break;
+        case 7:
+            C9 = Complex(1, 0);
+            break;
+    }
+
+    Complex C10(sqrt(2.0)/2.0, sqrt(2.0)/2.0);
+
+    Double x = a/(sqrt(2 * b * 4 * PI));
+
+    //
+    // Note that conditions (1) and (2) above should ensure that we
+    // can make a change of variables and then truncate this
+    // integral at an integer.
+    //
+    
+    int L = 0;
+    if(x > 1) {
+        L = to_int(ceil( -LOG(epsilon*sqrt(b))/(2.0 * PI * x)));
+        if(K == -1)
+            L = max((int)ceil(((Double)j + 1.0) * pow(log(j + (Double)1), 2) / x), L);
+    }
+    else {
+        L = to_int(ceil( -LOG(epsilon*sqrt(b))/(2.0 * PI)));
+        if(K == -1)
+            L = max((int)ceil(((Double)j + 1.0) * pow(log(j + (Double)1), 2)), L);
+    }
+    if(K != -1)
+        L = max(0, L);
+
+    cout << L << endl;
+
+    if(verbose::IC7) {
+        cout << "In IC7(): L = " << L << endl;
+    }
+
+    //check_condition(L <= K, "Warning: In IC7, K was too small.");
+
+    //cout << L << endl;
+
+    if(K != -1) {
+        L = min(L, to_int(sqrt((Double)4 * PI * b) * K));
+    }
+
+    Complex S = (Complex)0;
+
+    Complex x2 = (Double)2 * PI * Complex(-x, x);
+    Complex x3 = Complex(x, x);
+
+    Double K_to_the_j;
+    if(K == -1) {
+        K_to_the_j = 1.0;       // This is potentially quite confusing. We treat K = -1 as infinity,
+                                // so we don't want to do any normalization.
+    }
+    else {
+        K_to_the_j = pow(K, j);
+    }
+
+    Double two_pi_b_power = pow(2 * PI * b, ((Double)j + 1.0)/2);
+
+    for(Double n = (Double)0; n <= L-1; n = n + 1) {
+        Complex z2 = exp( 2 * PI * I * C10 * a / sqrt((Double)2 * PI * b) * n - n * n);
+        Complex z = G( C10 * a / sqrt((Double)2 * PI * b) + I * n/PI, I/( (Double)2 * PI), n, j, epsilon * two_pi_b_power * K_to_the_j/(abs(z2) * Double(L)));
+        z = z * z2;
+        S = S + z;
+    }
+    
+    S = S * C9/(two_pi_b_power * K_to_the_j);
+
+    return S;
+}
+
+
+
+
+
+
+
+
+
 // IC8 is an inline function in the header file
 
 Complex IC9E(int K, Double a, Double b, Double epsilon) {
@@ -294,6 +479,32 @@ Complex IC9E(int K, Double a, Double b, Double epsilon) {
     }
     return S;
 }
+
+
+Complex IC9E(int K, int j, Double a, Double b, Double epsilon) {
+    //
+    // Compute the integral int_0^\infty exp(-2 pi(a - ia + 2bK + 2ibK)t - 4 pi b t^2) dt
+    // for a and b positive, and 2bK >= 1
+    //
+    
+    int L = to_int(ceil(-LOG(epsilon)/(2 * PI *(a + 2 * b * K)) ));
+    L = max(0, L);
+    
+    Complex S = (Complex)0;
+    Complex c = a - I * a + (Double)2 * b * (Double)K + (Double)2 * I * b * (Double)K;
+    Double K_to_the_j = pow(K, j);
+    for(Double n = (Double)0; n <= L-1; n = n + 1) {
+        
+        Complex z2 = exp(-2 * PI * (n * c + (Double)2 * b * n * n));
+        Complex z = G( I*(c + (Double)4 * b * n), (Double)2 * I * b, n, j, epsilon * K_to_the_j/((Double)L * abs(z2)));
+        z = z * z2;
+        S = S + z;
+    }
+    S = S/K_to_the_j;
+    return S;
+}
+
+
 
 // IC9H is an inline function in the header file
 

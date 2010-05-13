@@ -197,6 +197,8 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, Double epsilon) {
 
     Complex S = (Complex)0;
 
+    Double one_over_K_to_the_j = pow( (Double)K, -j);
+
     for(Double n = (Double)1; n <= L - 1; n = n + 1) {
         int end_point;
         if(M == -1) {
@@ -206,16 +208,14 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, Double epsilon) {
             end_point = min(M, to_int(ceil(-LOG(epsilon)/(2 * PI * n) ) ));
         }
 
-        Double two_n_over_K_power = pow(2*n/(Double)K, j);
-        
         Complex S1 = 0;
 
         for(Double m = (Double)1; m <= end_point; m = m + 1) {
-            Complex z =  G(I*(m + a + (Complex)2.0 * I * b * n), -b, n, j, epsilon * exp( 2 * PI * (m + a) * n)/(end_point * Double(L - 1) * two_n_over_K_power));
+            Complex z =  G(I*(m + a + (Complex)2.0 * I * b * n), -b, n, j, epsilon * exp( 2 * PI * (m + a) * n)/(end_point * Double(L - 1) * one_over_K_to_the_j));
             z *= EXP(-2.0 * PI * n * (m + a + I * b * n));
             S1 = S1 + z;
         }
-        S1 = S1 * two_n_over_K_power;
+        S1 = S1 * one_over_K_to_the_j;
         S = S + S1;
     }
 
