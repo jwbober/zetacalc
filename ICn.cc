@@ -115,6 +115,40 @@ Complex IC1(int K, Double a, Double b, Complex C11, Complex C12, Double epsilon)
     return S;
 }
 
+Complex IC1(int K, int j, Double a, Double b, Complex C11, Complex C12, Double epsilon) {
+    //
+    // C11 should be passed as I * exp(2 pi I a K + 2 PI i b K^2)
+    // C12 should be passed as I * exp(-2 pi(a + 2bK)K - 2 pi i b K^2)/sqrt(2 * PI * b)
+    // 
+    // (NEED (-log(epsilon)^2/(K^2 * 2 pi)) < b <= 1/8K )
+    //
+
+    if(b < (LOG(epsilon) * LOG(epsilon)/(K * K))) {
+        cout << "************Warning: b is too small in IC1" << endl;
+    }
+
+    Complex S = 0;
+    for(int r = 0; r <= j; r++) {
+        Double z = binomial_coefficient(j, r);
+        S = S + z * pow(I, r) * IC7(K, r, a + 2 * b * K, b, epsilon /(2.0 * z * (j + 1)));
+    }
+
+    if( a + 2 * b * K <= - LOG(epsilon * sqrt(b))/((Double)2 * PI * K) + 1) {
+        Complex S2 = 0;
+        for(int r = 0; r <= j; r++) {
+            Double z = binomial_coefficient(j, r) * pow(2 * PI * b, (Double)r / 2.0) * pow(K, r);        
+            S2 = S2 + z * pow(I, r) * G((a + 2 * b * K)/sqrt(2 * PI * b) + I * (Double)2 * sqrt(b) * (Double)K/sqrt(2 * PI), (Double)1/(2 * PI), 0, r, sqrt(2 * PI * b) * epsilon/(abs(C12) * (Double)2 * z * (j + 1)));
+        }
+        S2 = S2 * C12;
+        S = S + S2;
+    }
+
+    S *= C11;
+
+    return S;
+}
+
+
 Complex IC1c(int K, Double a, Double b, Complex C8, Double epsilon) {
     //
     // Compute C8 * exp(-2 pi a K) int_0^K exp(2 pi i a t - 4 pi b K t + 2 pi i b t^2),
@@ -223,9 +257,24 @@ Complex IC1c(int K, int j, Double a, Double b, Complex C8, Double epsilon) {
 // IC4  defined inline in theta_sums.h
 // IC4c defined inline in theta_sums.h
 
-Complex IC4c(int K, int j, Double a, Double b, Complex C11, Double epsilon) {
+
+Complex IC4(int K, int j, Double a, Double b, Complex C11, Double epsilon) {
     // needs a + 2bK <= 0
     // b is always positive, so this will be satisfied if 
+    
+    Complex S = 0;
+    for(int r = 0; r <= j; r++) {
+        Double z = binomial_coefficient(j, r);
+        S = S + z * pow(-I, r) * IC9H(K, r, -(a + 2 * b * (Double)K), b, epsilon/z);
+    }
+    return -S * C11;
+}
+
+
+
+
+Complex IC4c(int K, int j, Double a, Double b, Complex C11, Double epsilon) {
+    // called when a > 0 and b is small but not too small.
     
     Complex S = 0;
     for(int r = 0; r <= j; r++) {

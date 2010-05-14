@@ -130,7 +130,7 @@ int main() {
     mpfr_set_str(mp_a, ".001", 10, GMP_RNDN);
 
     mpfr_init2(mp_b, 100);
-    mpfr_set_str(mp_b, ".01", 10, GMP_RNDN);
+    mpfr_set_str(mp_b, ".05", 10, GMP_RNDN);
 
     Double a = mpfr_get_d(mp_a, GMP_RNDN);
     Double b = mpfr_get_d(mp_b, GMP_RNDN);
@@ -143,12 +143,14 @@ int main() {
         
     int K = 100;
     Complex C11 = compute_C11(mp_a, mp_b, K);
+    Complex C12 = compute_C12(mp_a, mp_b, K);
 
-    cout << IC4c(K, a, b, C11, exp(-20)) << endl;
-    cout << IC4c(K, a, b, C11, exp(-50)) << endl;
-    cout << IC4c(K, 0, a, b, C11, exp(-50)) << endl;
-    cout << IC4c(K, 2, a, b, C11, exp(-20)) << endl;
-    cout << IC4c(K, 2, a, b, C11, exp(-50)) << endl;
+    cout << IC1(100, a, b, C11, C12, exp(-20)) << endl;
+    cout << IC1(100, 0, a, b, C11, C12, exp(-20)) << endl;
+    cout << IC1(100, 1, a, b, C11, C12, exp(-20)) << endl;
+    cout << IC1(100, 2, a, b, C11, C12, exp(-20)) << endl;
+    cout << IC1(100, 3, a, b, C11, C12, exp(-20)) << endl;
+    cout << IC1(100, 4, a, b, C11, C12, exp(-20)) << endl;
 
 //    cout << IC5(100, 20, -.1, .1, exp(-150)) << endl;
 //    cout << IC5(100, 20, -.1, .1, exp(-10)) << endl;

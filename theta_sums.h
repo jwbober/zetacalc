@@ -262,6 +262,7 @@ inline Complex JBoundary(Double a1, Double a2, Double b, int j, int K, Double ep
 
 Complex IC0(int K, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mpfr_t mp_b, Double epsilon);
 Complex IC1(int K, Double a, Double b, Complex C11, Complex C12, Double epsilon);//----------------------------------------------
+Complex IC1(int K, int j, Double a, Double b, Complex C11, Complex C12, Double epsilon);//----------------------------------------------
 Complex IC1c(int K, Double a, Double b, Complex C8, Double epsilon);            //
 Complex IC1c(int K, int j, Double a, Double b, Complex C8, Double epsilon);     //
 inline Complex IC3(Double a, Double b, Double epsilon);                         //
@@ -269,6 +270,7 @@ inline Complex IC3(int K, int j, Double a, Double b, Double epsilon);           
 inline Complex IC3c(Double a, Double b, Double epsilon);                        //
 inline Complex IC3c(int K, int j, Double a, Double b, Double epsilon);          //
 inline Complex IC4(int K, Double a, Double b, Complex C11, Double epsilon);     //
+Complex IC4(int K, int j, Double a, Double b, Complex C11, Double epsilon);     //
 inline Complex IC4c(int K, Double a, Double b, Complex C11, Double epsilon);    //
 Complex IC4c(int K, int j, Double a, Double b, Complex C11, Double epsilon);    //
 Complex IC5(Double a, Double b, Double epsilon);                                //  Computations of the integral of the function
@@ -322,8 +324,7 @@ inline Complex IC4(int K, Double a, Double b, Complex C11, Double epsilon) {
 }
 
 inline Complex IC4c(int K, Double a, Double b, Complex C11, Double epsilon) {
-    // needs a + 2bK <= 0
-    // b is always positive, so this will be satisfied if 
+    // called when a > 0 and b is small but not too small.
     return C11 * IC9H((a + 2 * b * (Double)K), b, epsilon);
 }
 
