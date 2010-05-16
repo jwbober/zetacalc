@@ -6,3 +6,7 @@ syntax: glob
 .DS_Store
 *.o
 a.out
+
+*_mpc.*
+*.orig
+Makefile_mpc
