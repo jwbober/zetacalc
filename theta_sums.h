@@ -261,6 +261,7 @@ inline Complex JBoundary(Double a1, Double a2, Double b, int j, int K, Double ep
 
 
 Complex IC0(int K, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mpfr_t mp_b, Double epsilon);
+Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mpfr_t mp_b, Double epsilon);
 Complex IC1(int K, Double a, Double b, Complex C11, Complex C12, Double epsilon);//----------------------------------------------
 Complex IC1(int K, int j, Double a, Double b, Complex C11, Complex C12, Double epsilon);//----------------------------------------------
 Complex IC1c(int K, Double a, Double b, Complex C8, Double epsilon);            //
@@ -281,6 +282,7 @@ Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, Double epsilon);     
 Complex IC7(int K, Double a, Double b, Double epsilon);                         //       exp(2 pi i a t + 2 pi i b t^2)
 Complex IC7(int K, int j, Double a, Double b, Double epsilon);                  //
 inline Complex IC8(Double a, Double b, Double epsilon);                         //
+Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b);                            //
 Complex IC9E(int K, Double a, Double b, Double epsilon);                        //
 Complex IC9E(int K, int j, Double a, Double b, Double epsilon);                 //
 inline Complex IC9H(Double a, Double b, Double epsilon);                        //  along various contours in the complex plane.
@@ -446,3 +448,5 @@ inline Complex compute_C12(mpfr_t mp_a, mpfr_t mp_b, int K) {
 }
 
 Complex theta_sum2(Double a, Double b, int K, Double epsilon);
+
+Complex w_coefficient(mpfr_t mp_a, mpfr_t mp_b, int K, int s, int j);

@@ -466,7 +466,7 @@ Complex compute_exponential_sum_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b, 
     Complex C8 = -I * ExpB(mp_b, K);
     Complex CF = ExpAB(mp_a, mp_b);
 
-    int q = to_int(a + 2 * b * K);
+    int q = to_int(a + 2 * b * K); // note that a and b are both positive, so this will do the right thing.
     Double w = a + 2 * b * K - (Double)q;
     
     int p = to_int(ceil(a));
@@ -563,7 +563,7 @@ Complex compute_exponential_sum(mpfr_t mp_a, mpfr_t mp_b, int K, Double epsilon,
     }
 
    
-    int q = to_int(a + 2 * b * K);
+    int q = to_int(a + 2 * b * K); // note that a and b will always be positive, so this will do the right thing.
     int p = to_int(ceil(a));
 
     if(method == 0) {

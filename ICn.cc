@@ -90,6 +90,96 @@ Complex IC0(int K, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mp
 }
 
 
+Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mpfr_t mp_b, Double epsilon) {
+    if(b <= (-LOG(epsilon)) * (-LOG(epsilon))/((Double)K * (Double)K)) {
+
+        int N = to_int(ceil(std::max ((Double)1.0, -LOG(epsilon)) ));
+        mpfr_t mp_a2, mp_b2, tmp;
+        mpfr_init2(mp_a2, mpfr_get_prec(mp_a));
+        mpfr_init2(mp_b2, mpfr_get_prec(mp_b));
+        mpfr_init2(tmp, mpfr_get_prec(mp_a));
+
+        mpfr_mul_si(mp_a2, mp_a, K, GMP_RNDN);      //mp_a2 = aK
+        mpfr_div_si(mp_a2, mp_a2, N, GMP_RNDN);     //now mp_a2 = aK/N
+
+        Double a2 = mpfr_get_d(mp_a2, GMP_RNDN);    // a2 = aK/N
+        
+        mpfr_floor(tmp, mp_a2);                     // tmp = floor(aK/N) 
+        mpfr_sub(mp_a2, mp_a2, tmp, GMP_RNDN);      // mp_a2 = {aK/N}
+
+        mpfr_mul_si(mp_b2, mp_b, K, GMP_RNDN);      // mp_b2 = bK
+        mpfr_mul_si(mp_b2, mp_b2, K, GMP_RNDN);     // mp_b2 = bK^2
+        mpfr_div_si(mp_b2, mp_b2, N * N, GMP_RNDN); // mp_b2 = bK^2/N^2
+
+        Double b2 = mpfr_get_d(mp_b2, GMP_RNDN);    // b2 = bK^2/N^2
+
+        mpfr_floor(tmp, mp_b2);                     // tmp = floor(bK^2/N^2)
+        mpfr_sub(mp_b2, mp_b2, tmp, GMP_RNDN);      // mp_b2 = {bK^2/N^2}
+
+        Double a2_mod1 = mpfr_get_d(mp_a2, GMP_RNDN);
+        Double b2_mod1 = mpfr_get_d(mp_b2, GMP_RNDN);
+
+        mpfr_clear(mp_a2);
+        mpfr_clear(mp_b2);
+        mpfr_clear(tmp);
+
+        Complex S = (Complex)0;
+
+        Double N_to_the_j = pow(N, j);
+
+        for(int n = 0; n < N; n++) {
+            Complex C = exp((Double)2 * PI * I * (Double)n * (a2_mod1 + b2_mod1 * (Double)n));
+            Complex z = G(a2 + (Double) 2 * (Double)n * b2, b2, n, j, (epsilon) * N_to_the_j/K);
+            
+            S = S + C * z;
+        }
+        S = S * (Double)K;
+        S = S / (Double)(N);
+        S = S / N_to_the_j;
+
+        return S;
+    }
+    if(-a/(2 * b) >= 0 && -a/(2 * b) <= K) {
+        Complex A = IC8(K, j, mp_a, mp_b);
+        Complex B = IC6(K, j, a, b, mp_a, epsilon/4);
+        Complex C = IC5(K, j, a, b, epsilon/4);
+        Complex D = IC1(K, j, a, b, C11, C12, epsilon/4);
+        if(verbose::IC0) {
+            std::cout << "   IC1:" << D << std::endl;
+            std::cout << "   IC5:" << C << std::endl;
+            std::cout << "   IC6:" << B << std::endl;
+            std::cout << "   IC8:" << A << std::endl;
+        }
+        // Really here we are computing IC2 - IC1...
+        return A - B - C - D;
+    }
+    else {
+        if(-a/(2 * b) > K) {
+            Complex A = IC3(K, j, a, b, epsilon/2);
+            Complex B = IC4(K, j, a, b, C11, epsilon/2);
+            if(verbose::IC0) {
+                std::cout << "   IC3:" << A << std::endl;
+                std::cout << "   IC4:" << B << std::endl;
+            }
+            return A - B;
+        }
+        else {// -a/(2b) < 0
+            Complex A = IC3c(K, j, a, b, epsilon/2);
+            Complex B = IC4c(K, j, a, b, C11, epsilon/2);
+            if(verbose::IC0) {
+                std::cout << "   IC3c:" << A << std::endl;
+                std::cout << "   IC4c:" << B << std::endl;
+            }
+            return A - B;
+        }
+    }
+}
+
+
+
+
+
+
 Complex IC1(int K, Double a, Double b, Complex C11, Complex C12, Double epsilon) {
     //
     // C11 should be passed as I * exp(2 pi I a K + 2 PI i b K^2)
@@ -644,6 +734,33 @@ Complex IC7(int K, int j, Double a, Double b, Double epsilon) {
 
 
 // IC8 is an inline function in the header file
+
+Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b) {
+    Double a = mpfr_get_d(mp_a, GMP_RNDN);
+    Double b = mpfr_get_d(mp_b, GMP_RNDN);
+
+    Complex z = ExpAB(mp_a, mp_b);
+
+    z = z * pow(2.0, -3.0 * j/2.0 - 1) * pow(b * PI, -(j + 1)/2.0) *
+                pow(K, -j) * factorial(j) * sqrt(2 * PI) * exp(PI * I / 4.0 + j * 3.0 * PI * I / 4.0);
+
+    Complex S = 0;
+    for(int l = 0; l <= j; l++) {
+        if( (j - l) % 2 == 0 ) {
+            Double sign = 0;
+            if( ((j + l)/2) % 2 == 0 )
+                sign = 1;
+            else
+                sign = -1;
+
+            S = S + sign * (  pow(a, l) * exp(-3.0 * PI * I * (Double)l/4.0) * pow(2.0 * PI / b, l/2.0)/(factorial(l) * factorial( (j - l)/2 ) ) );
+        }
+    }
+
+    S = S * z;
+
+    return S;
+}
 
 Complex IC9E(int K, Double a, Double b, Double epsilon) {
     //
