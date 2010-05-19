@@ -127,10 +127,10 @@ int main() {
     mpfr_t mp_b;
 
     mpfr_init2(mp_a, 100);
-    mpfr_set_str(mp_a, ".001", 10, GMP_RNDN);
+    mpfr_set_str(mp_a, ".99", 10, GMP_RNDN);
 
     mpfr_init2(mp_b, 100);
-    mpfr_set_str(mp_b, ".0005", 10, GMP_RNDN);
+    mpfr_set_str(mp_b, ".121252", 10, GMP_RNDN);
 
 
     Double a = mpfr_get_d(mp_a, GMP_RNDN);
@@ -143,11 +143,50 @@ int main() {
     Complex C11 = compute_C11(mp_a, mp_b, K);
     Complex C12 = compute_C12(mp_a, mp_b, K);
 
-    cout << IC0(K, 5, a, b, C11, C12, mp_a, mp_b, exp(-20)) << endl;
-    cout << IC0(K, 6, a, b, C11, C12, mp_a, mp_b, exp(-20)) << endl;
-    cout << IC0(K, 3, a, b, C11, C12, mp_a, mp_b, exp(-20)) << endl;
-    cout << IC0(K, 11, a, b, C11, C12, mp_a, mp_b, exp(-20)) << endl;
+    //cout << IC0(K, 5, a, b, C11, C12, mp_a, mp_b, exp(-20)) << endl;
+    //cout << IC0(K, 6, a, b, C11, C12, mp_a, mp_b, exp(-20)) << endl;
+    //cout << IC0(K, 3, a, b, C11, C12, mp_a, mp_b, exp(-20)) << endl;
+    //cout << IC0(K, 11, a, b, C11, C12, mp_a, mp_b, exp(-20)) << endl;
     //cout << IC0(K, a, b, C11, C12, mp_a, mp_b, exp(-20)) << endl;
+
+    int m = 0;
+    int M = -1;
+
+    //cout << H_Integral_0(0, .1, -1, exp(-20)) << endl;
+
+    //cout << JBoundary(.2, .1, .2, 2, 100, exp(-20)) << endl;
+
+    //Complex coeffs[] = {0, 0, 0, 1};
+    Complex coeffs[] = {0, 1, 0, 0, 0, 1};
+    Complex coeffs2[] = {1};
+
+    Complex z1, z2, z3, z4;
+
+    
+    z1 = compute_exponential_sums(mp_a, mp_b, 1, 100000, coeffs, exp(-40));
+//    z2 = compute_exponential_sums(mp_a, mp_b, 0, 100000, coeffs2, exp(-20));
+//    z3 = direct_exponential_sum_evaluation2(mp_a, mp_b, 1, 0, 100000);
+    z4 = direct_exponential_sum_evaluation2(mp_a, mp_b, 1, 0, 100000);
+    //z4 = direct_exponential_sum_evaluation(a, b, 0, 1000);
+    cout << z1 << endl;
+    cout << z2 << endl;
+    cout << z3 << endl;
+    cout << z4 << endl;
+
+//    cout << JBulk(.99, .12, 0, 23999, 100000, exp(-60)) << endl;
+//    cout << IC7(100000, 1, .99, .12, exp(-60)) << endl;
+
+    //cout << JBoundary(.99, .21, .12, 1, 100000, exp(-20)) << endl;
+    //cout << JBoundary(.99, .21, .12, 1, 1000, exp(-20)) << endl;
+    //cout << JBoundary(.99, .21, .12, 1, 100, exp(-20)) << endl;
+    //cout << JBoundary(.99, .21, .12, 1, 10, exp(-20)) << endl;
+
+    //cout << J_Integral_0(.1, .2, 2, -1, 100, exp(-20)) << endl;
+
+    //cout << sum_of_offset_inverse_powers(a, m, M, j, 1) << endl;
+    //cout << sum_of_offset_inverse_powers(a, m, M, j, exp(-1)) << endl;
+    //cout << sum_of_offset_inverse_powers(a, m, M, j, exp(-30)) << endl;
+    //cout << sum_of_offset_inverse_powers(a, m, M, j, exp(-40)) << endl;
 
 /* 
     mpfr_t mp_a, mp_b;

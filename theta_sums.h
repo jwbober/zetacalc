@@ -35,8 +35,8 @@ namespace verbose {
     const int IC6 = 0;
     const int IC7 = 0;
     const int compute_exponential_sum = 0;
-    const int S1 = 0;
-    const int S2 = 0;
+    const int S1 = 1;
+    const int S2 = 1;
     const int G = 0;
     const int H = 0;
 }
@@ -250,11 +250,17 @@ inline Complex JBulk(Double a, Double b, int j, int M, int K, Double epsilon) { 
                                         + J_Integral_1(a, b, j, M, K, epsilon/2);       //
 }                                                                                       //
                                                                                         //
-inline Complex JBoundary(Double a1, Double a2, Double b, int j, int K, Double epsilon){ //
-    return J_Integral_2(a1, a2, b, j, K, epsilon/3)                                     //
-                                        + J_Integral_1(a1, b, j, -1, K, epsilon/3)      //
-                                        - J_Integral_1(a2, b, j, -1, K, epsilon/3);     //
-}                                                                                       //----------------------------------------------
+inline Complex JBoundary(Double a1, Double a2, Double b, int j, int K, Double epsilon){ 
+    if(j == 0) {
+        return J_Integral_2(a1, a2, b, j, K, epsilon/3)                                    
+                                        + J_Integral_1(a1, b, j, -1, K, epsilon/3)     
+                                        - J_Integral_1(a2, b, j, -1, K, epsilon/3);
+    }
+    else {
+        return J_Integral_0(a1, b, j, -1, K, epsilon/4) + J_Integral_1(a1, b, j, -1, K, epsilon/4)
+                + pow(-1, j + 1) * (  J_Integral_0(a2, b, j, -1, K, epsilon/4) + J_Integral_1(a2, b, j, -1, K, epsilon/4) );
+    }
+}                                                                                     
 
 
 
@@ -403,7 +409,7 @@ Complex direct_exponential_sum_evaluation(Double alpha, Double beta, int m, int 
 Complex direct_exponential_sum_evaluation(mpfr_t a, mpfr_t b, int m, int M);
 Double sum_of_offset_inverse_powers(Double a, int m, int M, int j, Double epsilon, int method = 0);
 Double infinite_sum_of_differenced_inverse_powers(Double a1, Double a2, int m, int j, Double epsilon);
-
+Complex direct_exponential_sum_evaluation2(mpfr_t a, mpfr_t b, int j, int m, int M);
 
 
 inline Complex compute_C11(mpfr_t a, mpfr_t b, int K) {
@@ -447,6 +453,10 @@ inline Complex compute_C12(mpfr_t mp_a, mpfr_t mp_b, int K) {
     return w * z;
 }
 
-Complex theta_sum2(Double a, Double b, int K, Double epsilon);
-
 Complex w_coefficient(mpfr_t mp_a, mpfr_t mp_b, int K, int s, int j);
+
+Complex direct_exponential_sum_evaluation2(Double a, Double b, int j, int m, int M, int working_precision = 53);
+Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon);
+Complex compute_exponential_sums_directly(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon);
+Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon);
+Complex compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon, int method=0);

@@ -8,7 +8,7 @@ using namespace std;
 
 Complex H_Integral_0(int j, Double a, int M, Double epsilon) {
     //
-    // Compute the integral int_0^1 t^j (1 - exp(-2 pi M t))/(exp(2 pi t) - t)dt,
+    // Compute the integral int_0^1 t^j exp(-2 pi a t) (1 - exp(-2 pi M t))/(exp(2 pi t) - 1)dt,
     // which can be written (by expanding the geometric sum) as
     //
     // sum_{m=1}^M int_0^1 t^j exp(-2 pi (a + m) t) dt
@@ -31,7 +31,11 @@ Complex H_Integral_0(int j, Double a, int M, Double epsilon) {
 
     Complex S = (Complex)0;
 
-    int C = min(M, max(to_int(ceil(j/(2 * PI * E))), to_int(ceil(-LOG(epsilon)/(2 * PI))) ));
+    int C = max(to_int(ceil(j/(2 * PI * E))), to_int(ceil(-LOG(epsilon)/(2 * PI))) );
+
+    if(M != -1) {
+        C = min(M, C);
+    }
 
     for(int m = 1; m <= C; m++) {
         Complex z = H(j, a + m, epsilon/(C + 1));
@@ -60,6 +64,11 @@ Complex J_Integral_0(Double a, Double b, int M, Double epsilon) {
     stats::J_Integral_0++;
 
     Complex S = (Complex)0;
+
+    if(M == -1) {
+        cout << "Warning J_Integral_0 does not converge." << endl;
+        return 1.0/0.0;
+    }
 
     int r = 0;
     Double error = 2 * epsilon;
@@ -97,7 +106,11 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, Double epsilon) {
     // and doing a taylor expansion in b, which puts this integral in the form
     //
     // sum_{r=0}^\infty ((2 pi i b)^r)/r! \sum_{m=1}^M int_0^1 t^j exp(-2 pi(m + a)t)dt
+    //
+    // -1 corresponds to infinity
     stats::J_Integral_0++;
+
+    epsilon = epsilon * pow(K, j);
 
     if(j == 0) {
         return J_Integral_0(a, b, M, epsilon);
@@ -113,8 +126,8 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, Double epsilon) {
         return H_Integral_0(j, a, M, epsilon)*pow(K, -j);
     }
     
-    int N = max(1, to_int(ceil(-LOG(epsilon))));   // an approxmation of the number of terms
-                                                // we compute in the taylor expansion
+    int N = max(1, to_int(ceil(-LOG(epsilon))));    // an approximation of the number of terms
+                                                    // we compute in the taylor expansion
 
     Complex Ib_power = (Complex)1.0/(I * b);
     while(error > epsilon) {
@@ -259,6 +272,8 @@ Complex J_Integral_2(Double a1, Double a2, Double b, int j, int K, Double epsilo
         return J_Integral_2(a1, a2, b, epsilon);
     }
 
+    epsilon = epsilon * pow(K, j);
+
     Complex S = (Complex)0;
 
     int r = 0;
@@ -332,7 +347,4 @@ Complex J_Integral_2(Double a1, Double a2, Double b, Double epsilon) {
     return S;
 
 }
-
-
-
 
