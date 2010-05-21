@@ -313,9 +313,12 @@ Complex IC1c(int K, int j, Double a, Double b, Complex C8, Double epsilon) {
         Double z = pow(K, l)/binomial_coefficient(j, l);
         for(int n = 0; n <= L - 1; n++) {
             S1 = S1 + EXP(2.0 * PI * n * (I * a - 2.0 * b * (Double)K + I * b * (Double)n) ) 
-                    * G(a + (Double)2.0 * I * b * (Double)K + (Double)2.0 * b * (Double)n, b, n, l, epsilon * exp(4 * PI * b * K * (Double)n + 2 * PI * a * K) * z);
+                    * G(a + (Double)2.0 * I * b * (Double)K + (Double)2.0 * b * (Double)n, b, n, l, epsilon * exp(4 * PI * b * K * (Double)n + 2 * PI * a * K) * z, 0);
         }
         S1 = S1 * minus_i_power/z;
+        if(verbose::IC1c) {
+            cout << "Term " << l << ": " << S1 << endl;
+        }
         S = S + S1;
     }
 
@@ -732,8 +735,9 @@ Complex IC7(int K, int j, Double a, Double b, Double epsilon) {
     }
     
     S = S * C9/(two_pi_b_power * K_to_the_j);
-
-    cout << "IC7() returning " << S << endl;
+    
+    if(verbose::IC7)
+        cout << "IC7() returning " << S << endl;
 
     return S;
 }

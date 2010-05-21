@@ -31,13 +31,13 @@ inline double LOG(double x) {
 
 namespace verbose {
     const int IC0 = 0;
-    const int IC1c = 1;
+    const int IC1c = 0;
     const int IC6 = 0;
-    const int IC7 = 1;
-    const int IC9E = 1;
+    const int IC7 = 0;
+    const int IC9E = 0;
     const int compute_exponential_sum = 0;
-    const int S1 = 1;
-    const int S2 = 1;
+    const int S1 = 0;
+    const int S2 = 0;
     const int G = 0;
     const int H = 0;
 }

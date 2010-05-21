@@ -127,10 +127,10 @@ int main() {
     mpfr_t mp_b;
 
     mpfr_init2(mp_a, 100);
-    mpfr_set_str(mp_a, "0", 10, GMP_RNDN);
+    mpfr_set_str(mp_a, ".1900099", 10, GMP_RNDN);
 
     mpfr_init2(mp_b, 100);
-    mpfr_set_str(mp_b, ".00001", 10, GMP_RNDN);
+    mpfr_set_str(mp_b, ".121252122143511", 10, GMP_RNDN);
 
 
     Double a = mpfr_get_d(mp_a, GMP_RNDN);
@@ -162,23 +162,26 @@ int main() {
     for(int k = 0; k <= 100; k++) {
         coeffs[k] = 0;
     }
-    coeffs[1] = 1;
+    coeffs[10] = 1.0;
+
 
     Complex coeffs2[] = {1};
 
     Complex z1, z2, z3, z4;
 
     
-    z1 = compute_exponential_sums(mp_a, mp_b, 1, 100000, coeffs, exp(-40));
+    z1 = compute_exponential_sums(mp_a, mp_b, 10, 120301, coeffs, exp(-40));
 //    z2 = compute_exponential_sums(mp_a, mp_b, 0, 100000, coeffs2, exp(-20));
 //    z3 = direct_exponential_sum_evaluation2(mp_a, mp_b, 1, 0, 100000);
-    z4 = direct_exponential_sum_evaluation2(mp_a, mp_b, 1, 0, 100000);
+    //z4 = direct_exponential_sum_evaluation2(mp_a, mp_b, 1, 0, 100000);
+    z4 = compute_exponential_sums_directly(mp_a, mp_b, 10, 120301, coeffs, exp(-40));
     //z4 = direct_exponential_sum_evaluation(a, b, 0, 1000);
     cout << z1 << endl;
 //    cout << z2 << endl;
 //    cout << z3 << endl;
     cout << z4 << endl;
 
+    cout << z1 - z4 << endl;
     cout << abs(z1 - z4) << endl;
 
 //    for(int s = 0; s <= 5; s++) {
