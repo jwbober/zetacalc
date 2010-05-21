@@ -39,7 +39,7 @@ Double infinite_sum_of_differenced_inverse_powers(Double a1, Double a2, int m, i
     //
     // Return sum_{k=m}^infty 1/(m + a1)^j - 1/(m + a2)^j to withing precision epsilon.
     //
-    // Computed using Euler-Maclauring summation.
+    // Computed using Euler-Maclaurin summation.
     //
     Double S = 0;
 

@@ -114,6 +114,8 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, Double epsilon) {
     //
     // (These heuristics might not work well when b is larger, but b will be at most .25 in our applications.)
 
+    //cout << "Old code called" << endl;
+
     if(epsilon >= 1) {
         return (Complex)0;
     }
@@ -181,6 +183,7 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
     // to a bunch of calls to H().
     //
     
+    //cout << "New code called" << endl;
     
     if(j == 0) {
         return G(alpha, b, epsilon, method);
@@ -293,7 +296,7 @@ inline Complex g(Complex alpha, Complex b, Double n, Double j, Double t) {
 }
 Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double epsilon) {
     // We compute the integral int_0^1 g(t),
-    // where g(t) = (t + n)^j exp(2 pi i alpha t + 2 pi i b t^2)/(2n)^j
+    // where g(t) = (t + n)^j exp(2 pi i alpha t + 2 pi i b t^2)
     // using euler maclaurin summation
 
     // By rough experimentation, we decide to use Euler MacLaurin summation in the cases that

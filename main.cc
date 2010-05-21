@@ -127,10 +127,10 @@ int main() {
     mpfr_t mp_b;
 
     mpfr_init2(mp_a, 100);
-    mpfr_set_str(mp_a, ".99", 10, GMP_RNDN);
+    mpfr_set_str(mp_a, "0", 10, GMP_RNDN);
 
     mpfr_init2(mp_b, 100);
-    mpfr_set_str(mp_b, ".121252", 10, GMP_RNDN);
+    mpfr_set_str(mp_b, ".00001", 10, GMP_RNDN);
 
 
     Double a = mpfr_get_d(mp_a, GMP_RNDN);
@@ -157,7 +157,13 @@ int main() {
     //cout << JBoundary(.2, .1, .2, 2, 100, exp(-20)) << endl;
 
     //Complex coeffs[] = {0, 0, 0, 1};
-    Complex coeffs[] = {0, 1, 0, 0, 0, 1};
+    
+    Complex coeffs[101];
+    for(int k = 0; k <= 100; k++) {
+        coeffs[k] = 0;
+    }
+    coeffs[1] = 1;
+
     Complex coeffs2[] = {1};
 
     Complex z1, z2, z3, z4;
@@ -169,9 +175,18 @@ int main() {
     z4 = direct_exponential_sum_evaluation2(mp_a, mp_b, 1, 0, 100000);
     //z4 = direct_exponential_sum_evaluation(a, b, 0, 1000);
     cout << z1 << endl;
-    cout << z2 << endl;
-    cout << z3 << endl;
+//    cout << z2 << endl;
+//    cout << z3 << endl;
     cout << z4 << endl;
+
+    cout << abs(z1 - z4) << endl;
+
+//    for(int s = 0; s <= 5; s++) {
+//        for(int j = s; j <= 5; j++) {
+//            cout << s << ", " << j << ": " << w_coefficient(mp_a, mp_b, 10000, s, j) << endl;
+//        }
+//    }
+
 
 //    cout << JBulk(.99, .12, 0, 23999, 100000, exp(-60)) << endl;
 //    cout << IC7(100000, 1, .99, .12, exp(-60)) << endl;

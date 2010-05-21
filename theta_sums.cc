@@ -640,7 +640,11 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
         cout << "Inside S1(): q = " << q << endl;
         cout << "             w = " << w << endl;
         cout << "       a + 2bK = " << a + (Double) 2 * b * K << endl;
-
+        
+        cout << "            C1 = " << C1 << endl;
+        cout << "            C5 = " << C5 << endl;
+        cout << "            C7 = " << C7 << endl;
+        cout << "            C8 = " << C8 << endl;
     }
 
     Complex S1 = 0;
@@ -725,6 +729,10 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
         cout << "IC7_term2 = " << IC7_term2 << endl;
         cout << "IC9E_term = " << IC9E_term << endl;
         cout << "IC1c_term = " << IC1c_term << endl;
+
+        cout << endl;
+        cout << -IC7_term1 - IC1c_term << endl;
+        cout << endl;
     }
 
     //s1 = s1 - C1*( JBulk(w, b, p1, K, epsilon/12) + IC7(K, w, b, epsilon/12) - IC1c(K, w, b, C8, epsilon/12));
@@ -752,7 +760,9 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     }
 
     //s1 = s1 + z * compute_exponential_sum(a1, b1, q, (epsilon/12) * sqrt((Double)2 * b));
-    S1 = S1 + compute_exponential_sums(a1, b1, j, q, v2, epsilon);
+    S1 = S1 + compute_exponential_sums_directly(a1, b1, j, q, v2, epsilon);
+
+    //cout << "--------------------" << abs(v2[0]) * .5 << endl;
 
     if(p == 1) {
         S1 = S1 - v2[0];
@@ -822,6 +832,8 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     }
     boundary_terms = boundary_terms * .5/(ExpA(mp_a, K) * ExpB(mp_b, K));
     boundary_terms += .5 * v[0];
+
+    cout << "Boundary terms = " << boundary_terms << endl;
 
     Complex S = S1 + S2 + boundary_terms;
 

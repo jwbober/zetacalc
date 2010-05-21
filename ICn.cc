@@ -295,6 +295,7 @@ Complex IC1c(int K, int j, Double a, Double b, Complex C8, Double epsilon) {
         cout << "            a  = " << a << endl;
         cout << "            b  = " << b << endl;
         cout << "            K  = " << K << endl;
+        cout << "            j  = " << j << endl;
         cout << "      epsilon  = " << epsilon << endl;
     }
     Complex S = (Complex)0;
@@ -329,6 +330,7 @@ Complex IC1c(int K, int j, Double a, Double b, Complex C8, Double epsilon) {
     if(verbose::IC1c) {
         cout << "Computed IC1c(";
         cout << K << ", ";
+        cout << j << ", ";
         cout << a << ", ";
         cout << b << ") = ";
         cout << S << endl;
@@ -627,6 +629,15 @@ Complex IC7(int K, int j, Double a, Double b, Double epsilon) {
     //  (2) 2bK >= 1
     //
 
+    if(verbose::IC7) {
+        cout << "Entering IC7() with " << endl;
+        cout << "         K = " << K << endl;
+        cout << "         j = " << j << endl;
+        cout << "         a = " << a << endl;
+        cout << "         b = " << b << endl;
+        cout << "   epsilon = " << epsilon << endl;
+    }
+
     Complex C9;
     switch(j % 8) {
         case 0:
@@ -722,6 +733,8 @@ Complex IC7(int K, int j, Double a, Double b, Double epsilon) {
     
     S = S * C9/(two_pi_b_power * K_to_the_j);
 
+    cout << "IC7() returning " << S << endl;
+
     return S;
 }
 
@@ -790,6 +803,15 @@ Complex IC9E(int K, int j, Double a, Double b, Double epsilon) {
     // for a and b positive, and 2bK >= 1
     //
     
+    if(verbose::IC9E) {
+        cout << "IC9E() called with: " << endl;
+        cout << "               K = " << K << endl;
+        cout << "               j = " << j << endl;
+        cout << "               a = " << a << endl;
+        cout << "               b = " << b << endl;
+        cout << "         epsilon = " << epsilon << endl;
+    }
+    
     int L = to_int(ceil(-LOG(epsilon)/(2 * PI *(a + 2 * b * K)) ));
     L = max(0, L);
     
@@ -804,6 +826,9 @@ Complex IC9E(int K, int j, Double a, Double b, Double epsilon) {
         S = S + z;
     }
     S = S/K_to_the_j;
+    if(verbose::IC9E) {
+        cout << "IC9E returning: " << S << endl;
+    }
     return S;
 }
 
