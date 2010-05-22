@@ -195,6 +195,8 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
         cout << "G() called with:  " << endl;
         cout << "          alpha = " << alpha << endl;
         cout << "              b = " << b << endl;
+        cout << "              n = " << n << endl;
+        cout << "              j = " << j << endl;
         cout << "        epsilon = " << epsilon << endl;
     }
 
@@ -238,7 +240,7 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
     if(n > 0) {
         Complex S = 0;
         for(int s = 0; s <= j; s++) {
-            Double z = binomial_coefficient(j, s);// * pow(2, -j) * pow(n, -s);
+            Double z = binomial_coefficient(j, s) * pow(n, j - s);
             S = S + z * G(alpha, b, 0, s, epsilon/(z * j));
         }
         return S;

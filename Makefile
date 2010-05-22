@@ -1,4 +1,4 @@
-OPTIONS = -msse2 -mfpmath=sse -Wall
+OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -ffast-math
 
 a.out: theta_sums.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o misc.o
 	g++ -O3 theta_sums.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o misc.o -lmpfr -lgmp -msse -mfpmath=sse -lprofiler
