@@ -131,11 +131,11 @@ int main() {
     mpfr_t mp_b;
 
     mpfr_init2(mp_a, 100);
-    mpfr_set_str(mp_a, "0", 10, GMP_RNDN);
+    mpfr_set_str(mp_a, ".5134513", 10, GMP_RNDN);
 
     mpfr_init2(mp_b, 100);
     mpfr_set_str(mp_b, "0", 10, GMP_RNDN);
-    mpfr_set_str(mp_b, "0", 10, GMP_RNDN);
+    mpfr_set_str(mp_b, ".124131435123", 10, GMP_RNDN);
 
 
     Double a = mpfr_get_d(mp_a, GMP_RNDN);

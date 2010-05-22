@@ -316,7 +316,11 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
     //    return (Complex)0;
     //}
 
-    int N = 4 * to_int(ceil(  ( abs(alpha) + abs((Complex)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 0.0) ) * (1 + j * log(n + 1)/4.0) ));
+    int N = 4 * to_int(ceil(  ( abs(alpha) + abs((Complex)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 1.0) ) * (1 + j * log(n + 1)/4.0) ));
+
+    if(verbose::G >= 2) {
+        cout << "In G(), using " << N << " sample points in Euler-Maclaurin summation." << endl;
+    }
 
     /*
     Double two_n_to_the_j = 1;
@@ -356,6 +360,9 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
         }
     }
 
+    if(verbose::G >= 2) {
+        cout << "In G(), starting to compute correction terms in Euler-Maclaurin summation." << endl;
+    }
 
     while(error > epsilon/2) {
     
@@ -381,8 +388,14 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
         Complex z = bernoulli_table[2 * r]/(factorial(2 * r) * N_power) * (derivative_at_1 - derivative_at_0);
 
         S = S - z;
-        r = r + 1;
         error = abs(z);
+        if(verbose::G >= 2) {
+            cout << "   Correction term " << r << " has size: " << error << endl;
+            cout << "      derivative at 0 = " << derivative_at_0 << endl;
+            cout << "      derivative at 1 = " << derivative_at_1 << endl;
+            cout << "                 N^2r = " << N_power << endl;
+        }
+        r = r + 1;
     }
 
     delete [] p;
