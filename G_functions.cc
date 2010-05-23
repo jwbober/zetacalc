@@ -316,7 +316,7 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
     //    return (Complex)0;
     //}
 
-    int N = 4 * to_int(ceil(  ( abs(alpha) + abs((Complex)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 1.0) ) * (1 + j * log(n + 1)/4.0) ));
+    int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((Complex)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 0.0) ) * (1 + j * log(n + 1)/4.0) )), 1);
 
     if(verbose::G >= 2) {
         cout << "In G(), using " << N << " sample points in Euler-Maclaurin summation." << endl;

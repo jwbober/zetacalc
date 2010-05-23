@@ -948,12 +948,16 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 Complex compute_exponential_sums_directly(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon) {
     Complex S = 0;
 
-    //Double a = mpfr_get_d(mp_a, GMP_RNDN);
-    //Double b = mpfr_get_d(mp_b, GMP_RNDN);
+    Double a = mpfr_get_d(mp_a, GMP_RNDN);
+    Double b = mpfr_get_d(mp_b, GMP_RNDN);
 
     for(int l = 0; l <= j; l++) {
         if(v[l] != 0.0) {
-            S = S + v[l] * direct_exponential_sum_evaluation2(mp_a, mp_b, l, 0, K);
+            if(K > 200) {
+                S = S + v[l] * direct_exponential_sum_evaluation2(mp_a, mp_b, l, 0, K);
+            }
+            else
+                S = S + v[l] * direct_exponential_sum_evaluation2(a, b, l, 0, K);
         }
     }
 
@@ -1012,8 +1016,9 @@ Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, in
         for(int l = 0; l <= j; l++) {
             Complex z = 0;
             for(int s = l; s <= j; s++) {
-                z = z + v[s] * binomial_coefficient(s, l) * pow(m/8.0, s - l) * pow((K2/8 - 1), l) * pow(K2, s - l) * pow(K, -s);
+                z = z + v[s] * binomial_coefficient(s, l) * pow(m/8.0, s - l) * pow(K2, s - l) * pow(K, -s);
             }
+            z *= pow((K2/8 - 1), l);
             Z[l] = z;
         }
 
@@ -1040,6 +1045,20 @@ Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, in
 
     return S;
 
+}
+
+Complex compute_exponential_sums(Double a, Double b, int j, int K, Complex * v, Double epsilon, int method) {
+    mpfr_t mp_a, mp_b;
+    mpfr_init2(mp_a, 100);
+    mpfr_init2(mp_b, 100);
+    mpfr_set_d(mp_a, a, GMP_RNDN);
+    mpfr_set_d(mp_b, b, GMP_RNDN);
+
+    Complex S = compute_exponential_sums(mp_a, mp_b, j, K, v, epsilon, method);
+
+    mpfr_clear(mp_a);
+    mpfr_clear(mp_b);
+    return S;
 }
 
 Complex compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon, int method) {
@@ -1071,7 +1090,7 @@ Complex compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex
     int p = to_int(ceil(a));
 
     if(method == 0) {
-        if(K <= 2 * pow((-LOG(epsilon)/(2 * PI)), 2) || K <= Kmin * (j + 1)) {
+        if(K <= 2 * pow((-LOG(epsilon)/(2 * PI)), 2) || K <= Kmin || K <= 10 * (j + 1)) {
             method = 1;
         }
         //else if(2.0 * b * K < 1 && b > pow((-log(epsilon))/((Double)K/(Double)8), 2)) {
