@@ -172,16 +172,6 @@ Complex initial_zeta_sum(mpfr_t M, mpfr_t t) {
 
     return S1;
 }
-
-Complex initial_zeta_sum(Double M, Double t) {
-    Complex S = 0;
-    
-    for(int n = 0; n < 10000000; n++ )
-        S = S + exp(I * t * log(n))/sqrt(n);
-    }
-    return S;
-}
-
 Complex zeta_sum(mpfr_t t) {
     //
     // 

@@ -3,7 +3,10 @@
 
 using namespace std;
 
-Complex w_coefficient(mpfr_t mp_a, mpfr_t mp_b, int K, int s, int j) {
+Complex w_coefficient(mpfr_t mp_a, mpfr_t mp_b, int K, int s, int j, Complex CF) {
+    //
+    // note: should be passed with CF = ExpAB(mp_a, mp_b);
+    //
     Double a = mpfr_get_d(mp_a, GMP_RNDN);
     Double b = mpfr_get_d(mp_b, GMP_RNDN);
 
@@ -12,9 +15,7 @@ Complex w_coefficient(mpfr_t mp_a, mpfr_t mp_b, int K, int s, int j) {
         return 0.0/0.0;
     }
 
-    Complex z = ExpAB(mp_a, mp_b);
-
-    z = z * pow(floor(a + 2 * b * K), s) * pow(2.0, -3.0 * j/2.0 - 1) * pow(b * PI, -(j + 1)/2.0) *
+    Complex z = CF * pow(floor(a + 2 * b * K), s) * pow(2.0, -3.0 * j/2.0 - 1) * pow(b * PI, -(j + 1)/2.0) *
                 pow(K, -j) * factorial(j) * sqrt(2 * PI) * exp(PI * I / 4.0 + (j - s) * 3.0 * PI * I / 4.0) * pow(2 * PI / b, s/2.0) / factorial(s);
 
     Complex S = 0;

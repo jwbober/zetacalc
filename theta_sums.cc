@@ -714,6 +714,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     //Complex C6 = pow(I, j + 1);
     Complex C7 = -C5;
     Complex C8 = -I * ExpB(mp_b, K);
+    Complex CF = ExpAB(mp_a, mp_b);
 
     int q = to_int(a + 2 * b * K); // note that a and b are both positive, so this will do the right thing.
     Double w = a + 2 * b * K - (Double)q;
@@ -858,7 +859,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     for(int l = 0; l <= j; l++) {
         v2[l] = 0;
         for(int s = l; s <= j; s++) {
-            v2[l] += v[s] * w_coefficient(mp_a, mp_b, K, l, s);
+            v2[l] += v[s] * w_coefficient(mp_a, mp_b, K, l, s, CF);
         }
     }
 

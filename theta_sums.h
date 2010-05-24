@@ -454,7 +454,7 @@ inline Complex compute_C12(mpfr_t mp_a, mpfr_t mp_b, int K) {
     return w * z;
 }
 
-Complex w_coefficient(mpfr_t mp_a, mpfr_t mp_b, int K, int s, int j);
+Complex w_coefficient(mpfr_t mp_a, mpfr_t mp_b, int K, int s, int j, Complex CF);
 
 Complex direct_exponential_sum_evaluation2(Double a, Double b, int j, int m, int M, int working_precision = 53);
 Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon);

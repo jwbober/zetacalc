@@ -82,7 +82,7 @@ void test3(Double epsilon, Double error_allowance, int j, int K) {
 
     int n = 0;
 
-    for(Double a = 0; a < 2.0; a += .0097) {
+    for(Double a = 0; a < 1.0; a += .0097) {
         for(Double b = 1.0/((Double)2 * K * K); b <= .5; b += .0087) {
             n++;
             if(n % 100 == 0) {
@@ -90,7 +90,8 @@ void test3(Double epsilon, Double error_allowance, int j, int K) {
             }
             Complex z1, z2;
             z1 = compute_exponential_sums(a, b, j, K, coeffs, epsilon, 0);
-            z2 = compute_exponential_sums(a, b, j, K, coeffs, epsilon, 1);
+            z2 = z1;
+            //z2 = compute_exponential_sums(a, b, j, K, coeffs, epsilon, 1);
             if( abs(z1 - z2) > error_allowance) {
                 cout << "For a = " << a << " b = " << b << " K = " << K << " epsilon = " << epsilon << ": " << endl;
                 cout << "                                       Error was   " << abs(z1 - z2)  << endl;
@@ -149,13 +150,12 @@ int main() {
 
     mpfr_t v;
     mpfr_t t;
-
+/*
     mpfr_init2(v, 150);
     mpfr_init2(t, 150);
     mpfr_set_str(v, "100000000000000000", 10, GMP_RNDN);
     mpfr_set_str(t, "1000000000000000000000000000000", 10, GMP_RNDN);
     int K = 100000;
-
     Complex z1 = zeta_block(v, K, t);
     cout << z1 << abs(z1) << endl;
 
@@ -165,8 +165,9 @@ int main() {
   //  cout << z1 - z2 << endl;
 
     zeta_sum(t);
+*/
 
-//    test3(exp(-20), exp(-19), 5, 10001);
+    test3(exp(-20), exp(-19), 9, 40001);
 
 /*    
     mpfr_t mp_a;
