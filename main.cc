@@ -174,11 +174,11 @@ int main() {
         if(l % 10 == 0) {
             cout << l << endl;
         }
-        //z3 = zeta_block(v, K, t, Z, 2);
+        z3 = zeta_block(v, K, t, Z, 2);
         z2 = zeta_block(v, K, t, Z);
-        z3 = z2;
+        //z3 = z2;
         z1 = z1 + z2;
-        //cout << z2 << " " << z3 << " " << abs(z2 - z3) << endl;
+        cout << z2 << " " << z3 << " " << abs(z2 - z3) << endl;
         mpfr_add(v, v, increment, GMP_RNDN);
     }
 
