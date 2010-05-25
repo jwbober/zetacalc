@@ -152,6 +152,142 @@ Complex zeta_block_mpfr(mpfr_t v, int K, mpfr_t t) {
     return S;
 }
 
+Complex zeta_block_d(mpfr_t v, int K, mpfr_t t, Double epsilon) {
+    //
+    // This routine calculates the sum
+    //
+    // sum_{n=v}^{v + K} n^{.5 + it) = sum_{n=v}^{v + K} exp(it log n)/sqrt(n)
+    //
+    // to a nominal precision of epsilon*K/sqrt(v)
+    // 
+    // To deal with precision issues in the calculation of the exponential
+    // and to get significant speedup, we do a change of variables to
+    // write this sum as 
+    //
+    // exp(it log v)/sqrt(v) sum_{k=0}^K exp(it log(1 + k/v))/sqrt(1 + k/v).
+    //
+    // Then we write 1/sqrt(v + k) as exp(log -.5(1 + k/v)),
+    // so the sum is
+    //
+    // exp(i t log(1 + k/v) + .5 log(1 + k/v))
+    //
+    // We Taylor expand the logarithms with a few terms, and instead
+    // of computing each term using mpfr, we just calculate the first
+    // terms mod 2pi using mpfr, and then multiply by powers of k
+    // in the inner sum using double arithmetic.
+    //
+    // Let x = K/v.
+    // The number of terms we compute in the taylor expansion of the log is
+    //
+    // -(log(t) - log(epsilon))/log(x)
+    //
+    // We compute the initial terms using mpfr up to -log(t)/log(x).
+    //
+    // The number of terms of the in the taylor expansion for the square root
+    // term is log(epsilon)/log(x).
+
+    Complex S = 0;
+
+    Double vv = mpfr_get_d(v, GMP_RNDN);
+    Double tt = mpfr_get_d(t, GMP_RNDN);
+    Double x = K/vv;
+    int number_of_log_terms = (int)( (log(epsilon) - log(tt))/log(x));
+    int number_of_log_terms_mpfr = (int) (-log(tt)/log(x));
+    int number_of_sqrt_terms = (int)( log(epsilon)/log(x) );
+
+    if(verbose::zeta_block_d) {
+        cout << "zeta_block_d() called with " << endl;
+        cout << "                          v = " << vv << endl;
+        cout << "                          K = " << K << endl;
+        cout << "                          t = " << tt << endl;
+        cout << "                        K/v = " << x << endl;
+
+        cout << "   Number of terms in log taylor expansion is " << number_of_log_terms << endl;
+        cout << "                  Number of terms using mpfr: " << number_of_log_terms_mpfr << endl;
+        cout << "   Number of terms in sqrt taylor expansion is " << number_of_sqrt_terms << endl;
+    }
+
+    Double aa = 53 - log(tt)/log(vv) * log2(K);
+    if(aa < -log2(epsilon)) {
+        if(verbose::zeta_block_d) {
+            cout << " --Evaluating directly using mpfr" << endl;
+            cout << "    aa was " << aa << endl;
+        }
+        return zeta_block_mpfr(v, K, t);
+    }
+
+    Double a[number_of_log_terms + 1];
+    Double b[number_of_sqrt_terms + 1];
+    mpfr_t mp_v_power, z, twopi;
+    mpfr_init2(mp_v_power, mpfr_get_prec(v));
+    mpfr_init2(z, mpfr_get_prec(v));
+    mpfr_init2(twopi, mpfr_get_prec(v));
+    
+    mpfr_const_pi(twopi, GMP_RNDN);
+    mpfr_mul_si(twopi, twopi, 2, GMP_RNDN);
+    
+    mpfr_set_si(mp_v_power, 1, GMP_RNDN);
+    Double v_power = 1;
+    int sign = 1;
+    for(int l = 1; l <= number_of_log_terms; l++) {
+        if(l <= number_of_log_terms_mpfr) {
+            mpfr_mul(mp_v_power, mp_v_power, v, GMP_RNDN);
+            v_power = v_power * vv;
+            mpfr_div(z, t, mp_v_power, GMP_RNDN);
+            mpfr_div_si(z, z, l, GMP_RNDN);
+            mpfr_fmod(z, z, twopi, GMP_RNDN);
+            a[l] = sign * mpfr_get_d(z, GMP_RNDN);
+        }
+        else {
+            v_power = v_power * vv;
+            a[l] = sign/(l * v_power);
+        }
+        sign = -sign;
+    }
+
+
+    Double s = 1;
+    for(int l = 1; l <= number_of_sqrt_terms; l++) {
+        s = s * (-.5/vv);
+        b[l] = s/l;
+    }
+
+    for(int k = 0; k <= K; k++) {
+        Double k_power = 1;
+        Double x = 0;
+        Double y = 0;
+        for(int l = 1; l <= number_of_log_terms; l++) {
+            k_power = k_power * k;
+            y = y + a[l] * k_power;
+            if(l <= number_of_sqrt_terms)
+                x = x + b[l] * k_power;
+        }
+        S = S + exp(x + I * y);
+    }
+    S = S / sqrt(vv);
+
+    mpfr_log(z, v, GMP_RNDN);
+    mpfr_mul(z, z, t, GMP_RNDN);
+    mpfr_fmod(z, z, twopi, GMP_RNDN);
+    S = S * exp(I * mpfr_get_d(z, GMP_RNDN));
+    mpfr_clear(mp_v_power);
+    mpfr_clear(z);
+    mpfr_clear(twopi);
+    return S;
+}
+
+Complex zeta_block_d_stupid(mpfr_t v, int K, mpfr_t t) {
+    Double vv = mpfr_get_d(v, GMP_RNDN);
+    Double tt = mpfr_get_d(t, GMP_RNDN);
+
+    Complex S = 0;
+    for(int l = 0; l <= K; l++) {
+        Double n = vv + l;
+        S = S + pow(n, -.5 + I * tt);
+    }
+    return S;
+}
+
 Complex initial_zeta_sum(mpfr_t M, mpfr_t t) {
     int precision = mpfr_get_prec(t);
     
@@ -225,6 +361,7 @@ Complex zeta_sum(mpfr_t t) {
     mpfr_mul_si(n1, n1, 2, GMP_RNDN);
     mpfr_div(n1, t, n1, GMP_RNDN);
     mpfr_sqrt(n1, n1, GMP_RNDN);        // n1 = sqrt(t/2pi)
+    mpfr_floor(n1, n1);
 
     mpfr_div(M1, n1, M, GMP_RNDN);
     mpfr_floor(M1, M1);

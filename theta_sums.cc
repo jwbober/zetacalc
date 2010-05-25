@@ -723,7 +723,11 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     Complex C7 = -C5;
     //Complex C8 = -I * ExpB(mp_b, K);
     Complex C8 = -I * C_BK_inverse;
-    Complex CF = ExpAB(mp_a, mp_b);
+    Complex CF;
+    if(53 + 2 + log2(epsilon * b) < 0)
+        CF = ExpAB(mp_a, mp_b);
+    else
+        CF = exp(-I * PI * a * a * .5/b);
 
     int q = to_int(a + 2 * b * K); // note that a and b are both positive, so this will do the right thing.
     Double w = a + 2 * b * K - (Double)q;

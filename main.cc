@@ -152,12 +152,15 @@ int main() {
     mpfr_t t;
     mpfr_init2(v, 150);
     mpfr_init2(t, 150);
-    mpfr_set_str(v, "1000000000000000", 10, GMP_RNDN);
+    mpfr_set_str(v, "1000000000", 10, GMP_RNDN);
     mpfr_set_str(t, "1000000000000000000000000000000", 10, GMP_RNDN);
-    int K = 30012;
+    int K = 100;
+
+    Double vv = mpfr_get_d(v, GMP_RNDN);
+    Double tt = mpfr_get_d(t, GMP_RNDN);
 
     
-
+/*
     Complex Z[13];
     compute_taylor_coefficients(t, Z);
 
@@ -183,6 +186,21 @@ int main() {
     }
 
     cout << z1 << endl;
+*/
+
+    Complex z1, z2, z3;
+    //for(int l = 0; l <= 5000; l++)
+    //    z1 += zeta_block_d_stupid(v, K, t);
+    z1 = zeta_block_mpfr(v, K, t);
+    z2 = zeta_block_d(v, K, t, exp(-20));
+    //
+    //z3 = zeta_block_d_stupid(v, K, t);
+
+    cout << z1 << endl;
+    cout << z2 << endl;
+    cout << z3 << endl;
+    cout << z1 - z2 << endl;
+    cout << log(abs(  (z1 - z2) * sqrt(vv)/(Double)K  )) << endl;
 
 //    Complex z1 = zeta_block(v, K, t, Z);
 //    cout << z1 << " " << abs(z1) << endl;

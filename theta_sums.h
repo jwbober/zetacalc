@@ -370,3 +370,22 @@ Complex compute_exponential_sums_directly(mpfr_t mp_a, mpfr_t mp_b, int j, int K
 Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon);
 Complex compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon, int method=0);
 Complex compute_exponential_sums(Double a, Double b, int j, int K, Complex * v, Double epsilon, int method=0);
+
+inline Complex I_power(int n) {
+    Complex S = 0;
+    switch(n % 4) {
+        case 0:
+            S = 1;
+            break;
+        case 1:
+            S = I;
+            break;
+        case 2:
+            S = -1;
+            break;
+        case 3:
+            S = -I;
+            break;
+    }
+    return S;
+}
