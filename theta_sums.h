@@ -89,103 +89,11 @@ inline void print_stats() {
 
 }
 
-inline Complex ExpA(mpfr_t A, int K) {
-    // return exp(-2 pi i A K)
-    //
-    // We use mpfr here because even if we only want the answer to 53 bits of
-    // precision we might need to specify A and A*K to high precision.
-    // 
-    
-    mpfr_t real_part;
-    mpfr_t imag_part;
-    mpfr_t tmp;
+Complex ExpA(mpfr_t A, int K);
+Complex ExpB(mpfr_t B, int K);
+Complex ExpAB(mpfr_t A, mpfr_t B);
+Complex ExpABK(mpfr_t A, mpfr_t B, int K);
 
-    mpfr_init2(real_part, 53);
-    mpfr_init2(imag_part, 53);
-    mpfr_init2(tmp, mpfr_get_prec(A));
-    
-    mpfr_const_pi(tmp, GMP_RNDN);
-    mpfr_mul_si(tmp, tmp, -2, GMP_RNDN);
-    mpfr_mul(tmp, tmp, A, GMP_RNDN);
-    mpfr_mul_si(tmp, tmp, K, GMP_RNDN);
-
-    mpfr_sin_cos(imag_part, real_part, tmp, GMP_RNDN);
-
-    Complex S(mpfr_get_d(real_part, GMP_RNDN), mpfr_get_d(imag_part, GMP_RNDN));
-
-    mpfr_clear(real_part);
-    mpfr_clear(imag_part);
-    mpfr_clear(tmp);
-
-    return S;
-}
-
-inline Complex ExpB(mpfr_t B, int K) {
-    // return exp(-2 pi i B K^2)
-    //
-    // We use mpfr here because even if we only want the answer to 53 bits of
-    // precision we might need to specify B and BK^2 to high precision.
-    // 
-    
-    mpfr_t real_part;
-    mpfr_t imag_part;
-    mpfr_t tmp;
-
-    mpfr_init2(real_part, 53);
-    mpfr_init2(imag_part, 53);
-    mpfr_init2(tmp, mpfr_get_prec(B));
-    
-    mpfr_const_pi(tmp, GMP_RNDN);
-    mpfr_mul_si(tmp, tmp, -2, GMP_RNDN);
-    mpfr_mul(tmp, tmp, B, GMP_RNDN);
-    mpfr_mul_si(tmp, tmp, K, GMP_RNDN);
-    mpfr_mul_si(tmp, tmp, K, GMP_RNDN);
-
-    mpfr_sin_cos(imag_part, real_part, tmp, GMP_RNDN);
-
-    Complex S(mpfr_get_d(real_part, GMP_RNDN), mpfr_get_d(imag_part, GMP_RNDN));
-
-    mpfr_clear(real_part);
-    mpfr_clear(imag_part);
-    mpfr_clear(tmp);
-
-    return S;
-}
-
-
-inline Complex ExpAB(mpfr_t A, mpfr_t B){
-	// return exp(- pi i A^2 / (2 B) )
-	//
-	// We use mpfr to avoid loss of precision. Loss of 
-	// precision can occur because B can be as small 
-	// as 1/K, so A^2/B can  be as large as K.
-	//
-	
-    mpfr_t real_part;
-    mpfr_t imag_part;
-    mpfr_t tmp;
-
-    mpfr_init2(real_part, 53);
-    mpfr_init2(imag_part, 53);
-    mpfr_init2(tmp, mpfr_get_prec(A));
-    
-    mpfr_const_pi(tmp, GMP_RNDN);
-    mpfr_mul_si(tmp, tmp, -1, GMP_RNDN);
-    mpfr_mul(tmp, tmp, A, GMP_RNDN);
-    mpfr_mul(tmp, tmp, A, GMP_RNDN);
-    mpfr_div(tmp, tmp, B, GMP_RNDN);
-    mpfr_div_ui(tmp, tmp, 2, GMP_RNDN);
-
-    mpfr_sin_cos(imag_part, real_part, tmp, GMP_RNDN);
-
-    Complex S(mpfr_get_d(real_part, GMP_RNDN), mpfr_get_d(imag_part, GMP_RNDN));
-
-    mpfr_clear(real_part);
-    mpfr_clear(imag_part);
-    mpfr_clear(tmp);
-
-    return S;
-}
 
 
 inline Complex EXP(Complex z) {                                                 //--------------------------------------------
@@ -195,7 +103,7 @@ inline Complex EXP(Complex z) {                                                 
                                                                                 // function will get rid of any overhead at all.
                                                                                 // ---------------------------------------------
 
-inline bool check_condition(bool condition, std::string message) {              //----------------------------------------------
+inline bool check_condition(bool condition, char * message) {              //----------------------------------------------
     if(!condition) {                                                            //
         std::cout << "WARNING: " << message << std::endl;                       //
     }                                                                           //

@@ -150,24 +150,51 @@ int main() {
 
     mpfr_t v;
     mpfr_t t;
-/*
     mpfr_init2(v, 150);
     mpfr_init2(t, 150);
-    mpfr_set_str(v, "100000000000000000", 10, GMP_RNDN);
+    mpfr_set_str(v, "1000000000000000", 10, GMP_RNDN);
     mpfr_set_str(t, "1000000000000000000000000000000", 10, GMP_RNDN);
-    int K = 100000;
-    Complex z1 = zeta_block(v, K, t);
-    cout << z1 << abs(z1) << endl;
+    int K = 30012;
 
-  //  Complex z2 = zeta_block(v, K, t, 2);
-  //  cout << z2 << abs(z2) << endl;
+    
 
-  //  cout << z1 - z2 << endl;
+    Complex Z[13];
+    compute_taylor_coefficients(t, Z);
 
-    zeta_sum(t);
-*/
+    Complex z1 = 0.0;
+    Complex z2, z3;
 
-    test3(exp(-20), exp(-19), 9, 40001);
+    int total = 10000;
+    mpfr_t increment;
+    mpfr_init2(increment, 150);
+    mpfr_div_si(increment, v, total, GMP_RNDN);
+    mpfr_floor(increment, increment);
+
+    for(int l = 0; l < total; l++) {
+        if(l % 10 == 0) {
+            cout << l << endl;
+        }
+        //z3 = zeta_block(v, K, t, Z, 2);
+        z2 = zeta_block(v, K, t, Z);
+        z3 = z2;
+        z1 = z1 + z2;
+        //cout << z2 << " " << z3 << " " << abs(z2 - z3) << endl;
+        mpfr_add(v, v, increment, GMP_RNDN);
+    }
+
+    cout << z1 << endl;
+
+//    Complex z1 = zeta_block(v, K, t, Z);
+//    cout << z1 << " " << abs(z1) << endl;
+//    Complex z2 = zeta_block(v, K, t, Z, 2);
+//    cout << z2 << " " << abs(z2) << endl;
+
+//    cout << z1 - z2 << endl;
+
+
+//    zeta_sum(t);
+
+//    test3(exp(-20), exp(-19), 9, 40001);
 
 /*    
     mpfr_t mp_a;

@@ -706,14 +706,23 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     Double a = mpfr_get_d(mp_a, GMP_RNDN);
     Double b = mpfr_get_d(mp_b, GMP_RNDN);
 
-    Complex C1 = I/(ExpA(mp_a, K) * ExpB(mp_b, K));
+    Complex C_AK_inverse = ExpA(mp_a, K);
+    Complex C_BK_inverse = ExpB(mp_b, K);
+    Complex C_AK = 1.0/C_AK_inverse;
+    Complex C_BK = 1.0/C_BK_inverse;
+    
+    Complex C_ABK = C_AK * C_BK;
+
+    //Complex C1 = I/(ExpA(mp_a, K) * ExpB(mp_b, K));
+    Complex C1 = I * C_ABK;
     //Complex C2 = I * pow(-I, j);
     //Complex C3 = exp((j + 1.0) * I * PI/4.0)/ExpA(mp_a, K);
     //Complex C4 = pow(-I, j + 1);
     Complex C5 = -C1;
     //Complex C6 = pow(I, j + 1);
     Complex C7 = -C5;
-    Complex C8 = -I * ExpB(mp_b, K);
+    //Complex C8 = -I * ExpB(mp_b, K);
+    Complex C8 = -I * C_BK_inverse;
     Complex CF = ExpAB(mp_a, mp_b);
 
     int q = to_int(a + 2 * b * K); // note that a and b are both positive, so this will do the right thing.
@@ -754,6 +763,16 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
         Z[l] = z;
     }
 
+    Complex Z2[j + 1];
+    for(int l = 0; l <= j; l++) {
+        Complex z = 0;
+        for(int s = l; s <= j; s++) {
+            z = z + v[s] * binomial_coefficient(s, l) * pow(2, (s + 1.0)/2.0)  * exp(I * PI * (s + 1.0)/4.0);
+        }
+        Z2[l] = z;
+    }
+
+
     if(verbose::S1) {
         cout << "Z == ";
         for(int l = 0; l <= j; l++ ) {
@@ -792,21 +811,13 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     IC1c_term *= C1;
     S1 = S1 + IC1c_term;
 
-    Complex Z2[j + 1];
-    for(int l = 0; l <= j; l++) {
-        Complex z = 0;
-        for(int s = l; s <= j; s++) {
-            z = z + v[s] * binomial_coefficient(s, l) * pow(2, (s + 1.0)/2.0)  * exp(I * PI * (s + 1.0)/4.0);
-        }
-        Z2[l] = z;
-    }
-
 
     Complex IC9E_term = 0;
     for(int l = 0; l <= j; l++) {
         IC9E_term += Z2[l] * IC9E(K, l, w, b, epsilon * exp(2.0 * PI * w * K)/(12 * abs(Z2[l]) * (j + 1)) ); //----------
     }
-    IC9E_term = -IC9E_term * exp(-2.0 * PI * w * K) / ExpA(mp_a, K);
+    //IC9E_term = -IC9E_term * exp(-2.0 * PI * w * K) / ExpA(mp_a, K);
+    IC9E_term = -IC9E_term * exp(-2.0 * PI * w * K) * C_AK_inverse;
 
     S1 = S1 + IC9E_term;
 
@@ -934,7 +945,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     for(int l = 0; l <= j; l++) {
         boundary_terms += v[l];
     }
-    boundary_terms = boundary_terms * .5/(ExpA(mp_a, K) * ExpB(mp_b, K));
+    boundary_terms = boundary_terms * .5 * C_ABK;
     boundary_terms += .5 * v[0];
 
     //cout << "Boundary terms = " << boundary_terms << endl;
@@ -1001,7 +1012,7 @@ Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, in
     mpfr_init2(tmp, mpfr_get_prec(mp_a));
 
     for(int m = 0; m < 8; m++) {
-        Complex dm = (Complex)1.0/(ExpA(mp_a, m * K2/8) /*ExpA(mp_b, m * K/4)*/ * ExpB(mp_b, m * K2/8));
+        Complex dm = (Complex)1.0/(ExpA(mp_a, m * K2/8) * ExpB(mp_b, m * K2/8));
         mpfr_mul_si(tmp, mp_b, K2, GMP_RNDN); // tmp = b * K
         mpfr_mul_si(tmp, tmp, m, GMP_RNDN);  // now tmp = b * K * m
         mpfr_div_si(tmp, tmp, 4, GMP_RNDN);  // now tmp = bKm/4
