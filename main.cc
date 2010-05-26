@@ -150,11 +150,16 @@ int main() {
 
     mpfr_t v;
     mpfr_t t;
+    mpfr_t M;
     mpfr_init2(v, 150);
     mpfr_init2(t, 150);
+    mpfr_init2(M, 150);
+    mpfr_set_str(M, "1000000", 10, GMP_RNDN);
     mpfr_set_str(v, "1000000000", 10, GMP_RNDN);
     mpfr_set_str(t, "1000000000000000000000000000000", 10, GMP_RNDN);
-    int K = 100;
+
+
+    int K = 800;
 
     Double vv = mpfr_get_d(v, GMP_RNDN);
     Double tt = mpfr_get_d(t, GMP_RNDN);
@@ -189,18 +194,32 @@ int main() {
 */
 
     Complex z1, z2, z3;
-    //for(int l = 0; l <= 5000; l++)
-    //    z1 += zeta_block_d_stupid(v, K, t);
-    z1 = zeta_block_mpfr(v, K, t);
-    z2 = zeta_block_d(v, K, t, exp(-20));
-    //
-    //z3 = zeta_block_d_stupid(v, K, t);
+//    for(int l = 0; l <= 2000; l++) 
+        //z1 += zeta_block_d_stupid(v, K, t);
+        //z1 = zeta_block_mpfr(v, k, t);
+//        z2 += zeta_block_d(v, 500, t, exp(-20));
+
+    z2 = initial_zeta_sum(M, t, exp(-20));
+    //z1 = initial_zeta_sum_mpfr(M, t);
+
+    //z2 = zeta_block_d_stupid(v, 1000000, t);
 
     cout << z1 << endl;
     cout << z2 << endl;
-    cout << z3 << endl;
-    cout << z1 - z2 << endl;
-    cout << log(abs(  (z1 - z2) * sqrt(vv)/(Double)K  )) << endl;
+
+    cout << abs(z1 - z2) << endl;
+
+    //    cout << z1 << endl;
+    //  cout << z2 << endl;
+    //    cout << z1 - z2 << endl;
+    //    cout << k << "  " << log(abs(z1 - z2)) << endl;
+    //}
+
+    //for(int k = 800; k <= 1000; k++) {
+    //    z1 = zeta_block_mpfr(v, k, t);
+    //    z2 = zeta_block_d(v, k, t, exp(-20));
+    //    cout << k << "  " << log(abs(z1 - z2)) << endl;
+    //}
 
 //    Complex z1 = zeta_block(v, K, t, Z);
 //    cout << z1 << " " << abs(z1) << endl;

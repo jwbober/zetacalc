@@ -126,7 +126,7 @@ Complex zeta_block_mpfr(mpfr_t v, int K, mpfr_t t) {
     mpfr_init2(b, precision);
     mpfr_init2(c, precision);
 
-    for(int k = 0; k <= K; k++) {
+    for(int k = 0; k <= K-1; k++) {
         mpfr_add_si(c, v, k, GMP_RNDN);     // c = n (= v + k)
         mpfr_log(a, c, GMP_RNDN);           // a = log(n)
         mpfr_mul(a, a, t, GMP_RNDN);        // a = t log n
@@ -156,7 +156,7 @@ Complex zeta_block_d(mpfr_t v, int K, mpfr_t t, Double epsilon) {
     //
     // This routine calculates the sum
     //
-    // sum_{n=v}^{v + K} n^{.5 + it) = sum_{n=v}^{v + K} exp(it log n)/sqrt(n)
+    // sum_{n=v}^{v + K - 1} n^{.5 + it) = sum_{n=v}^{v + K} exp(it log n)/sqrt(n)
     //
     // to a nominal precision of epsilon*K/sqrt(v)
     // 
@@ -164,7 +164,7 @@ Complex zeta_block_d(mpfr_t v, int K, mpfr_t t, Double epsilon) {
     // and to get significant speedup, we do a change of variables to
     // write this sum as 
     //
-    // exp(it log v)/sqrt(v) sum_{k=0}^K exp(it log(1 + k/v))/sqrt(1 + k/v).
+    // exp(it log v)/sqrt(v) sum_{k=0}^{K-1} exp(it log(1 + k/v))/sqrt(1 + k/v).
     //
     // Then we write 1/sqrt(v + k) as exp(log -.5(1 + k/v)),
     // so the sum is
@@ -188,12 +188,28 @@ Complex zeta_block_d(mpfr_t v, int K, mpfr_t t, Double epsilon) {
 
     Complex S = 0;
 
+    if(K == 0) {
+        return S;
+    }
+    if(K <= 3) {
+        return zeta_block_mpfr(v, K, t);
+    }
+
     Double vv = mpfr_get_d(v, GMP_RNDN);
     Double tt = mpfr_get_d(t, GMP_RNDN);
     Double x = K/vv;
+
+    if(x > pow(tt, -.2)) {
+        return zeta_block_mpfr(v, K, t);
+    }
+
     int number_of_log_terms = (int)( (log(epsilon) - log(tt))/log(x));
-    int number_of_log_terms_mpfr = (int) (-log(tt)/log(x));
+    int number_of_log_terms_mpfr = (int)ceil(-log(tt)/log(x));
     int number_of_sqrt_terms = (int)( log(epsilon)/log(x) );
+
+    //number_of_log_terms = 20;
+    //number_of_log_terms_mpfr = number_of_log_terms;
+    //number_of_sqrt_terms = 20;
 
     if(verbose::zeta_block_d) {
         cout << "zeta_block_d() called with " << endl;
@@ -207,8 +223,8 @@ Complex zeta_block_d(mpfr_t v, int K, mpfr_t t, Double epsilon) {
         cout << "   Number of terms in sqrt taylor expansion is " << number_of_sqrt_terms << endl;
     }
 
-    Double aa = 53 - log(tt)/log(vv) * log2(K);
-    if(aa < -log2(epsilon)) {
+    Double aa = 53 + ceil((-log(tt)/log(vv))) * log2(K) + 100;
+    if(aa < -log2(epsilon * sqrt(vv)/K)) {
         if(verbose::zeta_block_d) {
             cout << " --Evaluating directly using mpfr" << endl;
             cout << "    aa was " << aa << endl;
@@ -216,6 +232,8 @@ Complex zeta_block_d(mpfr_t v, int K, mpfr_t t, Double epsilon) {
         return zeta_block_mpfr(v, K, t);
     }
 
+
+//    cout << "here" << endl;
     Double a[number_of_log_terms + 1];
     Double b[number_of_sqrt_terms + 1];
     mpfr_t mp_v_power, z, twopi;
@@ -252,7 +270,7 @@ Complex zeta_block_d(mpfr_t v, int K, mpfr_t t, Double epsilon) {
         b[l] = s/l;
     }
 
-    for(int k = 0; k <= K; k++) {
+    for(int k = 0; k <= K-1; k++) {
         Double k_power = 1;
         Double x = 0;
         Double y = 0;
@@ -273,6 +291,12 @@ Complex zeta_block_d(mpfr_t v, int K, mpfr_t t, Double epsilon) {
     mpfr_clear(mp_v_power);
     mpfr_clear(z);
     mpfr_clear(twopi);
+
+    if(verbose::zeta_block_d >= 2) {
+        cout << "Computed zeta_block_d = " << S << endl;
+        cout << "Answer should be: " << zeta_block_mpfr(v, K, t) << endl;
+    }
+
     return S;
 }
 
@@ -281,14 +305,14 @@ Complex zeta_block_d_stupid(mpfr_t v, int K, mpfr_t t) {
     Double tt = mpfr_get_d(t, GMP_RNDN);
 
     Complex S = 0;
-    for(int l = 0; l <= K; l++) {
+    for(int l = 0; l <= K-1; l++) {
         Double n = vv + l;
         S = S + pow(n, -.5 + I * tt);
     }
     return S;
 }
 
-Complex initial_zeta_sum(mpfr_t M, mpfr_t t) {
+Complex initial_zeta_sum_mpfr(mpfr_t M, mpfr_t t) {
     int precision = mpfr_get_prec(t);
     
     mpfr_t a, b, c, n, real_part, imaginary_part;
@@ -316,9 +340,9 @@ Complex initial_zeta_sum(mpfr_t M, mpfr_t t) {
         S1 = S1 + exp(I * x)/sqrt(mpfr_get_d(n, GMP_RNDN));
 
         unsigned int nn = mpfr_get_ui(n, GMP_RNDN);
-        if(nn % 10000 == 0) {
-            cout << nn << endl;
-        }
+//        if(nn % 10000 == 0) {
+//            cout << nn << endl;
+//        }
 
 //        mpfr_sin_cos(b, a, a, GMP_RNDN);    // a + ib = exp(i t log n)
 //        mpfr_sqrt(c, n, GMP_RNDN);          // c = sqrt(n)
@@ -339,6 +363,85 @@ Complex initial_zeta_sum(mpfr_t M, mpfr_t t) {
 
     return S1;
 }
+
+inline void printmp(mpfr_t x) {
+    cout << mpfr_get_d(x, GMP_RNDN) << endl;
+}
+
+Complex initial_zeta_sum(mpfr_t M, mpfr_t t, Double epsilon) {
+    Complex S = 0;
+    
+    int m = 9;
+    int mm = pow(2, m);
+    mpfr_t M2, M3;
+    mpfr_t x;
+    mpfr_t r;
+
+    mpfr_init2(M2, mpfr_get_prec(M));
+    mpfr_div_si(M2, M, mm, GMP_RNDN);
+    mpfr_floor(M2, M2);
+
+    mpfr_init2(M3, mpfr_get_prec(M));
+    mpfr_mul_si(M3, M2, mm, GMP_RNDN);
+    mpfr_sub(M3, M, M3, GMP_RNDN);
+
+    printmp(M);
+    printmp(M2);
+    printmp(M3);
+
+    mpfr_init2(x, mpfr_get_prec(M));
+    mpfr_init2(r, mpfr_get_prec(M));
+
+    mpfr_sub_si(x, M2, 1, GMP_RNDN);
+    S = S + initial_zeta_sum_mpfr(x, t);
+
+
+    for(int l = 0; l <= m-1; l++) {
+        int K = pow(2, l);
+        for(mpfr_set_si(r, 0, GMP_RNDN); mpfr_cmp(r, M2) < 0; mpfr_add_si(r, r, 1, GMP_RNDN)) {
+            mpfr_add(x, M2, r, GMP_RNDN);
+            mpfr_mul_si(x, x, K, GMP_RNDN);
+            S = S + zeta_block_d(x, K, t, epsilon);
+            //S = S + zeta_block_mpfr(x, K, t);
+        }
+    }
+
+    mpfr_t R;
+    mpfr_init2(R, mpfr_get_prec(M));
+
+
+    mpfr_add_si(R, M3, 1, GMP_RNDN);
+    mpfr_div_ui(R, R, mm, GMP_RNDN);
+    mpfr_floor(R, R);
+
+    printmp(R);
+
+    int K = mm;
+    for(mpfr_set_si(r, 0, GMP_RNDN); mpfr_cmp(r, R) < 0; mpfr_add_si(r, r, 1, GMP_RNDN)) {
+        mpfr_add(x, M2, r, GMP_RNDN);
+        mpfr_mul_si(x, x, K, GMP_RNDN);
+        S = S + zeta_block_d(x, K, t, epsilon);
+        //S = S + zeta_block_mpfr(x, K, t);
+    }
+
+    mpfr_add(x, M2, R, GMP_RNDN);
+    mpfr_mul_ui(x, x, mm, GMP_RNDN);
+
+    mpfr_mul_si(R, R, mm, GMP_RNDN);
+    mpfr_sub(M3, M3, R, GMP_RNDN);
+    mpfr_add_si(M3, M3, 1, GMP_RNDN);
+
+    S = S + zeta_block_d(x, mpfr_get_si(M3, GMP_RNDN), t, epsilon);
+    //S = S + zeta_block_mpfr(x, mpfr_get_si(M3, GMP_RNDN), t);
+
+    mpfr_clear(M2);
+    mpfr_clear(M3);
+    mpfr_clear(x);
+    mpfr_clear(r);
+    return S;
+}
+
+
 Complex zeta_sum(mpfr_t t) {
     //
     // 
@@ -385,7 +488,7 @@ Complex zeta_sum(mpfr_t t) {
     a = mpfr_get_d(M1, GMP_RNDN);
     cout << "M1 = " << a << endl;
 
-    cout << initial_zeta_sum(M, t) << endl;
+    cout << initial_zeta_sum(M, t, exp(-20)) << endl;
 
     mpfr_clear(M);
     mpfr_clear(n1);
