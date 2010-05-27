@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "mpfr.h"
+#include "gmp.h"
 
 typedef double Double;
 typedef std::complex<double> Complex;

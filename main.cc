@@ -159,7 +159,8 @@ int main() {
     mpfr_set_str(M, "4e6", 10, GMP_RNDN);
     mpfr_get_z(MM, M, GMP_RNDN);
     mpfr_set_str(v, "100000000", 10, GMP_RNDN);
-    mpfr_set_str(t, "1e14", 10, GMP_RNDN);
+    mpfr_set_str(t, "1e12", 10, GMP_RNDN);
+//    mpfr_set_str(t, "1111010010045", 10, GMP_RNDN);
 
 
     int K = 800;
@@ -169,8 +170,8 @@ int main() {
 
     Complex z1, z2, z3;
     
-    z1 = zeta_sum_basic(t);
-//    z2 = zeta_sum(t);
+//    z1 = zeta_sum_basic(t);
+    z2 = zeta_sum(t);
     z3 = zeta_sum_mpfr(t);
 
     mpz_set_str(MM, "5941247", 10);
@@ -182,7 +183,7 @@ int main() {
     cout << z2 << endl;
     cout << z3 << endl;
 
-    cout << abs(z1 - z3) << endl;
+    cout << abs(z2 - z3) << endl;
 
     print_zeta_stats();
 
