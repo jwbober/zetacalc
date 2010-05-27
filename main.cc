@@ -151,12 +151,15 @@ int main() {
     mpfr_t v;
     mpfr_t t;
     mpfr_t M;
+    mpz_t MM;
     mpfr_init2(v, 150);
     mpfr_init2(t, 150);
     mpfr_init2(M, 150);
-    mpfr_set_str(M, "1000000", 10, GMP_RNDN);
-    mpfr_set_str(v, "1000000000", 10, GMP_RNDN);
-    mpfr_set_str(t, "1000000000000000000000000000000", 10, GMP_RNDN);
+    mpz_init(MM);
+    mpfr_set_str(M, "4e6", 10, GMP_RNDN);
+    mpfr_get_z(MM, M, GMP_RNDN);
+    mpfr_set_str(v, "100000000", 10, GMP_RNDN);
+    mpfr_set_str(t, "1e14", 10, GMP_RNDN);
 
 
     int K = 800;
@@ -164,50 +167,24 @@ int main() {
     Double vv = mpfr_get_d(v, GMP_RNDN);
     Double tt = mpfr_get_d(t, GMP_RNDN);
 
-    
-/*
-    Complex Z[13];
-    compute_taylor_coefficients(t, Z);
-
-    Complex z1 = 0.0;
-    Complex z2, z3;
-
-    int total = 10000;
-    mpfr_t increment;
-    mpfr_init2(increment, 150);
-    mpfr_div_si(increment, v, total, GMP_RNDN);
-    mpfr_floor(increment, increment);
-
-    for(int l = 0; l < total; l++) {
-        if(l % 10 == 0) {
-            cout << l << endl;
-        }
-        z3 = zeta_block(v, K, t, Z, 2);
-        z2 = zeta_block(v, K, t, Z);
-        //z3 = z2;
-        z1 = z1 + z2;
-        cout << z2 << " " << z3 << " " << abs(z2 - z3) << endl;
-        mpfr_add(v, v, increment, GMP_RNDN);
-    }
-
-    cout << z1 << endl;
-*/
-
     Complex z1, z2, z3;
-//    for(int l = 0; l <= 2000; l++) 
-        //z1 += zeta_block_d_stupid(v, K, t);
-        //z1 = zeta_block_mpfr(v, k, t);
-//        z2 += zeta_block_d(v, 500, t, exp(-20));
+    
+    z1 = zeta_sum_basic(t);
+//    z2 = zeta_sum(t);
+    z3 = zeta_sum_mpfr(t);
 
-    z2 = initial_zeta_sum(M, t, exp(-20));
-    //z1 = initial_zeta_sum_mpfr(M, t);
+    mpz_set_str(MM, "5941247", 10);
+//    z3 = initial_zeta_sum_mpfr(MM, t);
 
-    //z2 = zeta_block_d_stupid(v, 1000000, t);
+    cout << "----------" << endl;
 
     cout << z1 << endl;
     cout << z2 << endl;
+    cout << z3 << endl;
 
-    cout << abs(z1 - z2) << endl;
+    cout << abs(z1 - z3) << endl;
+
+    print_zeta_stats();
 
     //    cout << z1 << endl;
     //  cout << z2 << endl;
