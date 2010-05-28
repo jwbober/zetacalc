@@ -180,11 +180,13 @@ int main() {
     mpfr_const_pi(twopi, GMP_RNDN);
 
 
-    make_tlog_table(t);
+//    make_tlog_table(t, 50000);
 
-    mpz_set_str(n, "10000000000", 10);
+    mpz_set_str(n, "1", 10);
 
-    for(int l = 1; l <= 100000; l++) {
+    x1 = 0;
+
+    for(int l = 1; l <= 300000; l++) {
         mpz_add_ui(n, n, 1);
 //        x1 = fmod(tlog(t, n), 2 * PI);
 
