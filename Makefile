@@ -1,7 +1,7 @@
 OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -ffast-math
 
-a.out: theta_sums.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o misc.o zeta.o
-	g++ -O3 theta_sums.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o misc.o zeta.o -lmpfr -lgmp -msse -mfpmath=sse -lprofiler -lgmpxx
+a.out: theta_sums.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o misc.o zeta.o log.o zeta.h log.h
+	g++ -O3 theta_sums.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o misc.o zeta.o log.o -lmpfr -lgmp -msse -mfpmath=sse -lprofiler -lgmpxx
 
 main.o: main.cc theta_sums.h
 	g++ -c main.cc $(OPTIONS)
@@ -32,6 +32,9 @@ zeta.o: zeta.cc zeta.h
 
 misc.o: misc.cc theta_sums.h precomputed_tables.h
 	g++ -c misc.cc $(OPTIONS)
+
+log.o: log.cc log.h
+	g++ -c log.cc $(OPTIONS)
 
 clean:
 	rm theta_sums.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o a.out

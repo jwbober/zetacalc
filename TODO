@@ -23,3 +23,5 @@ somewhere in the code.
 9. In initial_zeta_sum() two things:
     m should be chosen intelligently
     we shouldn't start with blocks of size 1.
+
+10. global mpfr twopi
