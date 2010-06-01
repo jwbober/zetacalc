@@ -180,7 +180,7 @@ int main() {
     mpfr_const_pi(twopi, GMP_RNDN);
 
 
-//    make_tlog_table(t, 50000);
+    make_tlog_table(t, 50000);
 
     mpz_set_str(n, "1", 10);
 
@@ -190,21 +190,21 @@ int main() {
         mpz_add_ui(n, n, 1);
 //        x1 = fmod(tlog(t, n), 2 * PI);
 
-//        x1 += tlog(t, n);
+        x1 += tlog(t, n);
 
-        mpfr_set_z(M, n, GMP_RNDN);
-        mpfr_log(M, M, GMP_RNDN);
-        mpfr_mul(M, M, t, GMP_RNDN);
-
+//        mpfr_set_z(M, n, GMP_RNDN);
+//        mpfr_log(M, M, GMP_RNDN);
+//        mpfr_mul(M, M, t, GMP_RNDN);
+//
         
-        mpfr_fmod(M, M, twopi, GMP_RNDN);
+//        mpfr_fmod(M, M, twopi, GMP_RNDN);
 
-        x2 += mpfr_get_d(M, GMP_RNDN);
+//        x2 += mpfr_get_d(M, GMP_RNDN);
 
 //        cout << n << "   " << x1 - x2 << endl;
     }
-    
-    cout << x2 << endl;
+//    
+    cout << x1 << endl;
 
     return 0;
     

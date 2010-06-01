@@ -264,15 +264,44 @@ Complex zeta_block_d(mpz_t v, int K, mpfr_t t, Double epsilon) {
     Double tt = mpfr_get_d(t, GMP_RNDN);
     Double x = K/vv;
 
-    if(x > pow(tt, -1.0/6.0)) {
+    if(x > pow(tt, -1.0/6.0)) {     // TODO: maybe think of a better way to approximate this
+                                    // condition so that we don't call pow.
         zeta_stats::zeta_block_d_using_mpfr_x_large++;
         zeta_stats::zeta_block_d_using_mpfr++;
         return zeta_block_mpfr(v, K, t);
     }
 
-    int number_of_log_terms = (int)( (log(epsilon) - log(tt))/log(x));
-    int number_of_log_terms_mpfr = (int)ceil(-log(tt)/log(x));
-    int number_of_sqrt_terms = (int)( log(epsilon)/log(x) );
+
+    // It seems like the following code to estimate the number
+    // of terms that we need in the taylor expansion might be
+    // useful (and fast) because it doesn't take any logarithms.
+    // Instead we just grab the exponent of the relevant numbers
+    // to estimate the log base 2. In practice it seems like
+    // this slows things down a little bit, though, perhaps
+    // because we sometimes (often?) take one extra term
+    // in the taylor expansion, so we don't use it right now.
+
+    // UPDATE: After writing the above comment, I changed the
+    // way that we decide whether or not to use mpfr to calculate
+    // the terms, and now this this method seems about as good,
+    // and maybe better, so I am using it again.
+    //
+
+     int logepsilon;
+     int logtt;
+     int logx;
+
+     frexp(epsilon, &logepsilon);
+     frexp(tt, &logtt);
+     frexp(x, &logx);
+
+     int number_of_log_terms = (logepsilon - logtt)/logx;
+//     int number_of_log_terms_mpfr = -logtt/logx + 1;             // We add one instead of taking the ceiling
+     int number_of_sqrt_terms = logepsilon/logx;
+
+//    int number_of_log_terms = (int)( (log(epsilon) - log(tt))/log(x));
+//    int number_of_log_terms_mpfr = (int)ceil(-log(tt)/log(x));
+//    int number_of_sqrt_terms = (int)( log(epsilon)/log(x) );
 
     //number_of_log_terms = 20;
     //number_of_log_terms_mpfr = number_of_log_terms;
@@ -286,11 +315,16 @@ Complex zeta_block_d(mpz_t v, int K, mpfr_t t, Double epsilon) {
         cout << "                        K/v = " << x << endl;
 
         cout << "   Number of terms in log taylor expansion is " << number_of_log_terms << endl;
-        cout << "                  Number of terms using mpfr: " << number_of_log_terms_mpfr << endl;
+//        cout << "                  Number of terms using mpfr: " << number_of_log_terms_mpfr << endl;
         cout << "   Number of terms in sqrt taylor expansion is " << number_of_sqrt_terms << endl;
+
+        cout << "   Using old code, would have used: " << endl;
+        cout << "   Number of terms in log taylor expansion is " << (int)( (log(epsilon) - log(tt))/log(x)) << endl;
+//        cout << "                  Number of terms using mpfr: " << (int)ceil(-log(tt)/log(x)) << endl;
+        cout << "   Number of terms in sqrt taylor expansion is " <<  (int)( log(epsilon)/log(x) )  << endl;
     }
 
-    Double aa = 53 + ceil((-log(tt)/log(vv))) * log2(K) + 100;
+    Double aa = 53 + ceil((-log(tt)/log(vv))) * log2(K) + 100;      // TODO: think about whether we need to do this.
     if(aa < -log2(epsilon * sqrt(vv)/K)) {
         if(verbose::zeta_block_d) {
             cout << " --Evaluating directly using mpfr" << endl;
@@ -301,32 +335,73 @@ Complex zeta_block_d(mpz_t v, int K, mpfr_t t, Double epsilon) {
     }
 
 
-//    cout << "here" << endl;
     Double a[number_of_log_terms + 1];
     Double b[number_of_sqrt_terms + 1];
-    mpfr_t mp_v_power, z, twopi;
-    mpfr_init2(mp_v_power, mpfr_get_prec(t));       // TODO: do a better job selecting the precision here.
-    mpfr_init2(z, mpfr_get_prec(t));
-    mpfr_init2(twopi, mpfr_get_prec(t));
+
+    int vsize = mpz_sizeinbase(v, 2);
+    int precision = mpfr_get_exp(t) - vsize + 53;       
+                                                // We want to accurately compute
+                                                // the quantities t/v mod pi. To do so
+                                                // it should be enough
+                                                // to use log2(t) - log2(v) + 53 bits.
     
+    int step_two_precision = mpfr_get_exp(t) + vsize + 53;                  // Later we will want to accurately
+                                                                            // compute t log v mod 2pi, so
+                                                                            // we will need more precision.
+                                                                            // We are overdoing it here a little
+                                                                            // bit, and really should just use a
+                                                                            // precision equal to log2(t) + log2(log(v)) + 53.
+                                                                            //
+                                                                            // We will also calculate twopi to this
+                                                                            // precision, since we will need it.
+
+    mpfr_t mp_v_power, z, twopi, one_over_v, twopi_l, z1;
+    
+    mpfr_init2(mp_v_power, precision);
+    mpfr_init2(one_over_v, precision);
+    mpfr_init2(z, precision);
+    mpfr_init2(twopi, step_two_precision);
+    mpfr_init2(twopi_l, precision);
+    mpfr_init2(z1, 53);
+
     mpfr_const_pi(twopi, GMP_RNDN);
     mpfr_mul_si(twopi, twopi, 2, GMP_RNDN);
     
-    mpfr_set_si(mp_v_power, 1, GMP_RNDN);
-    Double v_power = 1;
+    mpfr_set_z(one_over_v, v, GMP_RNDN);
+    mpfr_ui_div(one_over_v, 1, one_over_v, GMP_RNDN);
+
     int sign = 1;
+    Double one_over_vv = 1.0/vv;
+    Double v_power = one_over_vv;
+    mpfr_set(mp_v_power, one_over_v, GMP_RNDN);
+    mpfr_set(twopi_l, twopi, GMP_RNDN);
     for(int l = 1; l <= number_of_log_terms; l++) {
-        if(l <= number_of_log_terms_mpfr) {
-            mpfr_mul_z(mp_v_power, mp_v_power, v, GMP_RNDN);
-            v_power = v_power * vv;
-            mpfr_div(z, t, mp_v_power, GMP_RNDN);
-            mpfr_div_si(z, z, l, GMP_RNDN);
-            mpfr_fmod(z, z, twopi, GMP_RNDN);
-            a[l] = sign * mpfr_get_d(z, GMP_RNDN);
+        //if(l <= number_of_log_terms_mpfr) {
+        if(precision >= 53) {
+            //
+            // The following calls to reduce the precision on each iteration
+            // seem to slow things down just a very little bit in the tests I have run, and maybe
+            // they shouldn't be there. But I suspect that in cases
+            // where v is very large there should be some gain
+            // in using them, so I am leaving them for now.
+            //
+            mpfr_set_prec(z, precision);
+            mpfr_prec_round(mp_v_power, precision, GMP_RNDN);
+            mpfr_prec_round(twopi_l, precision, GMP_RNDN);
+            mpfr_mul(z, t, mp_v_power, GMP_RNDN);
+            
+            //mpfr_div_si(z, z, l, GMP_RNDN);
+            //mpfr_frac(z, z, GMP_RNDN);
+            mpfr_fmod(z1, z, twopi_l, GMP_RNDN);
+            a[l] = sign * mpfr_get_d(z1, GMP_RNDN)/l;
+            mpfr_mul(mp_v_power, mp_v_power, one_over_v, GMP_RNDN);
+            v_power = v_power * one_over_vv;
+            mpfr_add(twopi_l, twopi_l, twopi, GMP_RNDN);
+            precision = precision - vsize;
         }
         else {
-            v_power = v_power * vv;
-            a[l] = tt * sign/(l * v_power);
+            a[l] = tt * sign * v_power/l;
+            v_power = v_power * one_over_vv;
         }
         sign = -sign;
     }
@@ -352,11 +427,18 @@ Complex zeta_block_d(mpz_t v, int K, mpfr_t t, Double epsilon) {
     }
     S = S / sqrt(vv);
 
+    // Now we need z to have more precision. Enough to store the integer
+    // part of t log v + 53 bits
+
+    mpfr_set_prec(z, step_two_precision);
+
     mpfr_set_z(z, v, GMP_RNDN);
     mpfr_log(z, z, GMP_RNDN);
     mpfr_mul(z, z, t, GMP_RNDN);
-    mpfr_fmod(z, z, twopi, GMP_RNDN);
-    S = S * exp(I * mpfr_get_d(z, GMP_RNDN));
+
+    mpfr_fmod(z1, z, twopi, GMP_RNDN); 
+    S = S * exp(I * mpfr_get_d(z1, GMP_RNDN));
+
 
     if(verbose::zeta_block_d >= 2) {
         cout << "Computed zeta_block_d = " << S << endl;
@@ -374,7 +456,7 @@ Complex zeta_block_d(mpz_t v, int K, mpfr_t t, Double epsilon) {
             cout << "                        K/v = " << x << endl;
 
             cout << "   Number of terms in log taylor expansion is " << number_of_log_terms << endl;
-            cout << "                  Number of terms using mpfr: " << number_of_log_terms_mpfr << endl;
+//            cout << "                  Number of terms using mpfr: " << number_of_log_terms_mpfr << endl;
             cout << "   Number of terms in sqrt taylor expansion is " << number_of_sqrt_terms << endl;
             cout << "Computed zeta_block_d = " << S << endl;
             cout << "      Answer should be: " << z1 << endl;
@@ -406,6 +488,9 @@ Complex zeta_block_d(mpz_t v, int K, mpfr_t t, Double epsilon) {
     mpfr_clear(mp_v_power);
     mpfr_clear(z);
     mpfr_clear(twopi);
+    mpfr_clear(twopi_l);
+    mpfr_clear(one_over_v);
+    mpfr_clear(z1);
 
     return S;
 }
@@ -424,20 +509,22 @@ Complex zeta_block_d_stupid(mpz_t v, int K, mpfr_t t) {
 
 Complex initial_zeta_sum_mpfr(mpz_t M, mpfr_t t) {
     mpfr_t x, y;
-    mpfr_init2(x, 53);
+//    mpfr_init2(x, 53);
     mpfr_init2(y, 53);
-    mpfr_log2(x, t, GMP_RNDN);
+//    mpfr_log2(x, t, GMP_RNDN);
     mpfr_set_z(y, M, GMP_RNDN);
     mpfr_log(y, y, GMP_RNDN);
-    mpfr_log2(y, y, GMP_RNDN);
-    mpfr_add(x, x, y, GMP_RNDN);
-    int mod_precision = mpfr_get_ui(x, GMP_RNDN) + 55;  // This is the precision that we need when
+//    mpfr_log2(y, y, GMP_RNDN);
+//    mpfr_add(x, x, y, GMP_RNDN);
+
+    int mod_precision = mpfr_get_exp(t) + mpfr_get_exp(y) + 55;
+//    int mod_precision = mpfr_get_ui(x, GMP_RNDN) + 55;  // This is the precision that we need when
                                                         // need to calculate the quantity t log n
                                                         // when we mod by 2 pi
 
-    mpfr_set_z(y, M, GMP_RNDN);
-    mpfr_log2(y, y, GMP_RNDN);
-    int n_precision = mpfr_get_ui(y, GMP_RNDN) + 2;     // This is the precision that we need to exactly
+//    mpfr_set_z(y, M, GMP_RNDN);
+//    mpfr_log2(y, y, GMP_RNDN);
+    int n_precision = mpz_sizeinbase(M, 2) + 2;         // This is the precision that we need to exactly
                                                         // represent the largest integer that will occur
                                                         // in the summation.
     
@@ -454,7 +541,7 @@ Complex initial_zeta_sum_mpfr(mpz_t M, mpfr_t t) {
     mpfr_const_pi(twopi, GMP_RNDN);
     mpfr_mul_ui(twopi, twopi, 2, GMP_RNDN);
 
-    mpfr_clear(x);
+ //   mpfr_clear(x);
     mpfr_init2(x, mod_precision);
 
     mpz_t n;

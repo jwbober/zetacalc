@@ -91,8 +91,8 @@ Double tlog(mpfr_t t, mpz_t v) {
     Double tt = mpfr_get_d(t, GMP_RNDN);
     Double NN = mpz_get_d(N);
 
-    int number_of_terms = 4; // (int)( -37 - log(tt))/(-log(NN));
-    int number_of_terms_mpfr = 3; //(int)ceil(-log(tt)/(-log(NN)));
+    int number_of_terms = 1; // (int)( -37 - log(tt))/(-log(NN));
+    int number_of_terms_mpfr = 1; //(int)ceil(-log(tt)/(-log(NN)));
 
     NN = 1.0/NN;
 
