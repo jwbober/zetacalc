@@ -34,46 +34,6 @@ namespace stats {
 
 
 
-
-
-void test(int K, Double epsilon, Double error_allowance) {
-    for(Double a = 0; a < 1.0; a += .01) {
-        for(Double b = 1.0/((Double)2 * K); b <= .25; b += .01) {
-            Complex z1, z2;
-            z1 = compute_exponential_sum(a, b, K, epsilon, 2);
-            z2 = compute_exponential_sum(a, b, K, epsilon, 2);
-            if( abs(z1 - z2) > error_allowance) {
-                cout << "For a = " << a << " b = " << b << " K = " << K << " epsilon = " << epsilon << ": " << endl;
-                cout << "                                       Error was   " << abs(z1 - z2)  << endl;
-                cout << "                                       log(error): " << log(abs(z1 - z2)) << endl;
-                cout << "  method 1 gives: " << z1 << endl;
-                cout << "  method 2 gives: " << z2 << endl;
-            }
-        }
-    }
-}
-
-void test2(Double epsilon, Double error_allowance) {
-    for(int n = 0; n < 100; n++) {
-        Double a = (Double)rand()/(Double)RAND_MAX;
-        Double b = (Double)rand()/(Double)RAND_MAX * .25;
-
-        int K = to_int((Double)rand()/(Double)RAND_MAX * 100000);
-
-        Complex z1 = compute_exponential_sum(a, b, K, epsilon);
-        Complex z2 = direct_exponential_sum_evaluation(a, b, 0, K, 300);
-
-        cout << z1 << endl;
-        cout << z2 << endl;
-
-        cout << a << "  "  << b << "  " << K << "  " << abs(z1 - z2) << "   " << log(abs(z1 - z2)) << endl;
-    }
-}
-
-void timing_test(Double epsilon, int number_of_tests) {
-    
-}
-
 void test3(Double epsilon, Double error_allowance, int j, int K) {
     Complex coeffs[j + 1];
     for(int l = 0; l < j; l++) {

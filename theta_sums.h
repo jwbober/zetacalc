@@ -31,7 +31,7 @@ inline double LOG(double x) {
 
 
 namespace verbose {
-    const int IC0 = 0;
+    const int IC0 = 1;
     const int IC1c = 0;
     const int IC6 = 0;
     const int IC7 = 0;
@@ -304,19 +304,11 @@ void g_derivative_polynomial(int n, Complex * p, Complex * q, const Complex a, c
 
 Complex S1(int K, mpfr_t mp_a, mpfr_t mp_b, Double epsilon);
 Complex S2(int K, mpfr_t mp_a, mpfr_t mp_b, Double epsilon);
-Complex compute_exponential_sum_via_Euler_Maclaurin(Double a, Double b, int K, Double epsilon);
-Complex compute_exponential_sum_via_Euler_Maclaurin(mpfr_t mp_a, mpfr_t mp_b, int K, Double epsilon);
-Complex compute_exponential_sum_for_small_b(Double a, Double b, int K, Double epsilon);
-Complex compute_exponential_sum_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int K, Double epsilon);
-Complex compute_exponential_sum(mpfr_t mp_a, mpfr_t mp_b, int K, Double epsilon, int method = 0);
-Complex compute_exponential_sum(Double a, Double b, int K, Double epsilon, int method = 0);
 
 int normalize(Double &a, Double &b);
 int normalize(mpfr_t a, mpfr_t b);
 
 
-Complex direct_exponential_sum_evaluation(Double alpha, Double beta, int m, int M, int working_precision = 53);
-Complex direct_exponential_sum_evaluation(mpfr_t a, mpfr_t b, int m, int M);
 Double sum_of_offset_inverse_powers(Double a, int m, int M, int j, Double epsilon, int method = 0);
 Double infinite_sum_of_differenced_inverse_powers(Double a1, Double a2, int m, int j, Double epsilon);
 Complex direct_exponential_sum_evaluation2(mpfr_t a, mpfr_t b, int j, int m, int M);

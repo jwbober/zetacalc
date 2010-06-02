@@ -93,12 +93,12 @@ Complex IC0(int K, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mp
 Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mpfr_t mp_b, Double epsilon) {
     if(b <= (-LOG(epsilon)) * (-LOG(epsilon))/((Double)K * (Double)K)) {
 
-        if(verbose::IC0) {
+        if(verbose::IC0 >= 2) {
             cout << "In ICO(), 'really small b' case:" << endl;
         }
 
         int N = to_int(ceil(std::max ((Double)1.0, -LOG(epsilon)) ));
-        if(verbose::IC0) {
+        if(verbose::IC0 >= 2) {
             cout << "N = " << N << endl;
         }
         mpfr_t mp_a2, mp_b2, tmp;
@@ -139,13 +139,13 @@ Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t m
             Complex z = G(a2 + (Double) 2 * (Double)n * b2, b2, n, j, (epsilon) * N_to_the_j/K);
             
             //S = S + C * z;
-            if(verbose::IC0) {
+            if(verbose::IC0 >= 2) {
                 cout << n << ": " << z << endl;
                 cout << n << ": " << K * pow(N, -(j+1)) * C * z << endl;
             }
             S = S + C * z * (Double)K * pow(N, -(j+1));
         }
-        if(verbose::IC0) {
+        if(verbose::IC0 >= 2) {
             cout << "After summation, before normalization, answer is S = " << S << endl;
         }
 //        S = S * (Double)K;
