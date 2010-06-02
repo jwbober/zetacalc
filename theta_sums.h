@@ -144,17 +144,6 @@ Complex H_Integral_2(int j, Double a1, Double a2, Double epsilon);              
 Complex J_Integral_2(Double a1, Double a2, Double b, Double epsilon);           //
 Complex J_Integral_2(Double a1, Double a2, Double b, int j, int K, Double epsilon);// Various integrals.
                                                                                 //
-inline Complex JBulk(Double a, Double b, int M, int K, Double epsilon) {        //                         
-    return J_Integral_0(a, b, M, epsilon/2)                                     // See H_and_J_integrals.cc
-                                        + J_Integral_1(a, b, M, K, epsilon/2);  //
-}                                                                               //
-                                                                                //
-inline Complex JBoundary(Double a1, Double a2, Double b, int K, Double epsilon){//
-    return J_Integral_2(a1, a2, b, epsilon/3)                                   //
-                                        + J_Integral_1(a1, b, -1, K, epsilon/3) //
-                                        - J_Integral_1(a2, b, -1, K, epsilon/3);//
-}                                                                               //----------------------------------------------
-
 inline Complex JBulk(Double a, Double b, int j, int M, int K, Double epsilon) {         //                         
     return J_Integral_0(a, b, j, M, K, epsilon/2)                                          // See H_and_J_integrals.cc
                                         + J_Integral_1(a, b, j, M, K, epsilon/2);       //
