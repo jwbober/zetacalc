@@ -144,30 +144,20 @@ int main() {
 }
 */
 
-int main() {
-
-
-    cout << setprecision(15);
-
+int run_exp_itlogn_test() {
     mpfr_t v;
     mpfr_t t;
     mpfr_t M;
     mpz_t MM;
     mpfr_init2(v, 150);
-    mpfr_init2(t, 110);
+    mpfr_init2(t, 158);
     mpfr_init2(M, 150);
     mpz_init(MM);
     mpfr_set_str(M, "4e6", 10, GMP_RNDN);
     mpfr_get_z(MM, M, GMP_RNDN);
     mpfr_set_str(v, "100000000", 10, GMP_RNDN);
-    mpfr_set_str(t, "1e15", 10, GMP_RNDN);
-//    mpfr_set_str(t, "1111010010045", 10, GMP_RNDN);
+    mpfr_set_str(t, "1e30", 10, GMP_RNDN);
 
-    mpz_set_str(MM, "1", 10);
-//    Complex zz = zeta_block_d_stupid(MM, 12615662, t);
-    
-//    cout << zz << endl;
-//    return 0;
 
     Complex z1, z2, z3;
     Double x1, x2, x3;
@@ -179,52 +169,106 @@ int main() {
     mpfr_init2(twopi, mpfr_get_prec(t));
     mpfr_const_pi(twopi, GMP_RNDN);
 
-
-    make_tlog_table(t, 50000);
-
-    mpz_set_str(n, "1", 10);
-
-    x1 = 0;
-
-    for(int l = 1; l <= 300000; l++) {
-        mpz_add_ui(n, n, 1);
-//        x1 = fmod(tlog(t, n), 2 * PI);
-
-        x1 += tlog(t, n);
-
-//        mpfr_set_z(M, n, GMP_RNDN);
-//        mpfr_log(M, M, GMP_RNDN);
-//        mpfr_mul(M, M, t, GMP_RNDN);
-//
-        
-//        mpfr_fmod(M, M, twopi, GMP_RNDN);
-
-//        x2 += mpfr_get_d(M, GMP_RNDN);
-
-//        cout << n << "   " << x1 - x2 << endl;
-    }
-//    
-    cout << x1 << endl;
-
-    return 0;
+    mpfr_t w1, w2;
+    mpfr_init2(w1, mpfr_get_prec(t));
     
+    create_exp_itlogn_table(t);
 
-    Double vv = mpfr_get_d(v, GMP_RNDN);
+    mpz_set_str(n, "3410873413481", 10);
+
+//    cout << exp_itlogn(n) << endl;
+    
+    z1 = 0;
+    z2 = 0;
+
     Double tt = mpfr_get_d(t, GMP_RNDN);
 
-    Complex R;
+    for(int k = 1; k <= 1000000; k++) {
+        mpz_add_ui(n, n, 1);
+//        mpfr_set_z(w1, n, GMP_RNDN);
 
-    z1 = hardy_Z(t, R);
+//        mpfr_log(w1, w1, GMP_RNDN);
+//        mpfr_mul(w1, w1, t, GMP_RNDN);
+//        mpfr_fmod(w1, w1, twopi, GMP_RNDN);
+//        z1 = exp(I * mpfr_get_d(w1, GMP_RNDN));
+
+        z2 += exp_itlogn3(n);
+
+//        z3 += exp(I * tt * log(k));
+//        Double error = abs(z1 - z2);
+//        if(error > 1e-14)
+//            cout << n << "   " << abs(z1 - z2) << endl;
+    }
+
+    cout << z1 << endl;
+    cout << z2 << endl;
+    cout << z3 << endl;
+
+    cout << exp_itlogn_stats::bigger_than_one << endl;
+    cout << exp_itlogn_stats::smaller_than_one << endl;
+
+
+
+
+    return 0;
+}
+
+
+int run_zeta_test() {
+    
+//    z1 = hardy_Z(t, R);
 //    z1 = zeta_sum_basic(t);
 //    z2 = zeta_sum(t);
 //    z3 = zeta_sum_mpfr(t);
-    cout << z1 << endl;
-    cout << z1 * R << endl;
-//    cout << z2 << endl;
-//    cout << z3 << endl;
-
-//    cout << abs(z2 - z3) << endl;
 
     print_zeta_stats();
     return 0;
+
+}
+
+int run_theta_sums_test() {
+
+    int j = 9;
+    Double epsilon = exp(-20);
+    Double error_allowance = exp(-18);
+    int K = 10000;
+
+
+    Complex coeffs[j + 1];
+    for(int l = 0; l < j; l++) {
+        coeffs[l] = 0;
+    }
+    coeffs[j] = 1;
+
+    int n = 0;
+
+    for(Double a = 0; a < 1.0; a += .0097) {
+        for(Double b = 1.0/((Double)2 * K * K); b <= .5; b += .0087) {
+            n++;
+            if(n % 100 == 0) {
+                cout << "Running test number " << n << " with a = " << a << " b = " << b << endl;
+            }
+            Complex z1, z2;
+            z1 = compute_exponential_sums(a, b, j, K, coeffs, epsilon, 0);
+            z2 = z1;
+            //z2 = compute_exponential_sums(a, b, j, K, coeffs, epsilon, 1);
+            if( abs(z1 - z2) > error_allowance) {
+                cout << "For a = " << a << " b = " << b << " K = " << K << " epsilon = " << epsilon << ": " << endl;
+                cout << "                                       Error was   " << abs(z1 - z2)  << endl;
+                cout << "                                       log(error): " << log(abs(z1 - z2)) << endl;
+                cout << "  method 0 gives: " << z1 << endl;
+                cout << "  method 1 gives: " << z2 << endl;
+            }
+        }
+    }
+
+    return 0;
+}
+
+int main() {
+
+
+    cout << setprecision(15);
+
+    return run_theta_sums_test();
 }
