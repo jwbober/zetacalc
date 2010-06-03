@@ -267,5 +267,5 @@ int main() {
 
     cout << setprecision(15);
 
-    return run_theta_sums_speed_test();
+    return run_theta_sums_accuracy_test();
 }

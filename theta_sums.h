@@ -320,11 +320,107 @@ inline Complex I_power(int n) {
     return S;
 }
 
+inline Complex minus_I_power(int n) {
+    Complex S = 0.0;
+    switch(n % 4) {
+        case 0:
+            S = Complex(1.0, 0.0);
+            break;
+        case 1:
+            S = Complex(0.0, -1.0);
+            break;
+        case 2:
+            S = Complex(-1.0, 0.0);
+            break;
+        case 3:
+            S = Complex(0.0, 1.0);
+            break;
+    }
+    return S;
+}
+
 inline int minus_one_power(int n) {
+    int S = 0;
     switch(n % 2) {
         case 0:
-            return 1;
+            S = 1;
+            break;
         case 1:
-            return -1;
+            S = -1;
+            break;
     }
+    return S;
 }
+
+inline Complex exp_i_pi4(int n) {
+    //
+    // Return exp( n * I * PI / 4)
+    //
+
+    Complex S = 0;
+    switch(n % 8) {
+        case 0:
+            S = Complex(1, 0);
+            break;
+        case 1:
+            S = Complex(sqrt(2.0)/2.0, sqrt(2.0)/2.0);
+            break;
+        case 2:
+            S = Complex(0, 1);
+            break;
+        case 3:
+            S = Complex(-sqrt(2.0)/2.0, sqrt(2.0)/2.0);
+            break;
+        case 4:
+            S = Complex(-1, 0);
+            break;
+        case 5:
+            S = Complex(-sqrt(2.0)/2.0, -sqrt(2.0)/2.0);
+            break;
+        case 6:
+            S = Complex(0, -1);
+            break;
+        case 7:
+            S = Complex(sqrt(2.0)/2.0, -sqrt(2.0)/2.0);
+            break;
+    }
+    return S;
+}
+
+
+inline Complex exp_minus_i_pi4(int n) {
+    //
+    // Return exp(-n * I * PI /4)
+    //
+
+    Complex S = 0;
+    switch(n % 8) {
+        case 0:
+            S = Complex(sqrt(2.0)/2.0, -sqrt(2.0)/2.0);
+            break;
+        case 1:
+            S = Complex(0, -1);
+            break;
+        case 2:
+            S = Complex(-sqrt(2.0)/2.0, -sqrt(2.0)/2.0);
+            break;
+        case 3:
+            S = Complex(-1, 0);
+            break;
+        case 4:
+            S = Complex(-sqrt(2.0)/2.0, sqrt(2.0)/2.0);
+            break;
+        case 5:
+            S = Complex(0, 1);
+            break;
+        case 6:
+            S = Complex(sqrt(2.0)/2.0, sqrt(2.0)/2.0);
+            break;
+        case 7:
+            S = Complex(1, 0);
+            break;
+    }
+    return S;
+}
+
+

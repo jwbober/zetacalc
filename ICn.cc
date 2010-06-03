@@ -121,14 +121,14 @@ Complex IC1(int K, int j, Double a, Double b, Complex C11, Complex C12, Double e
     Complex S = 0;
     for(int r = 0; r <= j; r++) {
         Double z = binomial_coefficient(j, r);
-        S = S + z * pow(I, r) * IC7(K, r, a + 2 * b * K, b, epsilon /(2.0 * z * (j + 1)));
+        S = S + z * I_power(r) * IC7(K, r, a + 2 * b * K, b, epsilon /(2.0 * z * (j + 1)));
     }
 
     if( a + 2 * b * K <= - LOG(epsilon * sqrt(b))/((Double)2 * PI * K) + 1) {
         Complex S2 = 0;
         for(int r = 0; r <= j; r++) {
             Double z = binomial_coefficient(j, r) * pow(2 * PI * b, (Double)r / 2.0) * pow(K, r);        
-            S2 = S2 + z * pow(I, r) * G((a + 2 * b * K)/sqrt(2 * PI * b) + I * (Double)2 * sqrt(b) * (Double)K/sqrt(2 * PI), (Double)1/(2 * PI), 0, r, sqrt(2 * PI * b) * epsilon/(abs(C12) * (Double)2 * z * (j + 1)));
+            S2 = S2 + z * I_power(r) * G((a + 2 * b * K)/sqrt(2 * PI * b) + I * (Double)2 * sqrt(b) * (Double)K/sqrt(2 * PI), (Double)1/(2 * PI), 0, r, sqrt(2 * PI * b) * epsilon/(abs(C12) * (Double)2 * z * (j + 1)));
         }
         S2 = S2 * C12;
         S = S + S2;
@@ -163,16 +163,14 @@ Complex IC1c(int K, int j, Double a, Double b, Complex C8, Double epsilon) {
         cout << "            L = " << L << endl;
     }
 
-    Complex minus_i_power(0, 1);
     for(int l = 0; l <= j; l++) {
-        minus_i_power *= -I;
         Complex S1 = 0;
         Double z = pow(K, l)/binomial_coefficient(j, l);
         for(int n = 0; n <= L - 1; n++) {
             S1 = S1 + EXP(2.0 * PI * n * (I * a - 2.0 * b * (Double)K + I * b * (Double)n) ) 
                     * G(a + (Double)2.0 * I * b * (Double)K + (Double)2.0 * b * (Double)n, b, n, l, epsilon * exp(4 * PI * b * K * (Double)n + 2 * PI * a * K) * z, 0);
         }
-        S1 = S1 * minus_i_power/z;
+        S1 = S1 * minus_I_power(l)/z;
         if(verbose::IC1c) {
             cout << "Term " << l << ": " << S1 << endl;
         }
@@ -215,7 +213,7 @@ Complex IC4(int K, int j, Double a, Double b, Complex C11, Double epsilon) {
     Complex S = 0;
     for(int r = 0; r <= j; r++) {
         Double z = binomial_coefficient(j, r);
-        S = S + z * pow(-I, r) * IC9H(K, r, -(a + 2 * b * (Double)K), b, epsilon/z);
+        S = S + z * minus_I_power(r) * IC9H(K, r, -(a + 2 * b * (Double)K), b, epsilon/z);
     }
     return -S * C11;
 }
@@ -229,7 +227,7 @@ Complex IC4c(int K, int j, Double a, Double b, Complex C11, Double epsilon) {
     Complex S = 0;
     for(int r = 0; r <= j; r++) {
         Double z = binomial_coefficient(j, r);
-        S = S + z * pow(I, r) * IC9H(K, r, (a + 2 * b * (Double)K), b, epsilon/z);
+        S = S + z * I_power(r) * IC9H(K, r, (a + 2 * b * (Double)K), b, epsilon/z);
     }
     return S * C11;
 }
@@ -240,7 +238,7 @@ Complex IC5(int K, int j, Double a, Double b, Double epsilon) {
     // assuming that a is negative (??)
     //
 
-    return pow(-1, j) * pow(I, j + 1) * IC7(-1, j, -a, b, epsilon * pow(K, j)) * pow(K, -j);
+    return (Double)minus_one_power(j) * I_power(j + 1) * IC7(-1, j, -a, b, epsilon * pow(K, j)) * pow(K, -j);
 }
 
 Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, Double epsilon) {

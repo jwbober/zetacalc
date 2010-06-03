@@ -83,7 +83,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
         for(int s = l; s <= j; s++) {
             z = z + v[s] * binomial_coefficient(s, l);
         }
-        z = z * pow(I, l);
+        z = z * I_power(l);
         Z[l] = z;
     }
 
@@ -158,7 +158,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 
     Complex JBulk_term2 = 0;
     for(int l = 0; l <= j; l++) {
-        JBulk_term2 += pow(-1, l) * pow(I, l + 1) * v[l] * JBulk(w1, b, l, p1, K, V_epsilon[l]);  //-----------
+        JBulk_term2 += (Double)minus_one_power(l) * I_power(l+1) * v[l] * JBulk(w1, b, l, p1, K, V_epsilon[l]);  //-----------
     }
     JBulk_term2 *= -1;
 
@@ -166,7 +166,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 
     Complex IC7_term2 = 0;
     for(int l = 0; l <= j; l++) {
-        IC7_term2 += pow(-1, l) * pow(I, l + 1) * v[l] * IC7(K, l, w1, b, V_epsilon[l] );          //-----------
+        IC7_term2 += (Double)minus_one_power(l) * I_power(l+1) * v[l] * IC7(K, l, w1, b, V_epsilon[l] );          //-----------
     }
     IC7_term2 *= -1;
 
@@ -252,28 +252,28 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 
     Complex IC9H_term1 = 0;
     for(int l = 0; l <= j; l++) {
-        IC9H_term1 += pow(-1, l) * Z[l] * IC9H(K, l, 1 - w, b, Z_epsilon[l] );                           //-----------------
+        IC9H_term1 += (Double)minus_one_power(l) * Z[l] * IC9H(K, l, 1 - w, b, Z_epsilon[l] );                           //-----------------
     }
     IC9H_term1 *= -C5;
     S2 = S2 + IC9H_term1;
 
     Complex IC9H_term2 = 0;
     for(int l = 0; l <= j; l++) {
-        IC9H_term2 += pow(I, l + 1) * v[l] * IC9H(K, l, 1 - w1, b, V_epsilon[l] );                       //------------------
+        IC9H_term2 += I_power(l + 1) * v[l] * IC9H(K, l, 1 - w1, b, V_epsilon[l] );                       //------------------
     }
     //IC9H_term2 *= C6;
     S2 = S2 + IC9H_term2;
 
     Complex JBoundary_term1 = 0;
     for(int l = 0; l <= j; l++) {
-        JBoundary_term1 += pow(1, l) * Z[l] * JBoundary(2 * b * K - w1, 1 - w, b, l, K, Z_epsilon[l] );     //---------------
+        JBoundary_term1 += Z[l] * JBoundary(2 * b * K - w1, 1 - w, b, l, K, Z_epsilon[l] );     //---------------
     }
     JBoundary_term1 *= C5;
     S2 = S2 + JBoundary_term1;
 
     Complex JBoundary_term2 = 0;
     for(int l = 0; l <= j; l++) {
-        JBoundary_term2 += pow(-I, l + 1) * v[l] * JBoundary(2 * b * K - w, 1 - w1, b, l, K, V_epsilon[l] );     //-----------
+        JBoundary_term2 += minus_I_power(l + 1) * v[l] * JBoundary(2 * b * K - w, 1 - w1, b, l, K, V_epsilon[l] );     //-----------
     }
     //JBoundary_term2 *= C4;
     S2 = S2 + JBoundary_term2;
