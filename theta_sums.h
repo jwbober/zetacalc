@@ -162,45 +162,22 @@ inline Complex JBoundary(Double a1, Double a2, Double b, int j, int K, Double ep
 
 
 
-Complex IC0(int K, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mpfr_t mp_b, Double epsilon);
 Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mpfr_t mp_b, Double epsilon);
-Complex IC1(int K, Double a, Double b, Complex C11, Complex C12, Double epsilon);//----------------------------------------------
 Complex IC1(int K, int j, Double a, Double b, Complex C11, Complex C12, Double epsilon);//----------------------------------------------
-Complex IC1c(int K, Double a, Double b, Complex C8, Double epsilon);            //
 Complex IC1c(int K, int j, Double a, Double b, Complex C8, Double epsilon);     //
-inline Complex IC3(Double a, Double b, Double epsilon);                         //
 inline Complex IC3(int K, int j, Double a, Double b, Double epsilon);           //
-inline Complex IC3c(Double a, Double b, Double epsilon);                        //
 inline Complex IC3c(int K, int j, Double a, Double b, Double epsilon);          //
-inline Complex IC4(int K, Double a, Double b, Complex C11, Double epsilon);     //
 Complex IC4(int K, int j, Double a, Double b, Complex C11, Double epsilon);     //
-inline Complex IC4c(int K, Double a, Double b, Complex C11, Double epsilon);    //
 Complex IC4c(int K, int j, Double a, Double b, Complex C11, Double epsilon);    //
-Complex IC5(Double a, Double b, Double epsilon);                                //  Computations of the integral of the function
 Complex IC5(int K, int j, Double a, Double b, Double epsilon);                  //
-Complex IC6(int K, Double a, Double b, Double epsilon);                         //      
-Complex IC6(int K, Double a, Double b, mpfr_t mp_a, Double epsilon);            //      
 Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, Double epsilon);     //      
-Complex IC7(int K, Double a, Double b, Double epsilon);                         //       exp(2 pi i a t + 2 pi i b t^2)
 Complex IC7(int K, int j, Double a, Double b, Double epsilon);                  //
-inline Complex IC8(Double a, Double b, Double epsilon);                         //
 Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b);                            //
-Complex IC9E(int K, Double a, Double b, Double epsilon);                        //
 Complex IC9E(int K, int j, Double a, Double b, Double epsilon);                 //
-inline Complex IC9H(Double a, Double b, Double epsilon);                        //  along various contours in the complex plane.
 inline Complex IC9H(int K, int j, Double a, Double b, Double epsilon);          //
                                                                                 //  (Defined in ICn.cc, unless defined inline below)
                                                                                 //
                                                                                 //
-inline Complex IC8(Double a, Double b, Double epsilon) {                        //
-    return exp(I * PI * (.25 - a * a/(2.0 * b)))/sqrt((Double)2 * b);           //----------------------------------------------
-}
-
-inline Complex IC3(Double a, Double b, Double epsilon) {
-    // needs a <= 0
-    //       b >= 0
-    return -I * IC9H(-a, b, epsilon);
-}
 
 inline Complex IC3(int K, int j, Double a, Double b, Double epsilon) {
     // needs a <= 0
@@ -208,39 +185,10 @@ inline Complex IC3(int K, int j, Double a, Double b, Double epsilon) {
     return pow(-I, j+1) * IC9H(K, j, -a, b, epsilon);
 }
 
-inline Complex IC3c(Double a, Double b, Double epsilon) {
-    // needs a >= 0
-    //       b >= 0
-    return I * IC9H(a, b, epsilon);
-}
-
 inline Complex IC3c(int K, int j, Double a, Double b, Double epsilon) {
     // needs a >= 0
     //       b >= 0
     return pow(I, j+1) * IC9H(K, j, a, b, epsilon);
-}
-
-
-inline Complex IC4(int K, Double a, Double b, Complex C11, Double epsilon) {
-    // needs a + 2bK <= 0
-    // b is always positive, so this will be satisfied if 
-    return -C11 * IC9H(-(a + 2 * b * (Double)K), b, epsilon);
-}
-
-inline Complex IC4c(int K, Double a, Double b, Complex C11, Double epsilon) {
-    // called when a > 0 and b is small but not too small.
-    return C11 * IC9H((a + 2 * b * (Double)K), b, epsilon);
-}
-
-inline Complex IC9H(Double a, Double b, Double epsilon) {
-    //
-    // Compute the integral int_0^\infty exp(-2 pi a t - 2 pi i b t^2)
-    //
-    // after a change of contour, this is well approximated by IC7(K, a, b) with large K
-    //
-
-    int K = to_int(10 * ceil( max(-LOG(epsilon * sqrt(b)), 1.0)/sqrt(b) ));
-    return IC7(K, a, b, epsilon);
 }
 
 inline Complex IC9H(int K, int j, Double a, Double b, Double epsilon) {
