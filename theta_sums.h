@@ -127,9 +127,7 @@ Complex H_method4(int j, Complex alpha, Double epsilon);                        
                                                                                 //  Functions to compute the integral         
                                                                                 //    / 1
                                                                                 //    |
-Complex G(Complex alpha, Complex b, Double epsilon, int method = 0);            //    |  exp(2 pi i alpha t + 2 pi i b t^2) dt
 Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method = 0);  //
-Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, Double epsilon);        //    |
 Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double epsilon); //    / 0
                                                                                 //  For complex parameters alpha and b.
                                                                                 //  (Defined in G_functions.cc)
