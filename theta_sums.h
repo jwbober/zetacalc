@@ -136,12 +136,9 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
                                                                                 //----------------------------------------------
 
 Complex H_Integral_0(int j, Double a, int M, Double epsilon);                   //----------------------------------------------
-Complex J_Integral_0(Double a, Double b, int M, Double epsilon);                //
 Complex J_Integral_0(Double a, Double b, int j, int M, int K, Double epsilon);  //
-Complex J_Integral_1(Double a, Double b, int M, int K, Double epsilon);         // 
 Complex J_Integral_1(Double a, Double b, int j, int M, int K, Double epsilon);  //
 Complex H_Integral_2(int j, Double a1, Double a2, Double epsilon);              //
-Complex J_Integral_2(Double a1, Double a2, Double b, Double epsilon);           //
 Complex J_Integral_2(Double a1, Double a2, Double b, int j, int K, Double epsilon);// Various integrals.
                                                                                 //
 inline Complex JBulk(Double a, Double b, int j, int M, int K, Double epsilon) {         //                         
