@@ -186,7 +186,7 @@ int run_zeta_test() {
 
 }
 
-int run_theta_sums_test() {
+int run_theta_sums_accuracy_test() {
 
     int j = 9;
     Double epsilon = exp(-20);
@@ -225,10 +225,47 @@ int run_theta_sums_test() {
     return 0;
 }
 
+
+int run_theta_sums_speed_test() {
+
+    int j = 9;
+    Double epsilon = exp(-20);
+    Double error_allowance = exp(-18);
+    int K = 10000;
+
+
+    Complex coeffs[j + 1];
+    for(int l = 0; l < j; l++) {
+        coeffs[l] = 0;
+    }
+    coeffs[j] = 1;
+
+    int n = 0;
+    Complex z1 = 0.0;
+
+    for(Double a = 0; a < .5; a += .0097) {
+        for(Double b = 1.0/((Double)2 * K * K); b <= .5; b += .0087) {
+            n++;
+            if(n % 100 == 0) {
+                cout << "Running test number " << n << " with a = " << a << " b = " << b << endl;
+            }
+            z1 += compute_exponential_sums(a, b, j, K, coeffs, epsilon, 0);
+        }
+    }
+
+    cout << z1 << endl;
+
+    print_w_coefficient_stats();
+
+    return 0;
+}
+
+
+
 int main() {
 
 
     cout << setprecision(15);
 
-    return run_theta_sums_test();
+    return run_theta_sums_speed_test();
 }

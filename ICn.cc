@@ -305,16 +305,16 @@ Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, Double epsilon) {
 
 Complex IC7(int K, int j, Double a, Double b, Double epsilon) {
     //
-    // We compute C9 * int_0^{sqrt(2) K} exp(-sqrt(2) PI a t + sqrt(2) PI i a t - 2 PI b t^2) dt
-    // where C9 = exp(-I pi/4)
+    // We compute C9 * K^(-j) int_0^{sqrt(2) K} t^j exp(-sqrt(2) PI a t + sqrt(2) PI i a t - 2 PI b t^2) dt
+    // where C9 = exp(-I pi (j + 1)/4)
     //
-    // K = -1 corresponds to infinity
+    // K = -1 corresponds to infinity, in which case we don't divide by K^j.
     //
-    // K, b, and epsilon should satisfy:
+    // a, K, b, and epsilon should satisfy:
     //   
     //  (1) K > 2 * (-log(epsilon)/2pi)^2
     //  (2) 2bK >= 1
-    //
+    //  (3) a >= 0
 
     if(verbose::IC7) {
         cout << "Entering IC7() with " << endl;
@@ -369,18 +369,36 @@ Complex IC7(int K, int j, Double a, Double b, Double epsilon) {
     //
 
     int L = 0;
-    if(x > 1) {
-        L = to_int(ceil( -LOG(epsilon*sqrt(b))/(2.0 * PI * x)));
-        if(K == -1)
-            L = max((int)ceil(((Double)j + 1.0) * pow(log(j + (Double)1), 2) / x), L);
+/*
+    if(K == -1) {
+        if(x > 1) {
+            L = to_int(ceil( -LOG(epsilon*sqrt(b))/(2.0 * PI * x)));
+            if(K == -1)
+                L = max((int)ceil(((Double)j + 1.0) * pow(log(j + (Double)1), 2) / x), L);
+        }
+        else {
+            L = to_int(ceil( sqrt(max(-LOG(epsilon*sqrt(b)), 0.0)) ));
+            if(K == -1)
+                L = max((int)ceil(((Double)j + 1.0) * pow(log(j + (Double)1), 2)), L);
+        }
     }
     else {
-        L = to_int(ceil( -LOG(epsilon*sqrt(b))));
-        if(K == -1)
-            L = max((int)ceil(((Double)j + 1.0) * pow(log(j + (Double)1), 2)), L);
+*/
+    Double z;
+    if(K == -1) {
+        z = sqrt( 2 * max(0.0, -log(epsilon * pow(b, (j + 1.0)/2.0))) );
     }
-    if(K != -1)
-        L = max(0, L);
+    else {
+        z = sqrt( 2 * max(0.0, -log(epsilon * pow(b, (j + 1.0)/2.0) * pow(K, j) )) );
+    }
+    if(j > z) {
+        L = j + 1;
+    }
+    else {
+        L = ceil(z);
+    }
+    
+    L = max(0, L);
 
     if(verbose::IC7) {
         cout << "In IC7(): L = " << L << endl;
@@ -410,14 +428,16 @@ Complex IC7(int K, int j, Double a, Double b, Double epsilon) {
     }
 
     Double two_pi_b_power = pow(2 * PI * b, ((Double)j + 1.0)/2);
-
-    for(Double n = (Double)0; n <= L-1; n = n + 1) {
-        Complex z2 = exp( 2 * PI * I * C10 * a / sqrt((Double)2 * PI * b) * n - n * n);
-        Complex z = G( C10 * a / sqrt((Double)2 * PI * b) + I * n/PI, I/( (Double)2 * PI), n, j, epsilon * two_pi_b_power * K_to_the_j/(abs(z2) * Double(L)));
-        z = z * z2;
-        S = S + z;
+    {
+        Complex s1;
+        s1 = C10 * a/sqrt( (Double)2 * PI * b);
+        for(Double n = (Double)0; n <= L-1; n = n + 1) {
+            Complex z2 = exp( 2 * PI * I * s1 * n - n * n);
+            Complex z = G( s1 + I * n/PI, I/( (Double)2 * PI), n, j, epsilon * two_pi_b_power * K_to_the_j/(abs(z2) * Double(L)));
+            z = z * z2;
+            S = S + z;
+        }
     }
-    
     S = S * C9/(two_pi_b_power * K_to_the_j);
     
     if(verbose::IC7)

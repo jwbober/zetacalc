@@ -6,6 +6,9 @@
 #include "mpfr.h"
 #include "gmp.h"
 
+#define BUILTIN_EXPECT(a, b) __builtin_expect( (a), (b) )
+
+
 typedef double Double;
 typedef std::complex<double> Complex;
 
@@ -31,7 +34,7 @@ inline double LOG(double x) {
 
 
 namespace verbose {
-    const int IC0 = 1;
+    const int IC0 = 0;
     const int IC1c = 0;
     const int IC6 = 0;
     const int IC7 = 0;
@@ -44,6 +47,7 @@ namespace verbose {
 }
 
 namespace stats {
+    const bool stats = true;
     extern int H_method1;
     extern int H_method2;
     extern int H_method3;
@@ -287,7 +291,8 @@ inline Complex compute_C12(mpfr_t mp_a, mpfr_t mp_b, int K) {
     return w * z;
 }
 
-Complex w_coefficient(mpfr_t mp_a, mpfr_t mp_b, int K, int s, int j, Complex CF);
+Complex w_coefficient(Double * a_powers, Double * b_powers, Double * q_powers, Double * K_powers, int s, int j, Complex CF);
+void print_w_coefficient_stats();
 
 Complex direct_exponential_sum_evaluation2(Double a, Double b, int j, int m, int M, int working_precision = 53);
 Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon);
@@ -313,4 +318,13 @@ inline Complex I_power(int n) {
             break;
     }
     return S;
+}
+
+inline int minus_one_power(int n) {
+    switch(n % 2) {
+        case 0:
+            return 1;
+        case 1:
+            return -1;
+    }
 }

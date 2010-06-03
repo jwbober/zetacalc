@@ -24,10 +24,8 @@ G_functions.o: G_functions.cc theta_sums.h precomputed_tables.h
 H_functions.o: H_functions.cc theta_sums.h precomputed_tables.h
 	g++ -c H_functions.cc $(OPTIONS)
 
-
 ICn.o: ICn.cc theta_sums.h precomputed_tables.h
 	g++ -c ICn.cc $(OPTIONS)
-
 
 H_and_J_integrals.o: H_and_J_integrals.cc theta_sums.h precomputed_tables.h
 	g++ -c H_and_J_integrals.cc $(OPTIONS)
@@ -38,7 +36,7 @@ derivative_computations.o: derivative_computations.cc theta_sums.h
 zeta.o: zeta.cc zeta.h
 	g++ -c zeta.cc $(OPTIONS)
 
-misc.o: misc.cc theta_sums.h precomputed_tables.h
+misc.o: misc.cc theta_sums.h precomputed_tables.h w_coefficient.h
 	g++ -c misc.cc $(OPTIONS)
 
 log.o: log.cc log.h
