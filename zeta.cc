@@ -64,7 +64,7 @@ Complex zeta_block(mpz_t v, int K, mpfr_t t, Complex ZZ[13], int method) {
         w_power *= w;
     }
 
-    int j = 9;
+    int j = 12;
 
     // Compute Z[l]
  

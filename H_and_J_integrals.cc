@@ -64,6 +64,10 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, Double epsilon) {
     // -1 corresponds to infinity
     stats::J_Integral_0++;
 
+    if(2 * pow(K, -j) * log(abs((Double)M) + 10) < epsilon) {
+        return 0.0;
+    }
+
     epsilon = epsilon * pow(K, j);
 
     Complex S = (Complex)0;
@@ -119,6 +123,10 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, Double epsilon) {
 
     Double one_over_K_to_the_j = pow( (Double)K, -j);
 
+    if(2 * pow(L, j) * one_over_K_to_the_j * log(abs((Double)M) + 10) < epsilon) {
+        return 0.0;
+    }
+
     for(Double n = (Double)1; n <= L - 1; n = n + 1) {
         int end_point;
         if(M == -1) {
@@ -171,6 +179,15 @@ Complex J_Integral_2(Double a1, Double a2, Double b, int j, int K, Double epsilo
     // lim_{M --> oo} J_Integral_0(a1, b, M) - J_Integral_0(a2, b, M)
     //
     stats::J_Integral_2++;
+
+    if(a2 > a1) {
+        if (2.0 * pow(K, -j) * ( (a2 - a1)/a2 * log(1 + a2) ) < epsilon)
+            return 0.0;
+    }
+    else {
+        if (2.0 * pow(K, -j) * ( (a1 - a2)/a1 * log(1 + a1) ) < epsilon)
+            return 0.0;
+    }
 
     epsilon = epsilon * pow(K, j);
 

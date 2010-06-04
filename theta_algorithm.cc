@@ -202,10 +202,15 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 
     Complex v2[j+1];
 
-    Double a_powers[j+1];
-    Double sqrt_b_powers[j+2];
-    Double q_powers[j+1];
-    Double K_powers[j + 1];
+    int N = j;
+    if(N == 0) {
+        N = N + 1;
+    }
+
+    Double a_powers[N+1];
+    Double sqrt_b_powers[N+2];
+    Double q_powers[N+1];
+    Double K_powers[N + 1];
 
     a_powers[0] = 1;
     sqrt_b_powers[0] = 1;
@@ -213,13 +218,13 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     q_powers[0] = 1;
     K_powers[0] = 1;
     Double K_inverse = 1.0/K;
-    for(int k = 1; k <= j; k++) {
+    for(int k = 1; k <= N; k++) {
         a_powers[k] = a * a_powers[k-1];
         sqrt_b_powers[k] = sqrt_b_inverse * sqrt_b_powers[k-1];
         q_powers[k] = q * q_powers[k-1];
         K_powers[k] = K_inverse * K_powers[k-1];
     }
-    sqrt_b_powers[j + 1] = sqrt_b_powers[j] * sqrt_b_inverse;
+    sqrt_b_powers[N + 1] = sqrt_b_powers[N] * sqrt_b_inverse;
 
     for(int l = 0; l <= j; l++) {
         v2[l] = 0;

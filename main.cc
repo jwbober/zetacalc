@@ -238,7 +238,8 @@ int run_theta_sums_speed_test() {
     for(int l = 0; l < j; l++) {
         coeffs[l] = 0;
     }
-    coeffs[j] = 1;
+    coeffs[0] = 1;
+//    coeffs[j] = 0;
 
     int n = 0;
     Complex z1 = 0.0;
@@ -260,6 +261,58 @@ int run_theta_sums_speed_test() {
     return 0;
 }
 
+int run_zeta_double_speed_test() {
+    mpfr_t t;
+    mpz_t v;
+    mpz_t inc;
+    mpz_init(v);
+    mpz_init(inc);
+    mpfr_init2(t, 150);
+    mpz_set_str(v, "100000000000000", 10);
+    mpz_set_str(inc, "1000000000", 10);
+    mpfr_set_str(t, "1e29", 10, GMP_RNDN);
+
+    int K = 10000;
+
+    Complex S = 0;
+
+    for(int k = 0; k <= 1000; k++) {
+        mpz_add(v, v, inc);
+        S += zeta_block_d_stupid(v, K, t);
+    }
+    cout << S << endl;
+
+    return 0;
+}
+
+int run_zeta_block_speed_test() {
+    mpfr_t t;
+    mpz_t v;
+    mpz_t inc;
+    mpz_init(v);
+    mpz_init(inc);
+    mpfr_init2(t, 150);
+    mpz_set_str(v, "50000000000000", 10);
+    mpfr_set_str(t, "1e29", 10, GMP_RNDN);
+
+    int K = 10000;
+
+    int samples = 1000;
+    mpz_div_ui(inc, v, samples);
+
+    Complex S = 0;
+
+    Complex Z[13];
+    compute_taylor_coefficients(t, Z);
+
+    for(int k = 0; k < samples; k++) {
+        mpz_add(v, v, inc);
+        S += zeta_block(v, K, t, Z);
+    }
+    cout << S << endl;
+
+    return 0;
+}
 
 
 int main() {
@@ -267,5 +320,5 @@ int main() {
 
     cout << setprecision(15);
 
-    return run_theta_sums_accuracy_test();
+    return run_zeta_block_speed_test();
 }

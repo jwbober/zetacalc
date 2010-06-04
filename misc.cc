@@ -30,6 +30,12 @@ Complex w_coefficient(Double * a_powers, Double * b_powers, Double * q_powers, D
 
     if (BUILTIN_EXPECT( s > j || a_powers[1] + 2.0 /(b_powers[2] * K_powers[1]) <= 0, 0 )) {
         cout << "Warning: w_coefficient called with bad input." << endl;
+        cout << "Got called with:" << endl;
+        cout << "s = " << s << endl;
+        cout << "j = " << j << endl;
+        cout << "a = " << a_powers[1] << endl;
+        cout << "b = " << 1.0/b_powers[2] << endl;
+        cout << "K = " << K_powers[1] << endl;
         return 0.0/0.0;
     }
 
