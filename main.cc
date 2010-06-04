@@ -25,11 +25,14 @@ namespace stats {
     int exponential_sum_euler_maclaurin = 0;
     int exponential_sum_taylor_expansion = 0;
 
-    int H_Integral_0;
-    int H_Integral_2;
-    int J_Integral_0;
-    int J_Integral_1;
-    int J_Integral_2;
+    int H_Integral_0 = 0;
+    int H_Integral_2 = 0;
+    int J_Integral_0 = 0;
+    int J_Integral_1 = 0;
+    int J_Integral_2 = 0;
+
+    int IC7 = 0;
+    int IC7zero = 0;
 }
 
 
@@ -311,6 +314,8 @@ int run_zeta_block_speed_test() {
     }
     cout << S << endl;
 
+    print_stats();
+
     return 0;
 }
 
@@ -320,5 +325,6 @@ int main() {
 
     cout << setprecision(15);
 
+    //return run_theta_sums_accuracy_test();
     return run_zeta_block_speed_test();
 }

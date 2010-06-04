@@ -17,6 +17,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     // using Hiary's "theta sum algorithm".
     //
     
+    theta_cache * cache = build_theta_cache(mp_a, mp_b, j, K);
 
     // The sum is split into S1 + S2 + "boundary terms", which we compute shortly.
     //
@@ -118,7 +119,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 
     Complex IC7_term1 = 0;
     for(int l = 0; l <= j; l++) {
-        IC7_term1 += Z[l] * IC7(K, l, w, b, Z_epsilon[l]);                    //---------
+        IC7_term1 += Z[l] * IC7(K, l, w, b, cache, Z_epsilon[l]);                    //---------
     }
 
     IC7_term1 *= -C1;
@@ -129,7 +130,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     
     if(2.0 * PI * w * K <= -log(epsilon) + (j + 1) * log(2.0)) {
         for(int l = 0; l <= j; l++) {
-            IC1c_term += Z[l] * IC1c(K, l, w, b, C8, Z_epsilon[l]);  //---------
+            IC1c_term += Z[l] * IC1c(K, l, w, b, C8, cache, Z_epsilon[l]);  //---------
         }
 
         IC1c_term *= C1;
@@ -144,7 +145,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
         }
 
         for(int l = 0; l <= j; l++) {
-            IC9E_term += Z2[l] * IC9E(K, l, w, b, epsilon * exp(2.0 * PI * w * K)/(12 * abs(Z2[l]) * (j + 1)) ); //----------
+            IC9E_term += Z2[l] * IC9E(K, l, w, b, cache, epsilon * exp(2.0 * PI * w * K)/(12 * abs(Z2[l]) * (j + 1)) ); //----------
         }
         //IC9E_term = -IC9E_term * exp(-2.0 * PI * w * K) / ExpA(mp_a, K);
         IC9E_term = -IC9E_term * exp(-2.0 * PI * w * K) * C_AK;
@@ -166,7 +167,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 
     Complex IC7_term2 = 0;
     for(int l = 0; l <= j; l++) {
-        IC7_term2 += (Double)minus_one_power(l) * I_power(l+1) * v[l] * IC7(K, l, w1, b, V_epsilon[l] );          //-----------
+        IC7_term2 += (Double)minus_one_power(l) * I_power(l+1) * v[l] * IC7(K, l, w1, b, cache, V_epsilon[l] );          //-----------
     }
     IC7_term2 *= -1;
 
@@ -257,14 +258,14 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 
     Complex IC9H_term1 = 0;
     for(int l = 0; l <= j; l++) {
-        IC9H_term1 += (Double)minus_one_power(l) * Z[l] * IC9H(K, l, 1 - w, b, Z_epsilon[l] );                           //-----------------
+        IC9H_term1 += (Double)minus_one_power(l) * Z[l] * IC9H(K, l, 1 - w, b, cache, Z_epsilon[l] );                           //-----------------
     }
     IC9H_term1 *= -C5;
     S2 = S2 + IC9H_term1;
 
     Complex IC9H_term2 = 0;
     for(int l = 0; l <= j; l++) {
-        IC9H_term2 += I_power(l + 1) * v[l] * IC9H(K, l, 1 - w1, b, V_epsilon[l] );                       //------------------
+        IC9H_term2 += I_power(l + 1) * v[l] * IC9H(K, l, 1 - w1, b, cache, V_epsilon[l] );                       //------------------
     }
     //IC9H_term2 *= C6;
     S2 = S2 + IC9H_term2;
@@ -310,6 +311,8 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     //cout << "Boundary terms = " << boundary_terms << endl;
 
     Complex S = S1 + S2 + boundary_terms;
+
+    free_theta_cache(cache);
 
     return S;
 

@@ -12,16 +12,20 @@ void g_derivative_polynomial(int n, Complex * p, Complex * q, const Complex a, c
         p[0] = Complex(1, 0);
         return;
     }
+
+    Complex twopi_i_a = 2.0 * PI * I * a;
+    Complex fourpi_i_b = 4.0 * PI * I * b;
+
     if(n == 1) {
-        p[0] = (Double)2 * PI * I * a;
-        p[1] = (Double)4 * PI * I * b;
+        p[0] = twopi_i_a;
+        p[1] = fourpi_i_b;
         return;
     }
-    p[0] = (Double)2 * PI * I * a * q[0] + q[1];
-    p[n-1] = (Double)4 * PI * I * b * q[n-2] + (Double)2 * PI * I * a * q[n-1];
-    p[n] = (Double)4 * PI * I * b * q[n-1];
+    p[0] = twopi_i_a * q[0] + q[1];
+    p[n-1] = fourpi_i_b * q[n-2] + twopi_i_a * q[n-1];
+    p[n] = fourpi_i_b * q[n-1];
     for(int k = 1; k < n - 1; k++) {
-        p[k] = (Double)4 * PI * I * b * q[k-1] + (Double)2 * PI * I * a * q[k] + (Double)(k + 1) * q[k + 1];
+        p[k] = fourpi_i_b * q[k-1] + twopi_i_a * q[k] + (Double)(k + 1) * q[k + 1];
     }
 }
 /*

@@ -2,6 +2,7 @@
 #include <complex>
 #include <string>
 #include <cmath>
+#include <cstdlib>
 
 #include "mpfr.h"
 #include "gmp.h"
@@ -32,6 +33,23 @@ inline double LOG(double x) {
     return log(x);
 }
 
+typedef struct{
+    Double a;
+    Double b;
+    int K;
+    int j;
+    int q;
+    Complex ExpAK;
+    Complex ExpBK;
+    Complex ExpAK_inverse;
+    Complex ExpBK_inverse;
+    Complex ExpAB;
+    Complex ExpABK;
+    Complex C1;
+    Complex C5;
+    Complex C7;
+    Complex C8;
+} theta_cache;
 
 namespace verbose {
     const int IC0 = 0;
@@ -67,6 +85,9 @@ namespace stats {
     extern int J_Integral_0;
     extern int J_Integral_1;
     extern int J_Integral_2;
+
+    extern int IC7;
+    extern int IC7zero;
 }
 
 inline void print_stats() {
@@ -92,10 +113,15 @@ inline void print_stats() {
     std::cout << "J_Integral_1 called " << stats::J_Integral_1 << " times." << std::endl;
     std::cout << "J_Integral_2 called " << stats::J_Integral_2 << " times." << std::endl;
 
+    std::cout << "IC7 called " << stats::IC7 << " times." << endl;
+    std::cout << "IC7 quickly returned 0 " << stats::IC7zero << " times." << endl;
+
 }
 
 Complex ExpA(mpfr_t A, int K);
+Complex ExpAK(mpfr_t A, int K);
 Complex ExpB(mpfr_t B, int K);
+Complex ExpBK(mpfr_t B, int K);
 Complex ExpAB(mpfr_t A, mpfr_t B);
 Complex ExpABK(mpfr_t A, mpfr_t B, int K);
 
@@ -164,36 +190,36 @@ inline Complex JBoundary(Double a1, Double a2, Double b, int j, int K, Double ep
 
 
 
-Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mpfr_t mp_b, Double epsilon);
-Complex IC1(int K, int j, Double a, Double b, Complex C11, Complex C12, Double epsilon);//----------------------------------------------
-Complex IC1c(int K, int j, Double a, Double b, Complex C8, Double epsilon);     //
-inline Complex IC3(int K, int j, Double a, Double b, Double epsilon);           //
-inline Complex IC3c(int K, int j, Double a, Double b, Double epsilon);          //
-Complex IC4(int K, int j, Double a, Double b, Complex C11, Double epsilon);     //
-Complex IC4c(int K, int j, Double a, Double b, Complex C11, Double epsilon);    //
-Complex IC5(int K, int j, Double a, Double b, Double epsilon);                  //
-Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, Double epsilon);     //      
-Complex IC7(int K, int j, Double a, Double b, Double epsilon);                  //
-Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b);                            //
-Complex IC9E(int K, int j, Double a, Double b, Double epsilon);                 //
-inline Complex IC9H(int K, int j, Double a, Double b, Double epsilon);          //
+Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mpfr_t mp_b, theta_cache * cache, Double epsilon);
+Complex IC1(int K, int j, Double a, Double b, Complex C11, Complex C12, theta_cache * cache, Double epsilon);//----------------------------------------------
+Complex IC1c(int K, int j, Double a, Double b, Complex C8, theta_cache * cache, Double epsilon);     //
+inline Complex IC3(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon);           //
+inline Complex IC3c(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon);          //
+Complex IC4(int K, int j, Double a, Double b, Complex C11, theta_cache * cache, Double epsilon);     //
+Complex IC4c(int K, int j, Double a, Double b, Complex C11, theta_cache * cache, Double epsilon);    //
+Complex IC5(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon);                  //
+Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, theta_cache * cache, Double epsilon);     //      
+Complex IC7(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon);                  //
+Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b, theta_cache * cache);                            //
+Complex IC9E(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon);                 //
+inline Complex IC9H(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon);          //
                                                                                 //  (Defined in ICn.cc, unless defined inline below)
                                                                                 //
                                                                                 //
 
-inline Complex IC3(int K, int j, Double a, Double b, Double epsilon) {
+inline Complex IC3(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon) {
     // needs a <= 0
     //       b >= 0
-    return pow(-I, j+1) * IC9H(K, j, -a, b, epsilon);
+    return pow(-I, j+1) * IC9H(K, j, -a, b, cache, epsilon);
 }
 
-inline Complex IC3c(int K, int j, Double a, Double b, Double epsilon) {
+inline Complex IC3c(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon) {
     // needs a >= 0
     //       b >= 0
-    return pow(I, j+1) * IC9H(K, j, a, b, epsilon);
+    return pow(I, j+1) * IC9H(K, j, a, b, cache, epsilon);
 }
 
-inline Complex IC9H(int K, int j, Double a, Double b, Double epsilon) {
+inline Complex IC9H(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon) {
     //
     // Compute the integral (1/K^j)int_0^\infty t^j exp(-2 pi a t - 2 pi i b t^2)
     //
@@ -203,7 +229,7 @@ inline Complex IC9H(int K, int j, Double a, Double b, Double epsilon) {
     //int endpoint = to_int(10 * ceil( max(-LOG(epsilon * sqrt(b)), 1.0)/sqrt(b) ));
     //Double z = pow((Double)endpoint/(Double)K, j);
     Double z = pow(K, j);
-    Complex S = IC7(-1, j, a, b, epsilon * z);
+    Complex S = IC7(-1, j, a, b, cache, epsilon * z);
     S = S / z;
     return S;
 }
@@ -423,4 +449,89 @@ inline Complex exp_minus_i_pi4(int n) {
     return S;
 }
 
+inline theta_cache * build_theta_cache(mpfr_t mp_a, mpfr_t mp_b, int j, int K) {
+    //
+    // At the beginning of a run of the algorithm we
+    // create a cache of a bunch of things that will
+    // be needed in many places.
+    //
+    //
+    // This function builds that cache. To use the cache, call
+    // the utility functions defined below.
+    //
+    // The cache itself is of type void*, and it should be thought
+    // of as a big binary blob with some structure.
+    //
+ 
+    // The beginning of the cache is just a theta_cache struct,
+    // but we allocate extra space after the end of it to store
+    // extra information.
+    //
+    // Right now, it should look like
+    //                                                      starts at
+    //      theta_struct                                    0
+    //      (Double) K^-j                                   sizeof(theta_struct)
+    //      (Double) K^(-j + 1)
+    //      ...
+    //      (Double) K^0                                    sizeof(theta_struct) + j * sizeof(Double)
+    //      (Double) K^1
+    //      ...
+    //      (Double) K^j                                    sizeof(theta_struct) + 2j * sizeof(Double)
+    //      (Double) (2 PI b)^(-j - 1)/2                    sizeof(theta_struct) + (2j + 1) * sizeof(Double)
+    //      (Double) (2 PI b)^-j/2
+    //      (Double) (2 PI b)^(-j + 1)/2
+    //      ...
+    //      (Double) (2 PI b)^0                             sizeof(theta_struct) + (3j + 2) * sizeof(Double)
+    //      ...
+    //      (Double) (2 PI b)^(j + 1)/2                     sizeof(theta_struct) + (4j + 3) * sizeof(Double)
 
+    // TOTAL SIZE: sizeof(theta_struct) + (2j + 1) sizeof(Double) + (2j + 3) sizeof(Double)
+
+    theta_cache * cache = (theta_cache*)malloc(sizeof(theta_cache) + (2 * j + 1) * sizeof(Double) + (2 * j + 3) * sizeof(Double));
+ 
+    cache->a = mpfr_get_d(mp_a, GMP_RNDN);
+    cache->b = mpfr_get_d(mp_b, GMP_RNDN);
+    cache->K = K;
+    cache->j = j;
+    cache->q = to_int(cache->a + 2 * cache->b * K);
+    cache->ExpAK = ExpAK(mp_a, K);
+    cache->ExpBK = ExpBK(mp_b, K);
+    cache->ExpAK_inverse = 1.0/cache->ExpAK;
+    cache->ExpBK_inverse = 1.0/cache->ExpBK;
+    cache->ExpAB = ExpAB(mp_a, mp_b);
+    cache->ExpABK = cache->ExpAK * cache->ExpBK;
+
+    cache->C1 = I * cache->ExpABK;
+    cache->C5 = -cache->C1;
+    cache->C7 = -cache->C5;
+    cache->C8 = -I * cache->ExpBK_inverse;
+
+    Double * K_powers = (Double *)((int)(cache) + sizeof(theta_cache));
+    
+    K_powers[0] = pow(K, -j);
+    for(int k = 1; k <= 2 * j; k++) {
+        K_powers[k] = K_powers[k-1] * K;
+    }
+
+    Double * root_2pi_b_powers = (Double *)((int)(cache) + sizeof(theta_cache) + (2 * j + 1) * sizeof(Double));
+
+    Double root_2pi_b = sqrt(2 * PI * cache->b);
+    root_2pi_b_powers[0] = pow(root_2pi_b, -j - 1);
+    for(int k = 1; k <= 2 * j + 2; k++) {
+        root_2pi_b_powers[k] = root_2pi_b_powers[k - 1] * root_2pi_b;
+    }
+
+    return cache;
+}
+
+inline void free_theta_cache(theta_cache * cache) {
+    free(cache);
+}
+
+inline Double K_power(int l, theta_cache * cache) {
+    return * ( (Double *)((int)(cache) + sizeof(theta_cache) + (cache->j + l) * sizeof(Double) ));
+}
+
+inline Double root_2pi_b_power(int l, theta_cache * cache) {
+    return * ( (Double *)((int)(cache) + sizeof(theta_cache) + (3 * cache->j + 2 + l) * sizeof(Double) ));
+}

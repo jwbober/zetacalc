@@ -9,7 +9,8 @@ using namespace std;
 
 Complex compute_exponential_sum_via_Euler_Maclaurin(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Double epsilon) {
     Complex S = (Complex)0;
-    
+ 
+    theta_cache * cache = build_theta_cache(mp_a, mp_b, j, K);
 
     //cout << "Warning: Euler Maclaurin case not implemented yet. Evaluating directly." << endl;
     //return direct_exponential_sum_evaluation2(mp_a, mp_b, j, 0, K);
@@ -24,7 +25,7 @@ Complex compute_exponential_sum_via_Euler_Maclaurin(mpfr_t mp_a, mpfr_t mp_b, in
     Complex C11 = compute_C11(mp_a, mp_b, K);
     Complex C12 = compute_C12(mp_a, mp_b, K);
 
-    S = S + IC0(K, j, a, b, C11, C12, mp_a, mp_b, epsilon/2);
+    S = S + IC0(K, j, a, b, C11, C12, mp_a, mp_b, cache, epsilon/2);
 
     //cout << "IC0: " << S << endl;
 
@@ -92,6 +93,7 @@ Complex compute_exponential_sum_via_Euler_Maclaurin(mpfr_t mp_a, mpfr_t mp_b, in
     //cout << "Using Euler-Maclaurin summation, computed F(" << a << ", " << b << ", " << K << ") = " << S << endl;
     //cout << "Using direct evaluation, computed         F(" << a << ", " << b << ", " << K << ") = " << direct_exponential_sum_evaluation(mp_a, mp_b, 0, K) << endl;
 
+    free_theta_cache(cache);
 
     return S;
 }

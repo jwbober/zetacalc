@@ -6,7 +6,7 @@
 
 using namespace std;
 
-Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mpfr_t mp_b, Double epsilon) {
+Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mpfr_t mp_b, theta_cache * cache, Double epsilon) {
     if(b <= (-LOG(epsilon)) * (-LOG(epsilon))/((Double)K * (Double)K)) {
 
         if(verbose::IC0 >= 2) {
@@ -71,10 +71,10 @@ Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t m
         return S;
     }
     if(-a/(2 * b) >= 0 && -a/(2 * b) <= K) {
-        Complex A = IC8(K, j, mp_a, mp_b);
-        Complex B = IC6(K, j, a, b, mp_a, epsilon/4);
-        Complex C = IC5(K, j, a, b, epsilon/4);
-        Complex D = IC1(K, j, a, b, C11, C12, epsilon/4);
+        Complex A = IC8(K, j, mp_a, mp_b, cache);
+        Complex B = IC6(K, j, a, b, mp_a, cache, epsilon/4);
+        Complex C = IC5(K, j, a, b, cache, epsilon/4);
+        Complex D = IC1(K, j, a, b, C11, C12, cache, epsilon/4);
         if(verbose::IC0) {
             std::cout << "   IC1:" << D << std::endl;
             std::cout << "   IC5:" << C << std::endl;
@@ -86,8 +86,8 @@ Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t m
     }
     else {
         if(-a/(2 * b) > K) {
-            Complex A = IC3(K, j, a, b, epsilon/2);
-            Complex B = IC4(K, j, a, b, C11, epsilon/2);
+            Complex A = IC3(K, j, a, b, cache, epsilon/2);
+            Complex B = IC4(K, j, a, b, C11, cache, epsilon/2);
             if(verbose::IC0) {
                 std::cout << "   IC3:" << A << std::endl;
                 std::cout << "   IC4:" << B << std::endl;
@@ -95,8 +95,8 @@ Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t m
             return A - B;
         }
         else {// -a/(2b) < 0
-            Complex A = IC3c(K, j, a, b, epsilon/2);
-            Complex B = IC4c(K, j, a, b, C11, epsilon/2);
+            Complex A = IC3c(K, j, a, b, cache, epsilon/2);
+            Complex B = IC4c(K, j, a, b, C11, cache, epsilon/2);
             if(verbose::IC0) {
                 std::cout << "   IC3c:" << A << std::endl;
                 std::cout << "   IC4c:" << B << std::endl;
@@ -106,7 +106,7 @@ Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t m
     }
 }
 
-Complex IC1(int K, int j, Double a, Double b, Complex C11, Complex C12, Double epsilon) {
+Complex IC1(int K, int j, Double a, Double b, Complex C11, Complex C12, theta_cache * cache, Double epsilon) {
     //
     // C11 should be passed as I * exp(2 pi I a K + 2 PI i b K^2)
     // C12 should be passed as I * exp(-2 pi(a + 2bK)K - 2 pi i b K^2)/sqrt(2 * PI * b)
@@ -121,13 +121,13 @@ Complex IC1(int K, int j, Double a, Double b, Complex C11, Complex C12, Double e
     Complex S = 0;
     for(int r = 0; r <= j; r++) {
         Double z = binomial_coefficient(j, r);
-        S = S + z * I_power(r) * IC7(K, r, a + 2 * b * K, b, epsilon /(2.0 * z * (j + 1)));
+        S = S + z * I_power(r) * IC7(K, r, a + 2 * b * K, b, cache, epsilon /(2.0 * z * (j + 1)));
     }
 
     if( a + 2 * b * K <= - LOG(epsilon * sqrt(b))/((Double)2 * PI * K) + 1) {
         Complex S2 = 0;
         for(int r = 0; r <= j; r++) {
-            Double z = binomial_coefficient(j, r) * pow(2 * PI * b, (Double)r / 2.0) * pow(K, r);        
+            Double z = binomial_coefficient(j, r) * pow(2 * PI * b, (Double)r / 2.0) * K_power(r, cache);        
             S2 = S2 + z * I_power(r) * G((a + 2 * b * K)/sqrt(2 * PI * b) + I * (Double)2 * sqrt(b) * (Double)K/sqrt(2 * PI), (Double)1/(2 * PI), 0, r, sqrt(2 * PI * b) * epsilon/(abs(C12) * (Double)2 * z * (j + 1)));
         }
         S2 = S2 * C12;
@@ -139,7 +139,7 @@ Complex IC1(int K, int j, Double a, Double b, Complex C11, Complex C12, Double e
     return S;
 }
 
-Complex IC1c(int K, int j, Double a, Double b, Complex C8, Double epsilon) {
+Complex IC1c(int K, int j, Double a, Double b, Complex C8, theta_cache * cache, Double epsilon) {
     //
     // Compute C8 * exp(-2 pi a K) int_0^K t^j exp(2 pi i a t - 4 pi b K t + 2 pi i b t^2),
     //
@@ -165,7 +165,7 @@ Complex IC1c(int K, int j, Double a, Double b, Complex C8, Double epsilon) {
 
     for(int l = 0; l <= j; l++) {
         Complex S1 = 0;
-        Double z = pow(K, l)/binomial_coefficient(j, l);
+        Double z = K_power(l, cache)/binomial_coefficient(j, l);
         for(int n = 0; n <= L - 1; n++) {
             S1 = S1 + EXP(2.0 * PI * n * (I * a - 2.0 * b * (Double)K + I * b * (Double)n) ) 
                     * G(a + (Double)2.0 * I * b * (Double)K + (Double)2.0 * b * (Double)n, b, n, l, epsilon * exp(4 * PI * b * K * (Double)n + 2 * PI * a * K) * z, 0);
@@ -206,14 +206,14 @@ Complex IC1c(int K, int j, Double a, Double b, Complex C8, Double epsilon) {
 // IC3c defined inline in theta_sums.h
 
 
-Complex IC4(int K, int j, Double a, Double b, Complex C11, Double epsilon) {
+Complex IC4(int K, int j, Double a, Double b, Complex C11, theta_cache * cache, Double epsilon) {
     // needs a + 2bK <= 0
     // b is always positive, so this will be satisfied if 
     
     Complex S = 0;
     for(int r = 0; r <= j; r++) {
         Double z = binomial_coefficient(j, r);
-        S = S + z * minus_I_power(r) * IC9H(K, r, -(a + 2 * b * (Double)K), b, epsilon/z);
+        S = S + z * minus_I_power(r) * IC9H(K, r, -(a + 2 * b * (Double)K), b, cache, epsilon/z);
     }
     return -S * C11;
 }
@@ -221,27 +221,27 @@ Complex IC4(int K, int j, Double a, Double b, Complex C11, Double epsilon) {
 
 
 
-Complex IC4c(int K, int j, Double a, Double b, Complex C11, Double epsilon) {
+Complex IC4c(int K, int j, Double a, Double b, Complex C11, theta_cache * cache, Double epsilon) {
     // called when a > 0 and b is small but not too small.
     
     Complex S = 0;
     for(int r = 0; r <= j; r++) {
         Double z = binomial_coefficient(j, r);
-        S = S + z * I_power(r) * IC9H(K, r, (a + 2 * b * (Double)K), b, epsilon/z);
+        S = S + z * I_power(r) * IC9H(K, r, (a + 2 * b * (Double)K), b, cache, epsilon/z);
     }
     return S * C11;
 }
 
-Complex IC5(int K, int j, Double a, Double b, Double epsilon) {
+Complex IC5(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon) {
     //
     // Compute the integral int_0^\infty exp(-2 pi i exp(i pi /4) a - 2 pi b t^2) dt 
     // assuming that a is negative (??)
     //
 
-    return (Double)minus_one_power(j) * I_power(j + 1) * IC7(-1, j, -a, b, epsilon * pow(K, j)) * pow(K, -j);
+    return (Double)minus_one_power(j) * I_power(j + 1) * IC7(-1, j, -a, b, cache, epsilon * K_power(j, cache)) * K_power(-j, cache);
 }
 
-Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, Double epsilon) {
+Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, theta_cache * cache, Double epsilon) {
     //
     // Compute the integral of exp(2 pi i a t + 2 pi i b t^2) over the
     // contour C_6 = {t exp(i pi/4) | sqrt{2} K < t < infinity}.
@@ -283,7 +283,7 @@ Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, Double epsilon) {
      
         Complex S1 = 0;
 
-        Double z2 = pow(K, r) * pow(2.0 * PI * b, ((Double)r + 1)/2) / ( pow(2, ((Double)(j-r))/2) * binomial_coefficient(j, r));
+        Double z2 = K_power(r, cache) * pow(2.0 * PI * b, ((Double)r + 1)/2) / ( pow(2, ((Double)(j-r))/2) * binomial_coefficient(j, r));
 
         for(int n = 0; n < L; n++) {
             Complex w1 = exp(2 * PI * alpha * (Double)n + 2 * PI * beta * (Double)n * (Double)n);
@@ -301,7 +301,7 @@ Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, Double epsilon) {
     return S;
 }
 
-Complex IC7(int K, int j, Double a, Double b, Double epsilon) {
+Complex IC7(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon) {
     //
     // We compute C9 * K^(-j) int_0^{sqrt(2) K} t^j exp(-sqrt(2) PI a t + sqrt(2) PI i a t - 2 PI b t^2) dt
     // where C9 = exp(-I pi (j + 1)/4)
@@ -313,6 +313,8 @@ Complex IC7(int K, int j, Double a, Double b, Double epsilon) {
     //  (1) K > 2 * (-log(epsilon)/2pi)^2
     //  (2) 2bK >= 1
     //  (3) a >= 0
+
+    stats::IC7++;
 
     if(verbose::IC7) {
         cout << "Entering IC7() with " << endl;
@@ -353,8 +355,6 @@ Complex IC7(int K, int j, Double a, Double b, Double epsilon) {
 
     Complex C10(sqrt(2.0)/2.0, sqrt(2.0)/2.0);
 
-    Double x = a/(sqrt(2 * b * 4 * PI));
-
     //
     // Note that conditions (1) and (2) above should ensure that we
     // can make a change of variables and then truncate this
@@ -387,7 +387,7 @@ Complex IC7(int K, int j, Double a, Double b, Double epsilon) {
         z = sqrt( 2 * max(0.0, -log(epsilon * pow(b, (j + 1.0)/2.0))) );
     }
     else {
-        z = sqrt( 2 * max(0.0, -log(epsilon * pow(b, (j + 1.0)/2.0) * pow(K, j) )) );
+        z = sqrt( 2 * max(0.0, -log(epsilon * pow(b, (j + 1.0)/2.0) * K_power(j, cache) )) );
     }
     if(j > z) {
         L = j + 1;
@@ -398,6 +398,12 @@ Complex IC7(int K, int j, Double a, Double b, Double epsilon) {
     
     L = max(0, L);
 
+    if(stats::stats)
+        if(L == 0) {
+            stats::IC7zero++;
+            return 0.0;
+        }
+
     if(verbose::IC7) {
         cout << "In IC7(): L = " << L << endl;
     }
@@ -407,51 +413,75 @@ Complex IC7(int K, int j, Double a, Double b, Double epsilon) {
     //cout << L << endl;
 
     if(K != -1) {
-        L = min(L, to_int(sqrt((Double)4 * PI * b) * K));
+        //L = min(L, to_int(sqrt((Double)4 * PI * b) * K));
+        L = min(L, to_int(root_2pi_b_power(1, cache) * sqrt(2) * K));
     }
 
     Complex S = (Complex)0;
 
-    Complex x2 = (Double)2 * PI * Complex(-x, x);
-    Complex x3 = Complex(x, x);
-
     Double K_to_the_j;
     if(K == -1) {
-        K_to_the_j = 1.0;       // This is potentially quite confusing. We treat K = -1 as infinity,
-                                // so we don't want to do any normalization, so we just set this
-                                // variable to be 1.
+        //Double two_pi_b_power = pow(2 * PI * b, ((Double)j + 1.0)/2);
+        Double two_pi_b_power = root_2pi_b_power(j + 1, cache);
+        {
+            Double one_over_L = 1.0/L;
+            Complex alpha = C10 * a * root_2pi_b_power(-1, cache);
+            Complex s1 = alpha;
+            Complex y1 = exp(2 * PI * I * s1);
+            Complex y = 1.0;
+            Double newepsilon = epsilon * two_pi_b_power * one_over_L;
+            for(Double n = (Double)0; n <= L-1; n = n + 1) {
+                //Complex z3 = exp(2 * PI * I * n * s1- n * n);
+                Double y3 = exp(-n * n);
+                Complex z3 = y * y3;
+                Complex z = G( alpha, I/( (Double)2 * PI), n, j, newepsilon/abs(z3));
+                z = z * z3;
+                S = S + z;
+                alpha = alpha + I/PI;
+                y = y * y1;
+            }
+        }
+        S = S * C9 * root_2pi_b_power(-(j + 1), cache);
+
     }
     else {
-        K_to_the_j = pow(K, j);
-    }
-
-    Double two_pi_b_power = pow(2 * PI * b, ((Double)j + 1.0)/2);
-    {
-        Complex s1;
-        s1 = C10 * a/sqrt( (Double)2 * PI * b);
-        for(Double n = (Double)0; n <= L-1; n = n + 1) {
-            Complex z2 = exp( 2 * PI * I * s1 * n - n * n);
-            Complex z = G( s1 + I * n/PI, I/( (Double)2 * PI), n, j, epsilon * two_pi_b_power * K_to_the_j/(abs(z2) * Double(L)));
-            z = z * z2;
-            S = S + z;
+        K_to_the_j = K_power(j, cache);
+        //Double two_pi_b_power = pow(2 * PI * b, ((Double)j + 1.0)/2);
+        Double two_pi_b_power = root_2pi_b_power(j + 1, cache);
+        {
+            Double one_over_L = 1.0/L;
+            Complex alpha = C10 * a * root_2pi_b_power(-1, cache);
+            Complex s1 = alpha;
+            Complex y1 = exp(2 * PI * I * s1);
+            Complex y = 1.0;
+            Double newepsilon = epsilon * two_pi_b_power * K_to_the_j * one_over_L;
+            for(Double n = (Double)0; n <= L-1; n = n + 1) {
+                //Complex z3 = exp(2 * PI * I * n * s1- n * n);
+                Double y3 = exp(-n * n);
+                Complex z3 = y * y3;
+                Complex z = G( alpha, I/( (Double)2 * PI), n, j, newepsilon/abs(z3));
+                z = z * z3;
+                S = S + z;
+                alpha = alpha + I/PI;
+                y = y * y1;
+            }
         }
+        S = S * C9 * K_power(-j, cache) * root_2pi_b_power(-(j + 1), cache);
     }
-    S = S * C9/(two_pi_b_power * K_to_the_j);
-    
     if(verbose::IC7)
         cout << "IC7() returning " << S << endl;
 
     return S;
 }
 
-Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b) {
+Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b, theta_cache * cache) {
     Double a = mpfr_get_d(mp_a, GMP_RNDN);
     Double b = mpfr_get_d(mp_b, GMP_RNDN);
 
     Complex z = ExpAB(mp_a, mp_b);
 
     z = z * pow(2.0, -3.0 * j/2.0 - 1) * pow(b * PI, -(j + 1)/2.0) *
-                pow(K, -j) * factorial(j) * sqrt(2 * PI) * exp(PI * I / 4.0 + j * 3.0 * PI * I / 4.0);
+                K_power(-j, cache) * factorial(j) * sqrt(2 * PI) * exp(PI * I / 4.0 + j * 3.0 * PI * I / 4.0);
 
     Complex S = 0;
     for(int l = 0; l <= j; l++) {
@@ -471,7 +501,7 @@ Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b) {
     return S;
 }
 
-Complex IC9E(int K, int j, Double a, Double b, Double epsilon) {
+Complex IC9E(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon) {
     //
     // Compute the integral int_0^\infty exp(-2 pi(a - ia + 2bK + 2ibK)t - 4 pi b t^2) dt
     // for a and b positive, and 2bK >= 1
@@ -491,7 +521,7 @@ Complex IC9E(int K, int j, Double a, Double b, Double epsilon) {
     
     Complex S = (Complex)0;
     Complex c = a - I * a + (Double)2 * b * (Double)K + (Double)2 * I * b * (Double)K;
-    Double K_to_the_j = pow(K, j);
+    Double K_to_the_j = K_power(j, cache);
     for(Double n = (Double)0; n <= L-1; n = n + 1) {
         
         Complex z2 = exp(-2 * PI * (n * c + (Double)2 * b * n * n));
@@ -499,7 +529,7 @@ Complex IC9E(int K, int j, Double a, Double b, Double epsilon) {
         z = z * z2;
         S = S + z;
     }
-    S = S/K_to_the_j;
+    S = S * K_power(-j, cache);
     if(verbose::IC9E) {
         cout << "IC9E returning: " << S << endl;
     }
