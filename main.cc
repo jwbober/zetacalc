@@ -16,6 +16,9 @@ namespace stats {
     int H_method3 = 0;
     int H_method4 = 0;
 
+    int H_function_big = 0;
+    int H_function_small = 0;
+
     int G_method1 = 0;
     int G_method2 = 0;
 
@@ -325,6 +328,6 @@ int main() {
 
     cout << setprecision(15);
 
-    //return run_theta_sums_accuracy_test();
-    return run_zeta_block_speed_test();
+    return run_theta_sums_accuracy_test();
+    //return run_zeta_block_speed_test();
 }

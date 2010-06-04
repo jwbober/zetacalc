@@ -21,6 +21,18 @@ const int Kmin = 100;
 
 using namespace std;
 
+inline Double pow(int a, int b) {
+    return pow((Double)a, (Double)b);
+}
+
+inline Double pow(int a, Double b) {
+    return pow((Double)a, (Double)b);
+}
+
+inline Double pow(int a, unsigned int b) {
+    return pow((Double)a, (Double)b);
+}
+
 inline int to_int(int x) {
     return x;
 }
@@ -71,6 +83,9 @@ namespace stats {
     extern int H_method3;
     extern int H_method4;
 
+    extern int H_function_big;
+    extern int H_function_small;
+
     extern int G_method1;
     extern int G_method2;
 
@@ -97,6 +112,9 @@ inline void print_stats() {
     std::cout << "    Method 3 used " << stats::H_method3 << " times." << std::endl;
     std::cout << "    Method 4 used " << stats::H_method4 << " times." << std::endl;
 
+    std::cout << "  abs(alpha) was big " << stats::H_function_big << " times." << std::endl;
+    std::cout << "  abs(alpha) was small " << stats::H_function_small << " times." << std::endl;
+
     std::cout << "In function G():" << std::endl;
     std::cout << "    Method 1 used " << stats::G_method1 << " times." << std::endl;
     std::cout << "    Method 2 used " << stats::G_method2 << " times." << std::endl;
@@ -115,6 +133,7 @@ inline void print_stats() {
 
     std::cout << "IC7 called " << stats::IC7 << " times." << endl;
     std::cout << "IC7 quickly returned 0 " << stats::IC7zero << " times." << endl;
+
 
 }
 

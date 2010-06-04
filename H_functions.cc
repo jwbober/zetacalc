@@ -6,6 +6,7 @@
 using namespace std;
 
 inline Complex H_method2(int j, Complex alpha, Double epsilon);
+Complex H_method5(int j, Complex alpha, Double epsilon);
 
 Complex H(int j, Complex alpha, Double epsilon) {
     //
@@ -14,6 +15,20 @@ Complex H(int j, Complex alpha, Double epsilon) {
     // on the range of input.
     //
     
+    if(epsilon > 1) {
+        return 0.0;
+    }
+
+    if(stats::stats) {
+        const Double D = 50.0;
+        if( abs(alpha) > D ) {
+        //    cout << alpha << endl;
+            stats::H_function_big++;
+        }
+        else {
+            stats::H_function_small++;
+        }
+    }
 
     const Double alpha_0 = 1/(2*PI);
 
@@ -229,3 +244,35 @@ Complex H_method4(int j, Complex alpha, Double epsilon) {
     return g;
 }
 
+Complex H_method5(int j, Complex alpha, Double epsilon) {
+    const int S = 20;
+    const int D = 5;
+    const int N = S * D;
+    const int M = S * D;
+
+    int n = floor(real(alpha)*N);
+    int m = floor(imag(alpha)*M);
+
+//    Complex alpha_0 = Complex( n/(Double)N, m/(Double)M );
+    Complex alpha_0 = alpha + 1.0;
+    Complex difference = alpha - alpha_0;
+    Complex difference_power = 1;
+
+//    Double error = epsilon + 2;
+
+    Double error = 12;
+
+    Complex Z = 0;
+    int r = 0;
+    Double one_over_j_plus_1 = 1.0/(j + 1.0);
+    while(error > 10) {
+        Complex z1 = two_pi_over_factorial_power(r) * difference_power;
+        Z = Z + (Double)minus_one_power(r) * z1; // * H_method4(j + r, alpha_0, epsilon/20);
+        error = abs(z1) * one_over_j_plus_1;
+        difference_power *= difference;
+        r++;
+    }
+//        cout << r << " ";
+
+    return Z;
+}
