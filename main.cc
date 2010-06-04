@@ -238,8 +238,8 @@ int run_theta_sums_speed_test() {
     for(int l = 0; l < j; l++) {
         coeffs[l] = 0;
     }
-    coeffs[0] = 1;
-//    coeffs[j] = 0;
+    coeffs[0] = 0;
+    coeffs[j] = 1;
 
     int n = 0;
     Complex z1 = 0.0;

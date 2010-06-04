@@ -122,8 +122,6 @@ inline Double POW(Double a, Double b) {
 }
 
 
-
-
 inline Complex g(Complex alpha, Complex b, Double n, Double j, Double t) {
     return POW(t + n, j) * EXP(2 * PI * I * t * (alpha + b * t) );
 }
@@ -172,8 +170,22 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
     Double error = epsilon + 1; 
     int r = 1;
 
-    Complex * p;
-    Complex * p_prev = new Complex[j+1];
+
+    Complex p1[bernoulli_range + j];            // below p will need to be as big as 2r + j
+    Complex p2[bernoulli_range + j];            // for increasing r. If 2r ever gets as large
+                                                // as bernoulli_range, then the computation
+                                                // will fail anyway, so the biggest p
+                                                // that makes sense is of size bernoulli_range + j.
+                                                //
+                                                // As long as bernoulli_range isn't too big, this
+                                                // should be hopefully be a good choice.
+
+    Complex * ptmp;                             // A temporary variable used for swapping
+                                                // p and p_prev.
+
+    Complex * p = p1;
+    Complex * p_prev = p2;
+
     if(n == 0) {
         for(int s = 0; s <= j - 1; s++) {
             p_prev[s] = 0;
@@ -194,15 +206,18 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
     while(error > epsilon/2) {
     
         if(r > 1) {
-            p = new Complex[2 * r - 2 + 1 + j];
+//            p = new Complex[2 * r - 2 + 1 + j];
             g_derivative_polynomial(2 * r - 2 + j, p, p_prev, alpha, b);
-            delete [] p_prev;
-            p_prev = p;
+//            delete [] p_prev;
+//            p_prev = p;
+            ptmp = p;
+            p = p_prev;
+            p_prev = ptmp;
         }
-        p = new Complex[2 * r - 1 + 1 + j];
+//        p = new Complex[2 * r - 1 + 1 + j];
         g_derivative_polynomial(2 * r - 1 + j, p, p_prev, alpha, b);
-        delete [] p_prev;
-        p_prev = p;
+//        delete [] p_prev;
+//        p_prev = p;
 
         Complex derivative_at_1 = (Complex)0;
         for(int k = 0; k <= 2 * r - 1 + j; k++) {
@@ -223,9 +238,12 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
             cout << "                 N^2r = " << N_power << endl;
         }
         r = r + 1;
+        ptmp = p;
+        p = p_prev;
+        p_prev = ptmp;
     }
 
-    delete [] p;
+//    delete [] p;
  
     if(verbose::G) {
         cout << "In G(), using Euler-Maclaurin computed G(" << alpha << ", " << b << ") = " << S << endl;
