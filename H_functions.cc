@@ -19,6 +19,10 @@ Complex H(int j, Complex alpha, Double epsilon) {
         return 0.0;
     }
 
+//    if(abs(alpha) < 5) {
+//        return exp(-alpha);
+//    }
+
     if(stats::stats) {
         const Double D = 50.0;
         if( abs(alpha) > D ) {

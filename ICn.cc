@@ -116,7 +116,7 @@ Complex IC1(int K, int j, Double a, Double b, Complex C11, Complex C12, theta_ca
     // (NEED (-log(epsilon)^2/(K^2 * 2 pi)) < b <= 1/8K )
     //
 
-    if(b < (LOG(epsilon) * LOG(epsilon)/(K * K))) {
+    if(b < (LOG(epsilon) * LOG(epsilon)/(K * K * 2 * PI))) {
         cout << "************Warning: b is too small in IC1" << endl;
     }
 
@@ -421,6 +421,10 @@ Complex IC7(int K, int j, Double a, Double b, theta_cache * cache, Double epsilo
         L = min(L, to_int(root_2pi_b_power(1, cache) * sqrt(2) * K));
     }
 
+    if(L == 0) {
+        return 0.0;
+    }
+
     Complex S = (Complex)0;
 
     Double K_to_the_j;
@@ -434,11 +438,15 @@ Complex IC7(int K, int j, Double a, Double b, theta_cache * cache, Double epsilo
             Complex y1 = exp(2 * PI * I * s1);
             Complex y = 1.0;
             Double newepsilon = epsilon * two_pi_b_power * one_over_L;
-            for(Double n = (Double)0; n <= L-1; n = n + 1) {
+            for(int n = 0; n <= L-1; n = n + 1) {
                 //Complex z3 = exp(2 * PI * I * n * s1- n * n);
                 Double y3 = exp(-n * n);
                 Complex z3 = y * y3;
-                Complex z = G( alpha, I/( (Double)2 * PI), n, j, newepsilon/abs(z3));
+                Complex z = 0.0;
+                if( j * fastlog(n + 1) + fastlog(abs(z3)) < fastlog(newepsilon)) {          // TODO: This is a possible source of error,
+                    break;                                                                  // because this isn't necessarily decreasing.
+                }
+                z = G( alpha, I/( (Double)2 * PI), n, j, newepsilon/abs(z3));
                 z = z * z3;
                 S = S + z;
                 alpha = alpha + I/PI;
@@ -459,11 +467,19 @@ Complex IC7(int K, int j, Double a, Double b, theta_cache * cache, Double epsilo
             Complex y1 = exp(2 * PI * I * s1);
             Complex y = 1.0;
             Double newepsilon = epsilon * two_pi_b_power * K_to_the_j * one_over_L;
-            for(Double n = (Double)0; n <= L-1; n = n + 1) {
+ 
+            for(int n = 0; n <= L-1; n = n + 1) {
                 //Complex z3 = exp(2 * PI * I * n * s1- n * n);
                 Double y3 = exp(-n * n);
+
+
                 Complex z3 = y * y3;
-                Complex z = G( alpha, I/( (Double)2 * PI), n, j, newepsilon/abs(z3));
+
+                Complex z = 0.0;
+                if( j * fastlog(n + 1) + fastlog(abs(z3)) < fastlog(newepsilon)) {      // TODO: This is a possible source of error,
+                    break;                                                              // because this isn't necessarily decreasing.
+                }
+                z = G( alpha, I/( (Double)2 * PI), n, j, newepsilon/abs(z3));
                 z = z * z3;
                 S = S + z;
                 alpha = alpha + I/PI;

@@ -82,6 +82,12 @@ Complex compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex
         }
     }
 
+    for(int l = 0; l <= j; l++) {
+        if(abs(v2[l]) * (j + 1) * K < epsilon) {
+            v2[l] = 0;
+        }
+    }
+
     if(method == 1) {
         // direct evaluation
 

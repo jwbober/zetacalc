@@ -1,3 +1,4 @@
+#OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -fno-math-errno -funsafe-math-optimizations -fno-rounding-math -fno-signaling-nans -fcx-limited-range
 OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -ffast-math
 
 a.out: theta_sums.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o misc.o zeta.o log.o zeta.h log.h direct_evaluation.o exp_sum_euler_maclaurin.o theta_algorithm.o

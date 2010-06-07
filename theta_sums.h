@@ -11,7 +11,7 @@
 #define BUILTIN_EXPECT(a, b) __builtin_expect( (a), (b) )
 
 #include "misc.h"
-const int Kmin = 100;
+const int Kmin = 1600;
 typedef struct{
     Double a;
     Double b;
