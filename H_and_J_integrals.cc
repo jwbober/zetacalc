@@ -114,6 +114,10 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, Double epsilon) {
 
     int L = min(K, max(1, to_int(ceil(-LOG(epsilon)/(2 * PI * (1 + a))))));
 
+    if(L <= 1) {
+        return 0.0;
+    }
+
     // Now we compute the integral as a sum over unit length integrals.
     // On each unit length interval, we do a change of variables to get
     // the range of integration between 0 and 1, and reduce the computation

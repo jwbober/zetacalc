@@ -15,7 +15,7 @@ Complex H(int j, Complex alpha, Double epsilon) {
     // on the range of input.
     //
     
-    if(epsilon > 1) {
+    if((j + 1) * epsilon > 1.0) {
         return 0.0;
     }
 
@@ -45,7 +45,7 @@ Complex H(int j, Complex alpha, Double epsilon) {
         }
         return H_method2(j, alpha, epsilon);
     }
-    else if(abs(2 * PI * alpha) > 2 * j) {
+    else if(abs(2 * PI * alpha) > j/4) {
         if(verbose::H) {
             cout << "   In function H(), using method 1" << endl;
         }

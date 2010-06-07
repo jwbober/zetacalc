@@ -1,6 +1,10 @@
-#include "theta_sums.h"
-#include "precomputed_tables.h"
+#include <cmath>
+#include <iostream>
+#include <complex>
+#include "mpfr.h"
 
+#include "misc.h"
+#include "precomputed_tables.h"
 #include "w_coefficient.h"
 
 using namespace std;
@@ -28,7 +32,7 @@ Complex w_coefficient(Double * a_powers, Double * b_powers, Double * q_powers, D
     //
     //
 
-    if (BUILTIN_EXPECT( s > j || a_powers[1] + 2.0 /(b_powers[2] * K_powers[1]) <= 0, 0 )) {
+    if (__builtin_expect( s > j || a_powers[1] + 2.0 /(b_powers[2] * K_powers[1]) <= 0, 0 )) {
         cout << "Warning: w_coefficient called with bad input." << endl;
         cout << "Got called with:" << endl;
         cout << "s = " << s << endl;

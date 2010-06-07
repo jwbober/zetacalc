@@ -1,5 +1,6 @@
 #include "theta_sums.h"
 #include "precomputed_tables.h"
+#include "log.h"
 
 #include <iostream>
 #include <cmath>
@@ -31,7 +32,8 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
         cout << "        epsilon = " << epsilon << endl;
     }
 
-    if(epsilon >= pow((Double)n + 1, (Double)j)) {
+    //if(epsilon >= pow((Double)n + 1, (Double)j)) {
+    if(fastlog(epsilon) > j * fastlog(n+1)) {
         if(verbose::G) {
             cout << "in G: epsilon >= 1, so returning 0" << endl;
         }
@@ -70,9 +72,11 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
 
     if(n > 0) {
         Complex S = 0;
+        Double n_power = 1.0;
         for(int s = 0; s <= j; s++) {
-            Double z = binomial_coefficient(j, s) * pow(n, j - s);
-            S = S + z * G(alpha, b, 0, s, epsilon/(z * (j + 1)));
+            Double z = binomial_coefficient(j, s) * n_power;
+            S = S + z * G(alpha, b, 0, j - s, epsilon/(z * (j + 1)));
+            n_power *= n;
         }
         return S;
     }
@@ -83,7 +87,8 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
         return H(j, -I * alpha, epsilon);
     }
 
-    int N = max(1, to_int(ceil( -LOG(epsilon) )));
+    //int N = max(1, to_int(ceil( -LOG(epsilon) )));
+    int N = max(1, fastlog(epsilon));
 
     Complex S = (Complex)0;
 
@@ -141,7 +146,9 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
     //    return (Complex)0;
     //}
 
-    int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((Complex)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 0.0) ) * (1 + j * log(n + 1)/4.0) )), 1);
+    //int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((Complex)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 0.0) ) * (1 + j * log(n + 1)/4.0) )), 1);
+
+    int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((Complex)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * fastlog(n + 1)/4.0) )), 1);
 
     if(verbose::G >= 2) {
         cout << "In G(), using " << N << " sample points in Euler-Maclaurin summation." << endl;
@@ -193,9 +200,17 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
         p_prev[j] = 1;
     }
     else {
+        /*
         for(int s = 0; s <= j; s++) {
             //p_prev[s] = pow(2, -j) * pow(n, -s) * binomial_coefficient(j, s);
             p_prev[s] = pow(n, j - s) * binomial_coefficient(j, s);
+        }
+        */
+        Double n_power = 1.0;
+        for(int s = 0; s <= j; s++) {
+            //p_prev[s] = pow(2, -j) * pow(n, -s) * binomial_coefficient(j, s);
+            p_prev[j - s] = n_power * binomial_coefficient(j, s);
+            n_power *= n;
         }
     }
 

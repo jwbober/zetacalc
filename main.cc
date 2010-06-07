@@ -308,7 +308,7 @@ int run_zeta_block_speed_test() {
 
     Complex S = 0;
 
-    Complex Z[13];
+    Complex Z[30];
     compute_taylor_coefficients(t, Z);
 
     for(int k = 0; k < samples; k++) {
@@ -322,12 +322,58 @@ int run_zeta_block_speed_test() {
     return 0;
 }
 
+int run_zeta_block_accuracy_test() {
+    mpfr_t t;
+    mpz_t v;
+    mpz_t inc;
+    mpz_init(v);
+    mpz_init(inc);
+    mpfr_init2(t, 150);
+    mpz_set_str(v, "50000000000000", 10);
+    mpfr_set_str(t, "1e29", 10, GMP_RNDN);
+
+    mpfr_set_str(t, "1e30", 10, GMP_RNDN); 
+    // this is t in zeta(1/2 + I*t).
+
+    mpz_set_str(v, "400000000000000", 10); 
+    // this is approximately the largest pivot v given the above t.
+
+    //M = 1.1 * ceil(t^(1/3)) 
+    // the old M was taken to be 3 * ceil (t^(1/3)).
+
+    int K = 36000; 
+
+    //int K = 8000;
+
+    int samples = 1000;
+    mpz_div_ui(inc, v, samples);
+
+    Complex S = 0;
+    Complex S2 = 0;
+
+    Complex Z[30];
+    compute_taylor_coefficients(t, Z);
+
+    for(int k = 0; k < samples; k++) {
+        mpz_add(v, v, inc);
+        S = zeta_block(v, K, t, Z);
+        S2 = zeta_block_d(v, K, t, exp(-20));
+        cout << S << " " << S2 <<  " " << abs(S - S2) << endl;
+    }
+
+    print_stats();
+
+    return 0;
+}
+
+
 
 int main() {
 
 
     cout << setprecision(15);
 
-    return run_theta_sums_accuracy_test();
+    return run_zeta_block_accuracy_test();
+    //return run_theta_sums_accuracy_test();
     //return run_zeta_block_speed_test();
 }

@@ -11,17 +11,30 @@ Complex compute_exponential_sums_directly(mpfr_t mp_a, mpfr_t mp_b, int j, int K
     Double a = mpfr_get_d(mp_a, GMP_RNDN);
     Double b = mpfr_get_d(mp_b, GMP_RNDN);
 
-    for(int l = 0; l <= j; l++) {
-        if(v[l] != 0.0) {
-            if(K > 200) {
+    if (K > 2000) {
+        for(int l = 0; l <= j; l++) {
+            if(v[l] != 0.0) {
                 S = S + v[l] * direct_exponential_sum_evaluation2(mp_a, mp_b, l, 0, K);
             }
-            else
-                S = S + v[l] * direct_exponential_sum_evaluation2(a, b, l, 0, K);
         }
     }
-
+    else {
+        Complex two_pi_i = 2. * PI * I;
+        Double one_over_K = 1. / (Double)K;
+        for(int n = 0; n <= K; n++) {
+           Double n_over_K_powers = 1.;
+           Complex common_exp = EXP( two_pi_i * (Double)n * (a + b * (Double)n) );
+           for(int l = 0; l <= j; l++) {
+                if(v[l] != 0.) {
+                    S = S + v[l] * n_over_K_powers * common_exp;
+                }
+                n_over_K_powers *= (Double)n * one_over_K;
+           }
+        }
+    }
+ 
     return S;
+
 }
 
 

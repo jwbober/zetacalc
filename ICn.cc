@@ -1,6 +1,8 @@
 #include "theta_sums.h"
 #include "precomputed_tables.h"
 
+#include "log.h"
+
 #include <iostream>
 #include <cmath>
 
@@ -384,10 +386,12 @@ Complex IC7(int K, int j, Double a, Double b, theta_cache * cache, Double epsilo
 */
     Double z;
     if(K == -1) {
-        z = sqrt( 2 * max(0.0, -log(epsilon * pow(b, (j + 1.0)/2.0))) );
+        //z = sqrt( 2 * max(0.0, -log(epsilon * pow(b, (j + 1.0)/2.0))) );
+        z = sqrt( 2 * max(0.0, - (fastlog(epsilon) + (j + 1.0)/2.0 * fastlog(b))));
     }
     else {
-        z = sqrt( 2 * max(0.0, -log(epsilon * pow(b, (j + 1.0)/2.0) * K_power(j, cache) )) );
+        //z = sqrt( 2 * max(0.0, -log(epsilon * pow(b, (j + 1.0)/2.0) * K_power(j, cache) )) );
+        z = sqrt(2 * max(0.0, - (fastlog(epsilon) + (j + 1.0)/2.0 * fastlog(b) + fastlog(K_power(j, cache)))));
     }
     if(j > z) {
         L = j + 1;

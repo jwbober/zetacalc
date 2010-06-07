@@ -16,11 +16,14 @@ void print_zeta_stats() {
 }
 
 
-void compute_taylor_coefficients(mpfr_t t, Complex Z[13]) {
+void compute_taylor_coefficients(mpfr_t t, Complex Z[30]) {
     Double tt1 = mpfr_get_d(t, GMP_RNDN);
     Double tt2 = tt1 * tt1;
     Double tt3 = tt2 * tt1;
     Double tt4 = tt3 * tt1;
+    Double tt5 = tt4 * tt1;
+    Double tt6 = tt5 * tt1;
+    Double tt7 = tt6 * tt1;
 
     Z[0] = 1.0;
     Z[1] = -.5;
@@ -35,10 +38,20 @@ void compute_taylor_coefficients(mpfr_t t, Complex Z[13]) {
     Z[10] = I  * tt3 * 11.0/648.0;
     Z[11] = -I * tt3 * 133.0/4320.0;
     Z[12] = tt4 / 1944.0;
+    Z[13] = 0.0;
+    Z[14] = 0.0;
+    Z[15] = tt5 / 29160.0;
+    Z[16] = 0.0;
+    Z[17] = 0.0;
+    Z[18] = tt6 / 524880.0;
+    Z[19] = 0;
+    Z[20] = 0;
+    Z[21] = tt7 / 11022480.0;
+    Z[22] = 0;
 
 }
 
-Complex zeta_block(mpz_t v, int K, mpfr_t t, Complex ZZ[13], int method) {
+Complex zeta_block(mpz_t v, int K, mpfr_t t, Complex ZZ[30], int method) {
     //
     // Compute sum_{n=v}^{v+K} exp(it log n)/sqrt(n)
     //
@@ -57,14 +70,14 @@ Complex zeta_block(mpz_t v, int K, mpfr_t t, Complex ZZ[13], int method) {
     Double w = (K-1)/vv;
     Double w_power = 1;
 
-    Complex Z[13];
+    Complex Z[30];
 
-    for(int l = 0; l < 13; l++) {
+    for(int l = 0; l < 30; l++) {
         Z[l] = ZZ[l] * w_power;
         w_power *= w;
     }
 
-    int j = 12;
+    int j = 18;
 
     // Compute Z[l]
  
@@ -89,7 +102,7 @@ Complex zeta_block(mpz_t v, int K, mpfr_t t, Complex ZZ[13], int method) {
     mpfr_div_z(b, a, v, GMP_RNDN);
     mpfr_div_si(b, b, -2, GMP_RNDN);
 
-    Complex S = compute_exponential_sums(a, b, j, K-1, Z, exp(-20));
+    Complex S = compute_exponential_sums(a, b, j, K-1, Z, exp(-14));
 
     // we don't need the previous values of a and b anymore, so
     // we can erase them.
