@@ -462,14 +462,14 @@ inline theta_cache * build_theta_cache(mpfr_t mp_a, mpfr_t mp_b, int j, int K) {
     cache->C7 = -cache->C5;
     cache->C8 = -I * cache->ExpBK_inverse;
 
-    Double * K_powers = (Double *)((int)(cache) + sizeof(theta_cache));
+    Double * K_powers = (Double *)((intptr_t)(cache) + sizeof(theta_cache));
     
     K_powers[0] = pow(K, -j);
     for(int k = 1; k <= 2 * j; k++) {
         K_powers[k] = K_powers[k-1] * K;
     }
 
-    Double * root_2pi_b_powers = (Double *)((int)(cache) + sizeof(theta_cache) + (2 * j + 1) * sizeof(Double));
+    Double * root_2pi_b_powers = (Double *)((intptr_t)(cache) + sizeof(theta_cache) + (2 * j + 1) * sizeof(Double));
 
     Double root_2pi_b = sqrt(2 * PI * cache->b);
     root_2pi_b_powers[0] = pow(root_2pi_b, -j - 1);
@@ -485,9 +485,9 @@ inline void free_theta_cache(theta_cache * cache) {
 }
 
 inline Double K_power(int l, theta_cache * cache) {
-    return * ( (Double *)((int)(cache) + sizeof(theta_cache) + (cache->j + l) * sizeof(Double) ));
+    return * ( (Double *)((intptr_t)(cache) + sizeof(theta_cache) + (cache->j + l) * sizeof(Double) ));
 }
 
 inline Double root_2pi_b_power(int l, theta_cache * cache) {
-    return * ( (Double *)((int)(cache) + sizeof(theta_cache) + (3 * cache->j + 2 + l) * sizeof(Double) ));
+    return * ( (Double *)((intptr_t)(cache) + sizeof(theta_cache) + (3 * cache->j + 2 + l) * sizeof(Double) ));
 }
