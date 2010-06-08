@@ -1,7 +1,9 @@
 #OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -fno-math-errno -funsafe-math-optimizations -fno-rounding-math -fno-signaling-nans -fcx-limited-range
 OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -ffast-math
 LIBS = -lmpfr -lgmp -lprofiler -lgmpxx
+#LIBS = -lmpfr -lgmp -lgmpxx
 INCLUDEDIR = 
+#INCLUDEDIR = -I/usr/local/sage/local/include
 
 a.out: theta_sums.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o misc.o zeta.o log.o zeta.h log.h direct_evaluation.o exp_sum_euler_maclaurin.o theta_algorithm.o stats.o
 	g++ -O3 theta_sums.o direct_evaluation.o exp_sum_euler_maclaurin.o theta_algorithm.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o misc.o zeta.o log.o stats.o $(LIBS)
