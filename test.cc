@@ -334,6 +334,7 @@ int test_exp_itlogn(gmp_randstate_t state) {
     mpfr_t twopi;
     mpfr_init2(twopi, mpfr_get_prec(t));
     mpfr_const_pi(twopi, GMP_RNDN);
+    mpfr_mul_ui(twopi, twopi, 2, GMP_RNDN);
 
     mpfr_t w1;
     mpfr_init2(w1, mpfr_get_prec(t));
@@ -361,7 +362,7 @@ int test_exp_itlogn(gmp_randstate_t state) {
         mpfr_fmod(w1, w1, twopi, GMP_RNDN);
         z1 = exp(I * mpfr_get_d(w1, GMP_RNDN));
 
-        z2 = exp_itlogn3(n);
+        z2 = exp_itlogn4(n);
 
         Double error = abs(z1 - z2);
 
@@ -384,6 +385,98 @@ int test_exp_itlogn(gmp_randstate_t state) {
     return failures;
 }
 
+int time_exp_itlogn() {
+    mpfr_t t;
+    mpfr_init2(t, 158);
+    mpfr_set_str(t, "1e30", 10, GMP_RNDN);
+
+    Complex z2;
+    
+    mpz_t n;
+    mpz_init(n);
+
+    create_exp_itlogn_table(t);
+
+    mpz_set_str(n, "100000000000", 10);
+
+//    cout << exp_itlogn(n) << endl;
+    
+    z2 = 0;
+
+    const int number_of_iterations = 2000000;
+    cout << "Timing exp_itlogn() over " << number_of_iterations << " iterations ...";
+    cout.flush();
+    
+    clock_t start_time = clock();
+
+    for(int k = 0; k < number_of_iterations; k++) {
+        mpz_add_ui(n, n, 1u);
+        z2 += exp_itlogn4(n);
+    }
+    cout << z2 << "...";
+
+    clock_t end_time = clock();
+    double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
+    cout << elapsed_time << " seconds." << endl;
+
+    return elapsed_time;
+}
+
+int time_exp_itlogn_mpfr() {
+    mpfr_t t;
+    mpfr_init2(t, 158);
+    mpfr_set_str(t, "1e30", 10, GMP_RNDN);
+
+    Complex z1;
+    
+    mpz_t n;
+    mpz_init(n);
+
+    mpfr_t twopi;
+    mpfr_init2(twopi, mpfr_get_prec(t));
+    mpfr_const_pi(twopi, GMP_RNDN);
+    mpfr_mul_ui(twopi, twopi, 2, GMP_RNDN);
+
+    mpfr_t w1;
+    mpfr_init2(w1, mpfr_get_prec(t));
+    
+    create_exp_itlogn_table(t);
+
+    mpz_set_str(n, "100000000000", 10);
+
+//    cout << exp_itlogn(n) << endl;
+    
+    z1 = 0;
+
+    const int number_of_iterations = 2000000;
+    cout << "Timing exp_itlogn using mpfr over " << number_of_iterations << " iterations ...";
+    cout.flush();
+
+    clock_t start_time = clock();
+    for(int k = 0; k <= number_of_iterations; k++) {
+        mpz_add_ui(n, n, 1u);
+        mpfr_set_z(w1, n, GMP_RNDN);
+
+        mpfr_log(w1, w1, GMP_RNDN);
+        mpfr_mul(w1, w1, t, GMP_RNDN);
+        mpfr_fmod(w1, w1, twopi, GMP_RNDN);
+        z1 += exp(I * mpfr_get_d(w1, GMP_RNDN));
+    }
+
+    cout << z1 << "...";
+
+    clock_t end_time = clock();
+    double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
+    cout << elapsed_time << " seconds." << endl;
+
+    return elapsed_time;
+
+}
+
+
+
+
+
 int main() {
     unsigned int seed = time(NULL);
     cout << "Seeding rand() and gmp with " << seed << "." << endl;
@@ -394,12 +487,14 @@ int main() {
     gmp_randseed_ui(rand_state, seed);
 
     cout << setprecision(15);
-    test_fastlog2();
-    test_fastlog();
-    test_theta_algorithm(10);
-    time_theta_algorithm(18, 10010);
-    time_zeta_block(36000, 5000);
+    //test_fastlog2();
+    //test_fastlog();
+    //test_theta_algorithm(10);
+    //time_theta_algorithm(18, 10010);
+    //time_zeta_block(36000, 5000);
     test_exp_itlogn(rand_state);
+    time_exp_itlogn();
+    time_exp_itlogn_mpfr();
 
     return 0;
 }
