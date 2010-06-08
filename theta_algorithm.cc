@@ -117,7 +117,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     Complex JBulk_term1 = 0;
     for(int l = 0; l <= j; l++) {
         if(Z[l] != 0.0)
-            JBulk_term1 += Z[l] * JBulk(w, b, l, p1, K, Z_epsilon[l] );        //----------
+            JBulk_term1 += Z[l] * JBulk(w, b, l, p1, K, cache, Z_epsilon[l] );        //----------
     }
     JBulk_term1 *= -C1;
 
@@ -174,7 +174,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     Complex JBulk_term2 = 0;
     for(int l = 0; l <= j; l++) {
         if(v[l] != 0.0)
-            JBulk_term2 += (Double)minus_one_power(l) * I_power(l+1) * v[l] * JBulk(w1, b, l, p1, K, V_epsilon[l]);  //-----------
+            JBulk_term2 += (Double)minus_one_power(l) * I_power(l+1) * v[l] * JBulk(w1, b, l, p1, K, cache, V_epsilon[l]);  //-----------
     }
     JBulk_term2 *= -1;
 
@@ -292,7 +292,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     Complex JBoundary_term1 = 0;
     for(int l = 0; l <= j; l++) {
         if(Z[l] != 0.0)
-            JBoundary_term1 += Z[l] * JBoundary(2 * b * K - w1, 1 - w, b, l, K, Z_epsilon[l] );     //---------------
+            JBoundary_term1 += Z[l] * JBoundary(2 * b * K - w1, 1 - w, b, l, K, cache, Z_epsilon[l] );     //---------------
     }
     JBoundary_term1 *= C5;
     S2 = S2 + JBoundary_term1;
@@ -300,7 +300,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     Complex JBoundary_term2 = 0;
     for(int l = 0; l <= j; l++) {
         if(v[l] != 0.0)
-            JBoundary_term2 += minus_I_power(l + 1) * v[l] * JBoundary(2 * b * K - w, 1 - w1, b, l, K, V_epsilon[l] );     //-----------
+            JBoundary_term2 += minus_I_power(l + 1) * v[l] * JBoundary(2 * b * K - w, 1 - w1, b, l, K, cache, V_epsilon[l] );     //-----------
     }
     //JBoundary_term2 *= C4;
     S2 = S2 + JBoundary_term2;

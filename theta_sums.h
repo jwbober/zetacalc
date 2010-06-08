@@ -11,6 +11,134 @@
 #define BUILTIN_EXPECT(a, b) __builtin_expect( (a), (b) )
 
 #include "misc.h"
+
+inline Complex I_power(int n) {
+    Complex S = 0;
+    switch(n % 4) {
+        case 0:
+            S = 1;
+            break;
+        case 1:
+            S = I;
+            break;
+        case 2:
+            S = -1;
+            break;
+        case 3:
+            S = -I;
+            break;
+    }
+    return S;
+}
+
+inline Complex minus_I_power(int n) {
+    Complex S = 0.0;
+    switch(n % 4) {
+        case 0:
+            S = Complex(1.0, 0.0);
+            break;
+        case 1:
+            S = Complex(0.0, -1.0);
+            break;
+        case 2:
+            S = Complex(-1.0, 0.0);
+            break;
+        case 3:
+            S = Complex(0.0, 1.0);
+            break;
+    }
+    return S;
+}
+
+inline int minus_one_power(int n) {
+    int S = 0;
+    switch(n % 2) {
+        case 0:
+            S = 1;
+            break;
+        case 1:
+            S = -1;
+            break;
+    }
+    return S;
+}
+
+inline Complex exp_i_pi4(int n) {
+    //
+    // Return exp( n * I * PI / 4)
+    //
+
+    Complex S = 0;
+    switch(n % 8) {
+        case 0:
+            S = Complex(1, 0);
+            break;
+        case 1:
+            S = Complex(sqrt(2.0)/2.0, sqrt(2.0)/2.0);
+            break;
+        case 2:
+            S = Complex(0, 1);
+            break;
+        case 3:
+            S = Complex(-sqrt(2.0)/2.0, sqrt(2.0)/2.0);
+            break;
+        case 4:
+            S = Complex(-1, 0);
+            break;
+        case 5:
+            S = Complex(-sqrt(2.0)/2.0, -sqrt(2.0)/2.0);
+            break;
+        case 6:
+            S = Complex(0, -1);
+            break;
+        case 7:
+            S = Complex(sqrt(2.0)/2.0, -sqrt(2.0)/2.0);
+            break;
+    }
+    return S;
+}
+
+
+inline Complex exp_minus_i_pi4(int n) {
+    //
+    // Return exp(-n * I * PI /4)
+    //
+
+    Complex S = 0;
+    switch(n % 8) {
+        case 0:
+            S = Complex(sqrt(2.0)/2.0, -sqrt(2.0)/2.0);
+            break;
+        case 1:
+            S = Complex(0, -1);
+            break;
+        case 2:
+            S = Complex(-sqrt(2.0)/2.0, -sqrt(2.0)/2.0);
+            break;
+        case 3:
+            S = Complex(-1, 0);
+            break;
+        case 4:
+            S = Complex(-sqrt(2.0)/2.0, sqrt(2.0)/2.0);
+            break;
+        case 5:
+            S = Complex(0, 1);
+            break;
+        case 6:
+            S = Complex(sqrt(2.0)/2.0, sqrt(2.0)/2.0);
+            break;
+        case 7:
+            S = Complex(1, 0);
+            break;
+    }
+    return S;
+}
+
+
+
+
+
+
 const int Kmin = 1600;
 typedef struct{
     Double a;
@@ -72,37 +200,7 @@ namespace stats {
     extern int IC7zero;
 }
 
-inline void print_stats() {
-    std::cout << "In function H():" << std::endl;
-    std::cout << "    Method 1 used " << stats::H_method1 << " times." << std::endl;
-    std::cout << "    Method 2 used " << stats::H_method2 << " times." << std::endl;
-    std::cout << "    Method 3 used " << stats::H_method3 << " times." << std::endl;
-    std::cout << "    Method 4 used " << stats::H_method4 << " times." << std::endl;
-
-    std::cout << "  abs(alpha) was big " << stats::H_function_big << " times." << std::endl;
-    std::cout << "  abs(alpha) was small " << stats::H_function_small << " times." << std::endl;
-
-    std::cout << "In function G():" << std::endl;
-    std::cout << "    Method 1 used " << stats::G_method1 << " times." << std::endl;
-    std::cout << "    Method 2 used " << stats::G_method2 << " times." << std::endl;
-
-    std::cout << "EXP() called " << stats::exp << " times." << std::endl;
-
-    std::cout << "compute_exponential_sum() called " << stats::exponential_sum_called << " times." << std::endl;
-    std::cout << "[should have] used Euler-Maclaurin " << stats::exponential_sum_euler_maclaurin << " times." << std::endl;
-    std::cout << "[should have] used Taylor expansions " << stats::exponential_sum_taylor_expansion << " times." << std::endl;
-
-    std::cout << "H_Integral_0 called " << stats::H_Integral_0 << " times." << std::endl;
-    std::cout << "H_Integral_2 called " << stats::H_Integral_2 << " times." << std::endl;
-    std::cout << "J_Integral_0 called " << stats::J_Integral_0 << " times." << std::endl;
-    std::cout << "J_Integral_1 called " << stats::J_Integral_1 << " times." << std::endl;
-    std::cout << "J_Integral_2 called " << stats::J_Integral_2 << " times." << std::endl;
-
-    std::cout << "IC7 called " << stats::IC7 << " times." << endl;
-    std::cout << "IC7 quickly returned 0 " << stats::IC7zero << " times." << endl;
-
-
-}
+void print_stats();
 
 Complex ExpA(mpfr_t A, int K);
 Complex ExpAK(mpfr_t A, int K);
@@ -150,25 +248,25 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
                                                                                 //----------------------------------------------
 
 Complex H_Integral_0(int j, Double a, int M, Double epsilon);                   //----------------------------------------------
-Complex J_Integral_0(Double a, Double b, int j, int M, int K, Double epsilon);  //
-Complex J_Integral_1(Double a, Double b, int j, int M, int K, Double epsilon);  //
+Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon);  //
+Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon);  //
 Complex H_Integral_2(int j, Double a1, Double a2, Double epsilon);              //
-Complex J_Integral_2(Double a1, Double a2, Double b, int j, int K, Double epsilon);// Various integrals.
+Complex J_Integral_2(Double a1, Double a2, Double b, int j, int K, theta_cache * cache, Double epsilon);// Various integrals.
                                                                                 //
-inline Complex JBulk(Double a, Double b, int j, int M, int K, Double epsilon) {         //                         
-    return J_Integral_0(a, b, j, M, K, epsilon/2)                                          // See H_and_J_integrals.cc
-                                        + J_Integral_1(a, b, j, M, K, epsilon/2);       //
+inline Complex JBulk(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon) {         //                         
+    return J_Integral_0(a, b, j, M, K, cache, epsilon/2)                                          // See H_and_J_integrals.cc
+                                        + J_Integral_1(a, b, j, M, K, cache, epsilon/2);       //
 }                                                                                       //
                                                                                         //
-inline Complex JBoundary(Double a1, Double a2, Double b, int j, int K, Double epsilon){ 
+inline Complex JBoundary(Double a1, Double a2, Double b, int j, int K, theta_cache * cache, Double epsilon){ 
     if(j == 0) {
-        return J_Integral_2(a1, a2, b, j, K, epsilon/3)                                    
-                                        + J_Integral_1(a1, b, j, -1, K, epsilon/3)     
-                                        - J_Integral_1(a2, b, j, -1, K, epsilon/3);
+        return J_Integral_2(a1, a2, b, j, K, cache, epsilon/3)                                    
+                                        + J_Integral_1(a1, b, j, -1, K, cache, epsilon/3)     
+                                        - J_Integral_1(a2, b, j, -1, K, cache, epsilon/3);
     }
     else {
-        return J_Integral_0(a1, b, j, -1, K, epsilon/4) + J_Integral_1(a1, b, j, -1, K, epsilon/4)
-                + pow(-1, j + 1) * (  J_Integral_0(a2, b, j, -1, K, epsilon/4) + J_Integral_1(a2, b, j, -1, K, epsilon/4) );
+        return J_Integral_0(a1, b, j, -1, K, cache, epsilon/4) + J_Integral_1(a1, b, j, -1, K, cache, epsilon/4)
+                + (Double)minus_one_power(j + 1) * (  J_Integral_0(a2, b, j, -1, K, cache, epsilon/4) + J_Integral_1(a2, b, j, -1, K, cache, epsilon/4) );
     }
 }                                                                                     
 
@@ -307,129 +405,6 @@ Complex compute_exponential_sums_directly(mpfr_t mp_a, mpfr_t mp_b, int j, int K
 Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon);
 Complex compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon, int method=0);
 Complex compute_exponential_sums(Double a, Double b, int j, int K, Complex * v, Double epsilon, int method=0);
-
-inline Complex I_power(int n) {
-    Complex S = 0;
-    switch(n % 4) {
-        case 0:
-            S = 1;
-            break;
-        case 1:
-            S = I;
-            break;
-        case 2:
-            S = -1;
-            break;
-        case 3:
-            S = -I;
-            break;
-    }
-    return S;
-}
-
-inline Complex minus_I_power(int n) {
-    Complex S = 0.0;
-    switch(n % 4) {
-        case 0:
-            S = Complex(1.0, 0.0);
-            break;
-        case 1:
-            S = Complex(0.0, -1.0);
-            break;
-        case 2:
-            S = Complex(-1.0, 0.0);
-            break;
-        case 3:
-            S = Complex(0.0, 1.0);
-            break;
-    }
-    return S;
-}
-
-inline int minus_one_power(int n) {
-    int S = 0;
-    switch(n % 2) {
-        case 0:
-            S = 1;
-            break;
-        case 1:
-            S = -1;
-            break;
-    }
-    return S;
-}
-
-inline Complex exp_i_pi4(int n) {
-    //
-    // Return exp( n * I * PI / 4)
-    //
-
-    Complex S = 0;
-    switch(n % 8) {
-        case 0:
-            S = Complex(1, 0);
-            break;
-        case 1:
-            S = Complex(sqrt(2.0)/2.0, sqrt(2.0)/2.0);
-            break;
-        case 2:
-            S = Complex(0, 1);
-            break;
-        case 3:
-            S = Complex(-sqrt(2.0)/2.0, sqrt(2.0)/2.0);
-            break;
-        case 4:
-            S = Complex(-1, 0);
-            break;
-        case 5:
-            S = Complex(-sqrt(2.0)/2.0, -sqrt(2.0)/2.0);
-            break;
-        case 6:
-            S = Complex(0, -1);
-            break;
-        case 7:
-            S = Complex(sqrt(2.0)/2.0, -sqrt(2.0)/2.0);
-            break;
-    }
-    return S;
-}
-
-
-inline Complex exp_minus_i_pi4(int n) {
-    //
-    // Return exp(-n * I * PI /4)
-    //
-
-    Complex S = 0;
-    switch(n % 8) {
-        case 0:
-            S = Complex(sqrt(2.0)/2.0, -sqrt(2.0)/2.0);
-            break;
-        case 1:
-            S = Complex(0, -1);
-            break;
-        case 2:
-            S = Complex(-sqrt(2.0)/2.0, -sqrt(2.0)/2.0);
-            break;
-        case 3:
-            S = Complex(-1, 0);
-            break;
-        case 4:
-            S = Complex(-sqrt(2.0)/2.0, sqrt(2.0)/2.0);
-            break;
-        case 5:
-            S = Complex(0, 1);
-            break;
-        case 6:
-            S = Complex(sqrt(2.0)/2.0, sqrt(2.0)/2.0);
-            break;
-        case 7:
-            S = Complex(1, 0);
-            break;
-    }
-    return S;
-}
-
 inline theta_cache * build_theta_cache(mpfr_t mp_a, mpfr_t mp_b, int j, int K) {
     //
     // At the beginning of a run of the algorithm we

@@ -10,36 +10,6 @@
 using namespace std;
 
 
-namespace stats {
-    int H_method1 = 0;
-    int H_method2 = 0;
-    int H_method3 = 0;
-    int H_method4 = 0;
-
-    int H_function_big = 0;
-    int H_function_small = 0;
-
-    int G_method1 = 0;
-    int G_method2 = 0;
-
-    int exp = 0;
-
-    int exponential_sum_called = 0;
-    int exponential_sum_euler_maclaurin = 0;
-    int exponential_sum_taylor_expansion = 0;
-
-    int H_Integral_0 = 0;
-    int H_Integral_2 = 0;
-    int J_Integral_0 = 0;
-    int J_Integral_1 = 0;
-    int J_Integral_2 = 0;
-
-    int IC7 = 0;
-    int IC7zero = 0;
-}
-
-
-
 void test3(Double epsilon, Double error_allowance, int j, int K) {
     Complex coeffs[j + 1];
     for(int l = 0; l < j; l++) {

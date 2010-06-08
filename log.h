@@ -49,11 +49,13 @@ inline int fastlog(double x) {
     // It seems to be exact roughly 83.6% of the time, and
     // smaller the other 16.4% of the time.
 
-    int z = (fastlog2(x) * 726817)/1048576;
-    if(z <= 0) {
-        return z - 1;
+    int z = fastlog2(x);
+    if(z >= 0) {
+        z = (z * 726817)/1048576;
     }
-    else
-        return z;
+    else {
+        z = (z * 726817)/1048576 - 1;
+    }
+    return z;
 
 }

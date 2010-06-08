@@ -1,5 +1,6 @@
 #include "theta_sums.h"
 #include "precomputed_tables.h"
+#include "log.h"
 
 #include <iostream>
 #include <cmath>
@@ -31,7 +32,8 @@ Complex H_Integral_0(int j, Double a, int M, Double epsilon) {
 
     Complex S = (Complex)0;
 
-    int C = max(to_int(ceil(j/(2 * PI * E))), to_int(ceil(-LOG(epsilon)/(2 * PI))) );
+    //int C = max(to_int(ceil(j/(2 * PI * E))), to_int(ceil(-LOG(epsilon)/(2 * PI))) );
+    int C = max(to_int(ceil(j/(2 * PI * E))), to_int(ceil(-fastlog(epsilon)/(2 * PI))) );
 
     if(M != -1) {
         C = min(M, C);
@@ -52,7 +54,7 @@ Complex H_Integral_0(int j, Double a, int M, Double epsilon) {
 
 }
 
-Complex J_Integral_0(Double a, Double b, int j, int M, int K, Double epsilon) {
+Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon) {
     //
     // Compute the integral int_0^1 exp(-2 pi a t - 2 pi i b t^2) (1 - exp(-2 pi M t))/(exp(2 pi t) - 1) dt
     //
@@ -64,11 +66,12 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, Double epsilon) {
     // -1 corresponds to infinity
     stats::J_Integral_0++;
 
-    if(2 * pow(K, -j) * log(abs((Double)M) + 10) < epsilon) {
+    //if(2 * pow(K, -j) * log(abs((Double)M) + 10) < epsilon) {
+    if( 3 + fastlog2(K_power(-j, cache)) + fastlog2(fastlog(abs(M) + 10.0)) < fastlog2(epsilon)) {
         return 0.0;
     }
 
-    epsilon = epsilon * pow(K, j);
+    epsilon = epsilon * K_power(j, cache);
 
     Complex S = (Complex)0;
 
@@ -77,10 +80,10 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, Double epsilon) {
     int sign = -1;
     
     if(b == 0) {
-        return H_Integral_0(j, a, M, epsilon)*pow(K, -j);
+        return H_Integral_0(j, a, M, epsilon)*K_power(-j, cache);
     }
     
-    int N = max(1, to_int(ceil(-LOG(epsilon))));    // an approximation of the number of terms
+    int N = max(1, to_int(ceil(-fastlog(epsilon))));    // an approximation of the number of terms
                                                     // we compute in the taylor expansion
 
     Complex Ib_power = (Complex)1.0/(I * b);
@@ -97,12 +100,12 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, Double epsilon) {
         r++;
     }
 
-    S = S * pow(K, -j);
+    S = S * K_power(-j, cache);
 
     return S;
 }
 
-Complex J_Integral_1(Double a, Double b, int j, int M, int K, Double epsilon) {
+Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon) {
     //
     // Compute the integral int_1^K exp(-2 pi a t - 2 pi i b t^2)(1 - exp(-2 pi M t))/(exp(2 pi t) - 1) dt
     //
@@ -112,7 +115,11 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, Double epsilon) {
     // We truncate the integral at L, where L is given by
     stats::J_Integral_1++;
 
-    int L = min(K, max(1, to_int(ceil(-LOG(epsilon)/(2 * PI * (1 + a))))));
+    //int L = min(K, max(1, to_int(ceil(-LOG(epsilon)/(2 * PI * (1 + a))))));
+
+    int L = max(1.0, ceil(-fastlog(epsilon)/(2 * PI * (1 + a))));
+    L = max(1.0, L - j * fastlog( (Double)K/(Double)(L + 1))/(2 * PI) );
+    L = min(K, L);
 
     if(L <= 1) {
         return 0.0;
@@ -125,26 +132,38 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, Double epsilon) {
 
     Complex S = (Complex)0;
 
-    Double one_over_K_to_the_j = pow( (Double)K, -j);
+    //Double one_over_K_to_the_j = pow( (Double)K, -j);
+    Double one_over_K_to_the_j = K_power(-j, cache);
 
-    if(2 * pow(L, j) * one_over_K_to_the_j * log(abs((Double)M) + 10) < epsilon) {
+    //if(2 * pow(L, j) * one_over_K_to_the_j * log(abs((Double)M) + 10) < epsilon) {
+    if( 5 + j * fastlog2(L) + fastlog2(one_over_K_to_the_j) - 2 * PI * (a + 1) * log2(E) < fastlog2(epsilon)) {
         return 0.0;
     }
 
+    Double exp_minus_twopi = exp(-2.0 * PI);
+    Double exp_minus_twopi_n = 1.0;
+
     for(Double n = (Double)1; n <= L - 1; n = n + 1) {
+        exp_minus_twopi_n *= exp_minus_twopi;
         int end_point;
         if(M == -1) {
-            end_point = to_int(ceil(-LOG(epsilon)/(2 * PI * n)));
+            end_point = to_int(ceil(-fastlog(epsilon)/(2 * PI * n)));
         }
         else {
-            end_point = min(M, to_int(ceil(-LOG(epsilon)/(2 * PI * n) ) ));
+            end_point = min(M, to_int(ceil(-fastlog(epsilon)/(2 * PI * n) ) ));
         }
+
+        end_point = end_point - j * fastlog((Double)K/(n + 1))/(2 * PI);
 
         Complex S1 = 0;
 
+        Complex x = EXP(-2.0 * PI * n * (1.0 + a + I * b * n));
+
         for(Double m = (Double)1; m <= end_point; m = m + 1) {
-            Complex z =  G(I*(m + a + (Complex)2.0 * I * b * n), -b, n, j, epsilon * exp( 2 * PI * (m + a) * n)/(end_point * Double(L - 1) * one_over_K_to_the_j));
-            z *= EXP(-2.0 * PI * n * (m + a + I * b * n));
+            if(m > 1)
+                x = x * exp_minus_twopi_n;
+            Complex z =  G(I*(m + a + (Complex)2.0 * I * b * n), -b, n, j, epsilon/(abs(x) * end_point * Double(L - 1) * one_over_K_to_the_j));
+            z *= x;
             S1 = S1 + z;
         }
         S1 = S1 * one_over_K_to_the_j;
@@ -174,7 +193,7 @@ Complex H_Integral_2(int j, Double a1, Double a2, Double epsilon) {
 
 }
 
-Complex J_Integral_2(Double a1, Double a2, Double b, int j, int K, Double epsilon) {
+Complex J_Integral_2(Double a1, Double a2, Double b, int j, int K, theta_cache * cache, Double epsilon) {
     //
     // Compute the integral int_0^1 exp(-2 pi i b t^2) (exp(-2 pi a1 t) - exp(-2 pi a2 t))(exp(2 pi t) - 1) dt,
     //
@@ -185,15 +204,17 @@ Complex J_Integral_2(Double a1, Double a2, Double b, int j, int K, Double epsilo
     stats::J_Integral_2++;
 
     if(a2 > a1) {
-        if (2.0 * pow(K, -j) * ( (a2 - a1)/a2 * log(1 + a2) ) < epsilon)
+        //if (2.0 * pow(K, -j) * ( (a2 - a1)/a2 * log(1 + a2) ) < epsilon)
+        if(1 + fastlog2(K_power(-j, cache)) + fastlog2( (a2 - a1)/a2 * (fastlog(1 + a2) + 1.0)) < fastlog2(epsilon))
             return 0.0;
     }
     else {
-        if (2.0 * pow(K, -j) * ( (a1 - a2)/a1 * log(1 + a1) ) < epsilon)
+        //if (2.0 * pow(K, -j) * ( (a1 - a2)/a1 * log(1 + a1) ) < epsilon)
+        if(1 + fastlog2(K_power(-j, cache)) + fastlog2( (a1 - a2)/a1 * (fastlog(1 + a1) + 1.0)) < fastlog2(epsilon))
             return 0.0;
     }
 
-    epsilon = epsilon * pow(K, j);
+    epsilon = epsilon * K_power(j, cache);
 
     Complex S = (Complex)0;
 
@@ -202,10 +223,10 @@ Complex J_Integral_2(Double a1, Double a2, Double b, int j, int K, Double epsilo
     int sign = -1;
     
     if(b == 0) {
-        return H_Integral_2(j, a1, a2, epsilon) * pow(K, -j);
+        return H_Integral_2(j, a1, a2, epsilon) * K_power(-j, cache);
     }
    
-    int N = max(1, to_int(ceil(-LOG(epsilon))));
+    int N = max(1, to_int(-fastlog(epsilon)));
 
     Complex Ib_power = (Complex)1.0/(I * b);
     while(error > epsilon) {
@@ -222,7 +243,7 @@ Complex J_Integral_2(Double a1, Double a2, Double b, int j, int K, Double epsilo
         r++;
     }
 
-    S = S * pow(K, -j);
+    S = S * K_power(-j, cache);
 
     return S;
 
