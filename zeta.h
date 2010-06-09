@@ -28,3 +28,11 @@ Complex zeta_sum_basic(mpfr_t);
 
 Complex zeta(mpfr_t t);
 Complex hardy_Z(mpfr_t, Complex &R);
+
+Complex zeta_sum_stage1(mpz_t N, mpfr_t t);
+Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t);
+Complex zeta_block_stage1(mpz_t v, unsigned int K, mpfr_t t);
+Complex zeta_block_stage2(mpz_t n, unsigned int N, mpfr_t t);
+
+void stage_1_bound(mpz_t v, mpfr_t t);
+void stage_2_bound(mpz_t v, mpfr_t t);

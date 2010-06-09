@@ -1,6 +1,8 @@
 #include "theta_sums.h"
 #include "zeta.h"
 
+#include "log.h"
+
 using namespace std;
 
 namespace zeta_stats {
@@ -13,6 +15,365 @@ void print_zeta_stats() {
     cout << "zeta_block_d() called " << zeta_stats::zeta_block_d << " times." << endl;
     cout << "zeta_block_d() used zeta_block_mpfr() " << zeta_stats::zeta_block_d_using_mpfr << " times." << endl;
     cout << "       " << zeta_stats::zeta_block_d_using_mpfr_x_large << " times because K/v was too big." << endl;
+}
+
+void stage_1_bound(mpz_t v, mpfr_t t) {
+    //
+    // Compute the endpoint for the stage 1 sum for computing zeta(.5 + it)
+    // and put it into v.
+    //
+
+    // Right now this is t^{1/3}, which is probably too large.
+
+    mpfr_t x;
+    mpfr_init2(x, mpfr_get_prec(t));
+
+    mpfr_cbrt(x, t, GMP_RNDN);
+    mpfr_get_z(v, x, GMP_RNDN);
+
+    mpfr_clear(x);
+}
+
+
+void stage_2_bound(mpz_t v, mpfr_t t) {
+    //
+    // Compute the endpoint for the stage 1 sum for computing zeta(.5 + it)
+    // and put it into v.
+    //
+
+    // Right now this is 3 t^{1/3}, which might be too large.
+
+    mpfr_t x;
+    mpfr_init2(x, mpfr_get_prec(t));
+
+    mpfr_cbrt(x, t, GMP_RNDN);
+    mpfr_mul_ui(x, x, 3u, GMP_RNDN);
+
+    mpfr_get_z(v, x, GMP_RNDN);
+
+    mpfr_clear(x);
+}
+
+inline unsigned int stage_2_block_size(Double v, Double t) {
+    //
+    // For a given v and t determine a good block size to use
+    // in stage 2.
+    //
+    
+    // For now we set the block size to be v/t^{1/5}
+
+    unsigned int block_size = (unsigned int)( v * pow(t, -.25) );
+
+    return block_size;
+}
+
+Complex zeta_block_stage1(mpz_t v, unsigned int K, mpfr_t t) {
+    mpz_t n;
+    mpz_init(n);
+    
+    Complex S = 0.0;
+
+    mpz_set(n, v);
+
+
+    for(unsigned int k = 0; k < K; k++) {
+        S = S + exp_itlogn4(n)/sqrt(mpz_get_d(n));
+        mpz_add_ui(n, n, 1u);
+    }
+
+    mpz_clear(n);
+
+    return S;
+}
+
+Complex zeta_block_stage2_basic(mpz_t v, unsigned int *K, mpfr_t t, Double epsilon) {
+    //
+    // This routine calculates the sum
+    //
+    // sum_{n=v}^{v + K - 1} n^{.5 + it) = sum_{n=v}^{v + K} exp(it log n)/sqrt(n)
+    //
+    // to a nominal precision of epsilon*K/sqrt(v)
+    //
+    // Unless *K = 0 or 1, we always compute a good value of *K, and store it
+    // in the passed variable. The *K that is passed is the maximum block
+    // size that we will use, however.
+    //
+    // To deal with precision issues in the calculation of the exponential
+    // and to get significant speedup, we do a change of variables to
+    // write this sum as 
+    //
+    // exp(it log v)/sqrt(v) sum_{k=0}^{K-1} exp(it log(1 + k/v))/sqrt(1 + k/v).
+    //
+    // Then we write 1/sqrt(v + k) as exp(log -.5(1 + k/v)),
+    // so the sum is
+    //
+    // exp(i t log(1 + k/v) + .5 log(1 + k/v))
+    //
+    // We Taylor expand the logarithms with a few terms, and instead
+    // of computing each term using mpfr, we just calculate the first
+    // terms mod 2pi using mpfr, and then multiply by powers of k
+    // in the inner sum using double arithmetic.
+    //
+    // Let x = K/v.
+    // The number of terms we compute in the taylor expansion of the log is
+    //
+    // -(log(t) - log(epsilon))/log(x)
+    //
+    // We compute the initial terms using mpfr up to -log(t)/log(x).
+    //
+    // The number of terms of the in the taylor expansion for the square root
+    // term is log(epsilon)/log(x).
+
+    Complex S = 0;
+
+    if(*K == 0) {
+        return 0.0;
+    }
+    if(*K == 1) {
+        return exp_itlogn4(v)/sqrt(mpz_get_d(v));
+    }
+
+    Double vv = mpz_get_d(v);
+    Double tt = mpfr_get_d(t, GMP_RNDN);
+    
+    unsigned int block_size = min(stage_2_block_size(vv, tt), *K);
+    if(block_size < 2) {
+        cout << "Error: in stage 2, using a block size smaller than 2. Shouldn't reach stage two until we can use a larger block size." << endl;
+        cout << "Refusing to continue, and returning NAN, without setting K." << endl;
+        return 0.0/0.0;
+    }
+
+    *K = block_size;
+
+    Double x = block_size/vv;
+
+    // It seems like the following code to estimate the number
+    // of terms that we need in the taylor expansion might be
+    // useful (and fast) because it doesn't take any logarithms.
+    // Instead we just grab the exponent of the relevant numbers
+    // to estimate the log base 2. In practice it seems like
+    // this slows things down a little bit, though, perhaps
+    // because we sometimes (often?) take one extra term
+    // in the taylor expansion, so we don't use it right now.
+
+    // UPDATE: After writing the above comment, I changed the
+    // way that we decide whether or not to use mpfr to calculate
+    // the terms, and now this this method seems about as good,
+    // and maybe better, so I am using it again.
+    //
+
+    int logepsilon = fastlog2(epsilon);
+    int logtt = fastlog2(tt);
+    int logx = fastlog2(x);
+
+    int number_of_log_terms = (logepsilon - logtt)/logx;
+    int number_of_sqrt_terms = logepsilon/logx;
+
+    Double a[number_of_log_terms + 1];
+    Double b[number_of_sqrt_terms + 1];
+
+    int vsize = mpz_sizeinbase(v, 2);
+    int precision = mpfr_get_exp(t) - vsize + 53;       
+                                                // We want to accurately compute
+                                                // the quantities t/v mod pi. To do so
+                                                // it should be enough
+                                                // to use log2(t) - log2(v) + 53 bits.
+    
+
+    mpfr_t mp_v_power, z, twopi, one_over_v, twopi_l, z1;
+    
+    mpfr_init2(mp_v_power, precision);
+    mpfr_init2(one_over_v, precision);
+    mpfr_init2(z, precision);
+    mpfr_init2(twopi, precision);
+    mpfr_init2(twopi_l, precision);
+    mpfr_init2(z1, 53);
+
+    mpfr_const_pi(twopi, GMP_RNDN);
+    mpfr_mul_si(twopi, twopi, 2, GMP_RNDN);
+    
+    mpfr_set_z(one_over_v, v, GMP_RNDN);
+    mpfr_ui_div(one_over_v, 1, one_over_v, GMP_RNDN);
+
+    int sign = 1;
+    Double one_over_vv = 1.0/vv;
+    Double v_power = one_over_vv;
+    mpfr_set(mp_v_power, one_over_v, GMP_RNDN);
+    mpfr_set(twopi_l, twopi, GMP_RNDN);
+    for(int l = 1; l <= number_of_log_terms; l++) {
+        //if(l <= number_of_log_terms_mpfr) {
+        if(precision >= 53) {
+            //
+            // The following calls to reduce the precision on each iteration
+            // seem to slow things down just a very little bit in the tests I have run, and maybe
+            // they shouldn't be there. But I suspect that in cases
+            // where v is very large there should be some gain
+            // in using them, so I am leaving them for now.
+            //
+            mpfr_set_prec(z, precision);
+            mpfr_prec_round(mp_v_power, precision, GMP_RNDN);
+            mpfr_prec_round(twopi_l, precision, GMP_RNDN);
+            mpfr_mul(z, t, mp_v_power, GMP_RNDN);
+            
+            //mpfr_div_si(z, z, l, GMP_RNDN);
+            //mpfr_frac(z, z, GMP_RNDN);
+            mpfr_fmod(z1, z, twopi_l, GMP_RNDN);
+            a[l] = sign * mpfr_get_d(z1, GMP_RNDN)/l;
+            mpfr_mul(mp_v_power, mp_v_power, one_over_v, GMP_RNDN);
+            v_power = v_power * one_over_vv;
+            mpfr_add(twopi_l, twopi_l, twopi, GMP_RNDN);
+            precision = precision - vsize;
+        }
+        else {
+            a[l] = tt * sign * v_power/l;
+            v_power = v_power * one_over_vv;
+        }
+        sign = -sign;
+    }
+
+
+    Double s = 1;
+    for(int l = 1; l <= number_of_sqrt_terms; l++) {
+        s = s * (-.5/vv);
+        b[l] = s/l;
+    }
+
+    for(unsigned int k = 0; k < block_size; k++) {
+        Double k_power = 1;
+        Double x = 0;
+        Double y = 0;
+        for(int l = 1; l <= number_of_log_terms; l++) {
+            k_power = k_power * k;
+            y = y + a[l] * k_power;
+            if(l <= number_of_sqrt_terms)
+                x = x + b[l] * k_power;
+        }
+        S = S + exp(x + I * y);
+    }
+    S = S / sqrt(vv);
+
+    S = S * exp_itlogn4(v);
+
+    mpfr_clear(mp_v_power);
+    mpfr_clear(z);
+    mpfr_clear(twopi);
+    mpfr_clear(twopi_l);
+    mpfr_clear(one_over_v);
+    mpfr_clear(z1);
+
+    return S;
+}
+
+
+
+
+
+Complex zeta_block_stage2(mpz_t n, unsigned int N, mpfr_t t) {
+    if(N == 0) {
+        return 0;
+    }
+
+    Complex S = 0;
+
+    mpz_t v;
+    mpz_init(v);
+
+    mpz_set(v, n);
+    unsigned int K = N;
+    while(N > 0) {
+        S = S + zeta_block_stage2_basic(v, &K, t, exp(-20));
+        N = N - K;
+        mpz_add_ui(v, v, K);
+        K = N;
+    }
+
+    mpz_clear(v);
+
+    return S;
+}
+
+Complex zeta_sum_stage1(mpz_t N, mpfr_t t) {
+    //
+    // Compute and return the sum
+    //
+    // \sum_{n=1}^N n^{-.5 + it)
+    //
+    // We repeatedly call zeta_block_stage1 with a block size of 10000
+    // and add up all of the terms. We could just call zeta_block_stage1
+    // directly, but we anticipate shortly changing this routine
+    // to use multiple threads.
+
+    create_exp_itlogn_table(t);
+
+    Complex S = 0;
+
+    const unsigned int block_size = 10000;
+
+    mpz_t number_of_blocks;
+    mpz_init(number_of_blocks);
+    unsigned int remainder = mpz_fdiv_q_ui(number_of_blocks, N, block_size);
+
+    mpz_t k, v;
+    mpz_init(k);
+    mpz_init(v);
+
+    mpz_set_si(v, 1 - block_size);
+    for(mpz_set_ui(k, 0u); mpz_cmp(k, number_of_blocks) < 0; mpz_add_ui(k, k, 1u)) {
+        mpz_add_ui(v, v, block_size);
+        S = S + zeta_block_stage1(v, block_size, t);
+        //S = S + zeta_block_mpfr(v, block_size, t);
+    }
+    mpz_add_ui(v, v, block_size);
+
+    S = S + zeta_block_stage1(v, remainder, t);
+
+    mpz_clear(v);
+    mpz_clear(k);
+    mpz_clear(number_of_blocks);
+
+    return S;
+}
+
+Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t) {
+    //
+    // Compute and return the sum
+    //
+    // \sum_{k=n}^{n + N - 1} n^{.5 + it}
+    //
+    // We do this by repeatedly calling zeta_block_stage2 with a block size of 1000000
+    // and add up all the terms. We could just call it directly, but we anticipate
+    // shortly changing this routine to use multiple threads.
+    //
+    Complex S = 0;
+
+    const unsigned int block_size = 1000000;
+
+    mpz_t number_of_blocks;
+    mpz_init(number_of_blocks);
+    unsigned int remainder = mpz_fdiv_q_ui(number_of_blocks, N, block_size);
+
+    mpz_t k, v;
+    mpz_init(k);
+    mpz_init(v);
+
+    mpz_set(v, n);
+    mpz_sub_ui(v, v, block_size);
+    for(mpz_set_ui(k, 0u); mpz_cmp(k, number_of_blocks) < 0; mpz_add_ui(k, k, 1u)) {
+        mpz_add_ui(v, v, block_size);
+        S = S + zeta_block_stage2(v, block_size, t);
+        //S = S + zeta_block_mpfr(v, block_size, t);
+    }
+    mpz_add_ui(v, v, block_size);
+
+    S = S + zeta_block_stage2(v, remainder, t);
+    //S = S + zeta_block_mpfr(v, remainder, t);
+
+    mpz_clear(v);
+    mpz_clear(k);
+    mpz_clear(number_of_blocks);
+
+    return S;
+
 }
 
 
@@ -50,6 +411,7 @@ void compute_taylor_coefficients(mpfr_t t, Complex Z[30]) {
     Z[22] = 0;
 
 }
+
 
 Complex zeta_block(mpz_t v, int K, mpfr_t t, Complex ZZ[30], int method) {
     //

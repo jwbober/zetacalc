@@ -473,8 +473,149 @@ int time_exp_itlogn_mpfr() {
 
 }
 
+int test_zeta_sum_stage1(gmp_randstate_t rand_state) {
+    mpfr_t t, big_number;
+    mpfr_init2(t, 200);
+    mpfr_init2(big_number, 200);
+    mpfr_set_str(big_number, "1e30", 10, GMP_RNDN);
+
+    mpz_t n, one;
+    mpz_init(n);
+    mpz_init(one);
+    mpz_set_ui(one, 1u);
+
+    unsigned int K = 101331;
+    mpz_set_ui(n, K);
+
+    Complex S1 = 0.0;
+    Complex S2 = 0.0;
 
 
+    for(int k = 0; k < 10; k++) {
+        mpfr_urandomb(t, rand_state);
+        mpfr_mul_ui(t, t, 1000000000, GMP_RNDN);
+        mpfr_add(t, t, big_number, GMP_RNDN);
+
+        S1 = zeta_block_mpfr(one, K, t);
+        S2 = zeta_sum_stage1(n, t);
+        //S2 = zeta_block_stage1(one, K, t);
+
+        cout << S1 - S2 << endl;
+    }
+
+    mpz_clear(n);
+    mpz_clear(one);
+    mpfr_clear(t);
+    mpfr_clear(big_number);
+
+    return 0;
+}
+
+int test_zeta_sum_stage2(gmp_randstate_t rand_state) {
+    mpfr_t t, big_number;  
+    mpfr_init2(t, 200);
+    mpfr_init2(big_number, 200);
+    mpfr_set_str(big_number, "1e30", 10, GMP_RNDN);
+
+    mpz_t v;
+    mpz_init(v);
+
+    int length = 100000;
+    
+    mpz_t mp_length;
+    mpz_init(mp_length);
+    mpz_set_si(mp_length, length);
+
+    Complex S1;
+    Complex S2;
+
+    cout << "Testing stage 2 sum on block sizes of 100000 ten times just past stage1_bound." << endl;
+
+    for(int k = 0; k < 10; k++) {
+        mpfr_urandomb(t, rand_state);
+        mpfr_mul_ui(t, t, 1000000000, GMP_RNDN);
+        mpfr_add(t, t, big_number, GMP_RNDN);
+
+        stage_1_bound(v, t);
+
+        create_exp_itlogn_table(t);
+
+        S1 = zeta_block_mpfr(v, length, t);
+        S2 = zeta_sum_stage2(v, mp_length, t);
+
+        cout << S1 << "   " << S2 << "   " << S1 - S2 << endl;
+    }
+
+    cout << "Now testing stage 2 sum on block sizes of 102013 ten times with v = 2 * stage1_bound." << endl;
+
+    for(int k = 0; k < 10; k++) {
+        mpfr_urandomb(t, rand_state);
+        mpfr_mul_ui(t, t, 1000000000, GMP_RNDN);
+        mpfr_add(t, t, big_number, GMP_RNDN);
+
+        stage_1_bound(v, t);
+        mpz_mul_ui(v, v, 2u);
+
+        create_exp_itlogn_table(t);
+
+        S1 = zeta_block_mpfr(v, length, t);
+        S2 = zeta_sum_stage2(v, mp_length, t);
+
+        cout << S1 << "   " << S2 << "   " << S1 - S2 << endl;
+    }
+
+
+
+
+    length = 2020317;
+    mpz_set_si(mp_length, length);
+
+    cout << "Now testing once on a block size of length " << length << " with v = 3 * stage1_bound. This may take a few minutes." << endl;
+    mpfr_urandomb(t, rand_state);
+    mpfr_mul_ui(t, t, 1000000000, GMP_RNDN);
+    mpfr_add(t, t, big_number, GMP_RNDN);
+
+    stage_1_bound(v, t);
+    mpz_mul_ui(v, v, 3u);
+
+    create_exp_itlogn_table(t);
+
+    S1 = zeta_block_mpfr(v, length, t);
+    S2 = zeta_sum_stage2(v, mp_length, t);
+
+    cout << S1 << "   " << S2 << "   " << S1 - S2 << endl;
+
+    mpz_clear(v);
+    mpz_clear(mp_length);
+
+    return 0;
+
+}
+
+double time_zeta_sum_stage1() {
+    mpfr_t t;
+    mpfr_init2(t, 158);
+    mpfr_set_str(t, "1e30", 10, GMP_RNDN);
+
+    mpz_t n;
+    mpz_init(n);
+    mpz_set_ui(n, 1000000u);
+    
+    cout << "Timing zeta_sum_stage_1() on a sum of length " << n << " with t = 1e30....";
+
+    clock_t start_time = clock();
+
+    Complex S1 = zeta_sum_stage1(n, t);
+
+    clock_t end_time = clock();
+    double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
+    cout << elapsed_time << " seconds." << endl;
+    
+    mpz_clear(n);
+    mpfr_clear(t);
+
+    return elapsed_time;
+}
 
 
 int main() {
@@ -493,8 +634,11 @@ int main() {
     //time_theta_algorithm(18, 10010);
     //time_zeta_block(36000, 5000);
     //test_exp_itlogn(rand_state);
-    time_exp_itlogn();
+    //time_exp_itlogn();
     //time_exp_itlogn_mpfr();
+    //test_zeta_sum_stage1(rand_state);
+    //time_zeta_sum_stage1();
+    test_zeta_sum_stage2(rand_state);
 
     return 0;
 }
