@@ -313,7 +313,7 @@ Complex exp_itlogn4(mpz_t n) {
                 }
                 current_limb_ptr--;
                 current_limb_index--;
-                current_bit_mask = (1u << (GMP_NUMB_BITS - 1u));
+                current_bit_mask = (1ul << (GMP_NUMB_BITS - 1u));
             }
             else {
                 current_bit_mask = current_bit_mask >> 1u;
@@ -322,17 +322,17 @@ Complex exp_itlogn4(mpz_t n) {
         }
         else {
             //smaller_than_one++;
-            mpn_add_n(x, x, z, number_of_limbs_needed);               // We could have done the subtraction x <-- x - z
-                                            // before with a temporary variable to avoid this step,
-                                            // but this case is very unlikely, and the overhead from
-                                            // an mpz_swap call almost every time is larger than
-                                            // the overhead from an occasional extra addition.
+            mpn_add_n(x, x, z, number_of_limbs_needed);             // We could have done the subtraction x <-- x - z
+                                                                    // before with a temporary variable to avoid this step,
+                                                                    // but this case is very unlikely, and the overhead from
+                                                                    // an mpz_swap call almost every time is larger than
+                                                                    // the overhead from an occasional extra addition.
             //mpz_div_2exp(z, z, 1);
             mpn_rshift(z, z, number_of_limbs_needed, 1);
             k++;
             if( __builtin_expect(current_bit_mask == 1u, 0)) {
                 current_limb_ptr--;
-                current_bit_mask = (1u << (GMP_NUMB_BITS - 1u));
+                current_bit_mask = (1ul << (GMP_NUMB_BITS - 1u));
                 current_limb_index--;
             }
             else {

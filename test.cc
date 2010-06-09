@@ -492,9 +492,9 @@ int main() {
     //test_theta_algorithm(10);
     //time_theta_algorithm(18, 10010);
     //time_zeta_block(36000, 5000);
-    test_exp_itlogn(rand_state);
+    //test_exp_itlogn(rand_state);
     time_exp_itlogn();
-    time_exp_itlogn_mpfr();
+    //time_exp_itlogn_mpfr();
 
     return 0;
 }
