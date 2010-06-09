@@ -23,12 +23,14 @@ void stage_1_bound(mpz_t v, mpfr_t t) {
     // and put it into v.
     //
 
-    // Right now this is t^{1/3}, which is probably too large.
+    // Right now this is 3 * t^{1/4}. With this choice, stage 2 will
+    // start up when it can use a block size of about 3.
 
     mpfr_t x;
     mpfr_init2(x, mpfr_get_prec(t));
 
-    mpfr_cbrt(x, t, GMP_RNDN);
+    mpfr_root(x, t, 4, GMP_RNDN);
+    mpfr_mul_ui(x, x, 3u, GMP_RNDN);
     mpfr_get_z(v, x, GMP_RNDN);
 
     mpfr_clear(x);
@@ -37,20 +39,47 @@ void stage_1_bound(mpz_t v, mpfr_t t) {
 
 void stage_2_bound(mpz_t v, mpfr_t t) {
     //
-    // Compute the endpoint for the stage 1 sum for computing zeta(.5 + it)
+    // Compute the endpoint for the stage 2 sum for computing zeta(.5 + it)
     // and put it into v.
     //
 
-    // Right now this is 3 t^{1/3}, which might be too large.
+    // Right now this is 112 t^{1/3}. With this choice, we won't
+    // start stage 3 until it can use a block size of approximately 1000.
+    // (It is possible that we can to make this even larger right now.)
 
     mpfr_t x;
     mpfr_init2(x, mpfr_get_prec(t));
 
     mpfr_cbrt(x, t, GMP_RNDN);
-    mpfr_mul_ui(x, x, 3u, GMP_RNDN);
+    mpfr_mul_ui(x, x, 1120u, GMP_RNDN);
 
     mpfr_get_z(v, x, GMP_RNDN);
 
+    mpfr_clear(x);
+}
+
+void stage_3_bound(mpz_t v, mpfr_t t) {
+    //
+    // Compute the endpoint for stage 3.
+    //
+    // This is just floor( sqrt(t/2pi) ) + 1;
+    // The "+ 1" is because we stop BEFORE we reach stage_3_bound.
+    
+    mpfr_t twopi, x;
+    mpfr_init2(twopi, mpfr_get_prec(t));
+    mpfr_init2(x, mpfr_get_prec(t));
+   
+    mpfr_const_pi(twopi, GMP_RNDN);
+    mpfr_mul_ui(twopi, twopi, 2u, GMP_RNDN);
+    
+    mpfr_div(x, t, twopi, GMP_RNDN);
+    mpfr_sqrt(x, x, GMP_RNDN);
+    mpfr_floor(x, x);
+
+    mpfr_get_z(v, x, GMP_RNDN);
+    mpz_add_ui(v, v, 1u);
+
+    mpfr_clear(twopi);
     mpfr_clear(x);
 }
 
@@ -60,17 +89,37 @@ inline unsigned int stage_2_block_size(Double v, Double t) {
     // in stage 2.
     //
     
-    // For now we set the block size to be v/t^{1/5}
+    // For now we set the block size to be v/t^{1/4}
 
     unsigned int block_size = (unsigned int)( v * pow(t, -.25) );
 
     return block_size;
 }
 
+inline unsigned int stage_3_block_size(Double v, Double t) {
+    // With this choice, the block size will hit N when
+    // v = N/.9 * t^(1/3)
+    //
+    // So if we want to start stage 3 with a block size of 100, then we should
+    // set stage_2_bound to 112 * t^(1/3)
+    unsigned int block_size = (unsigned int)(.9 * v * pow(t, -.3333333333333333333333));
+    return block_size;
+}
+
 Complex zeta_block_stage1(mpz_t v, unsigned int K, mpfr_t t) {
+    if(K == 0) {
+        return 0.0;
+    }
+    
     mpz_t n;
     mpz_init(n);
-    
+        
+
+    if(0) {
+        mpz_add_ui(n, v, K - 1);
+        cout << v << " " << n << endl;
+    }
+
     Complex S = 0.0;
 
     mpz_set(n, v);
@@ -130,20 +179,30 @@ Complex zeta_block_stage2_basic(mpz_t v, unsigned int *K, mpfr_t t, Double epsil
         return 0.0;
     }
     if(*K == 1) {
+        if(0)
+            cout << v << "  " << v << endl;
         return exp_itlogn4(v)/sqrt(mpz_get_d(v));
-    }
-
-    Double vv = mpz_get_d(v);
+    }  
+    
+     Double vv = mpz_get_d(v);
     Double tt = mpfr_get_d(t, GMP_RNDN);
     
     unsigned int block_size = min(stage_2_block_size(vv, tt), *K);
     if(block_size < 2) {
-        cout << "Error: in stage 2, using a block size smaller than 2. Shouldn't reach stage two until we can use a larger block size." << endl;
+        cout << "Error: in stage 2, computed a block size of " << block_size << ", which is smaller than 2. Shouldn't reach stage two until we can use a larger block size." << endl;
         cout << "Refusing to continue, and returning NAN, without setting K." << endl;
         return 0.0/0.0;
     }
 
     *K = block_size;
+
+    if(0) {
+        mpz_t n;
+        mpz_init(n);
+        mpz_add_ui(n, v, block_size - 1);
+        cout << v << " " << n << endl;
+        mpz_clear(n);
+    }
 
     Double x = block_size/vv;
 
@@ -265,7 +324,90 @@ Complex zeta_block_stage2_basic(mpz_t v, unsigned int *K, mpfr_t t, Double epsil
 }
 
 
+Complex zeta_block_stage3_basic(mpz_t v, unsigned int *K, mpfr_t t, Complex ZZ[30], Double epsilon) {
+    if(*K == 0) {
+        return 0.0;
+    }
+    if(*K == 1) {
+        if(0) {
+            cout << v << " " << v << endl;
+        }
+        return exp_itlogn4(v)/sqrt(mpz_get_d(v));
+    }
+    
+    Double vv = mpz_get_d(v);
+    Double tt = mpfr_get_d(t, GMP_RNDN);
+    
+    unsigned int block_size = min(stage_3_block_size(vv, tt), *K);
+    if(block_size < 50 && *K >= 50) {
+        cout << "Error: in stage 3, computed a block size of " << block_size << ", which is smaller than 50. Shouldn't reach stage two until we can use a larger block size." << endl;
+        cout << "Refusing to continue, and returning NAN, without setting K." << endl;
+        return 0.0/0.0;
+    }
 
+    *K = block_size;
+    if(0) {
+        mpz_t n;
+        mpz_init(n);
+        mpz_add_ui(n, v, block_size - 1);
+        cout << v << " " << n << endl;
+        mpz_clear(n);
+    }
+
+
+
+
+    Double w = (block_size-1)/vv;
+    Double w_power = 1;
+
+    Complex Z[30];
+
+    for(int l = 0; l < 19; l++) {
+        Z[l] = ZZ[l] * w_power;
+        w_power *= w;
+    }
+
+    int j = 18;
+
+    // Compute Z[l]
+ 
+    mpfr_t a, b, x;
+
+    int precision = mpfr_get_prec(t);
+
+    mpfr_init2(a, precision);
+    mpfr_init2(b, precision);
+    mpfr_init2(x, precision);
+
+    mpfr_const_pi(x, GMP_RNDN);             // x = pi
+    mpfr_mul_si(x, x, 2, GMP_RNDN);         // x = 2 pi
+    mpfr_mul_z(x, x, v, GMP_RNDN);            // x = 2 pi v
+    mpfr_div(a, t, x, GMP_RNDN);            // a = t / (2 pi v)
+
+//    mpfr_mul_si(x, x, -2, GMP_RNDN);        // x = -4 pi v
+//    mpfr_mul(x, x, v, GMP_RNDN);            // x = -4 pi v^2
+//    mpfr_div(b, t, x, GMP_RNDN);            // b = -t/ (4 pi v^2)
+
+//    mpfr_mul_si(b, v, -2, GMP_RNDN);
+    mpfr_div_z(b, a, v, GMP_RNDN);
+    mpfr_div_si(b, b, -2, GMP_RNDN);
+
+    Complex S = compute_exponential_sums(a, b, j, block_size-1, Z, epsilon);
+
+    // we don't need the previous values of a and b anymore, so
+    // we can erase them.
+
+    Complex z = exp_itlogn4(v);
+    z = z / sqrt(mpz_get_d(v));
+    S = S * z;
+
+    mpfr_clear(a);
+    mpfr_clear(b);
+    mpfr_clear(x);
+
+
+    return S;
+}
 
 
 Complex zeta_block_stage2(mpz_t n, unsigned int N, mpfr_t t) {
@@ -292,11 +434,43 @@ Complex zeta_block_stage2(mpz_t n, unsigned int N, mpfr_t t) {
     return S;
 }
 
+Complex zeta_block_stage3(mpz_t n, unsigned int N, mpfr_t t, Complex Z[30]) {
+    if(N == 0) {
+        return 0;
+    }
+
+    Complex S = 0;
+
+    mpz_t v;
+    mpz_init(v);
+
+    mpz_set(v, n);
+    unsigned int K = N;
+    while(N > 0) {
+        S = S + zeta_block_stage3_basic(v, &K, t, Z, exp(-20));
+        N = N - K;
+        mpz_add_ui(v, v, K);
+        K = N;
+    }
+
+    mpz_clear(v);
+
+    return S;
+}
+
+
+
+
 Complex zeta_sum_stage1(mpz_t N, mpfr_t t) {
     //
     // Compute and return the sum
     //
-    // \sum_{n=1}^N n^{-.5 + it)
+    // \sum_{n=1}^{N - 1} n^{-.5 + it)
+    //
+    // NOTE: Unlike the other zeta_sum_* functions, N is NOT the
+    // number of terms that will be computed. This will compute N - 1
+    // terms. (Or, it can be thought of as computing N terms,
+    // but with the 0th term being 0).
     //
     // We repeatedly call zeta_block_stage1 with a block size of 10000
     // and add up all of the terms. We could just call zeta_block_stage1
@@ -309,9 +483,13 @@ Complex zeta_sum_stage1(mpz_t N, mpfr_t t) {
 
     const unsigned int block_size = 10000;
 
+    mpz_t number_of_terms;
+    mpz_init(number_of_terms);
+    mpz_sub_ui(number_of_terms, N, 1);
+
     mpz_t number_of_blocks;
     mpz_init(number_of_blocks);
-    unsigned int remainder = mpz_fdiv_q_ui(number_of_blocks, N, block_size);
+    unsigned int remainder = mpz_fdiv_q_ui(number_of_blocks, number_of_terms, block_size);
 
     mpz_t k, v;
     mpz_init(k);
@@ -330,6 +508,7 @@ Complex zeta_sum_stage1(mpz_t N, mpfr_t t) {
     mpz_clear(v);
     mpz_clear(k);
     mpz_clear(number_of_blocks);
+    mpz_clear(number_of_terms);
 
     return S;
 }
@@ -362,6 +541,9 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t) {
         mpz_add_ui(v, v, block_size);
         S = S + zeta_block_stage2(v, block_size, t);
         //S = S + zeta_block_mpfr(v, block_size, t);
+        if(mpz_divisible_ui_p(k, 5u)) {
+            cout << "In stage2, completed " << k << " large blocks out of " << number_of_blocks << "." << endl;
+        }
     }
     mpz_add_ui(v, v, block_size);
 
@@ -375,6 +557,58 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t) {
     return S;
 
 }
+
+Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t) {
+    //
+    // Compute and return the sum
+    //
+    // \sum_{k=n}^{n + N - 1} n^{.5 + it}
+    //
+    // We do this by repeatedly calling zeta_block_stage3 with a block size of 1000000
+    // and add up all the terms. We could just call it directly, but we anticipate
+    // shortly changing this routine to use multiple threads.
+    //
+    Complex S = 0;
+
+    const unsigned int block_size = 1000000;
+
+    mpz_t number_of_blocks;
+    mpz_init(number_of_blocks);
+    unsigned int remainder = mpz_fdiv_q_ui(number_of_blocks, N, block_size);
+
+    Complex Z[30];
+    compute_taylor_coefficients(t, Z);
+
+    mpz_t k, v;
+    mpz_init(k);
+    mpz_init(v);
+
+    mpz_set(v, n);
+    mpz_sub_ui(v, v, block_size);
+    for(mpz_set_ui(k, 0u); mpz_cmp(k, number_of_blocks) < 0; mpz_add_ui(k, k, 1u)) {
+        mpz_add_ui(v, v, block_size);
+        S = S + zeta_block_stage3(v, block_size, t, Z);
+        //S = S + zeta_block_mpfr(v, block_size, t);
+        if(mpz_divisible_ui_p(k, 5u)) {
+            cout << "In stage3, completed " << k << " large blocks out of " << number_of_blocks << "." << endl;
+        }
+    }
+    mpz_add_ui(v, v, block_size);
+
+    S = S + zeta_block_stage3(v, remainder, t, Z);
+    //S = S + zeta_block_mpfr(v, remainder, t);
+
+    mpz_clear(v);
+    mpz_clear(k);
+    mpz_clear(number_of_blocks);
+
+    return S;
+
+}
+
+
+
+
 
 
 void compute_taylor_coefficients(mpfr_t t, Complex Z[30]) {
@@ -1121,187 +1355,57 @@ Complex zeta_sum_mpfr(mpfr_t t) {
     return S;
 }
 
-
-
-
-
 Complex zeta_sum(mpfr_t t) {
-    //
-    // 
-    //
+    Complex S = 0.0;
 
-    int precision = mpfr_get_prec(t);
+    mpz_t n1, n2, n3, N2, N3;
 
-    mpz_t M0, M, n1, M1, R, v;
-
-
-    int m;
-    int m0 = 7;
-
-    mpz_init(M);
-    mpz_init(M0);
     mpz_init(n1);
-    mpz_init(M1);
-    mpz_init(R);
-    mpz_init(v);
+    mpz_init(n2);
+    mpz_init(n3);
+    mpz_init(N2);
+    mpz_init(N3);
 
-    mpfr_t x, y, z;
-    mpfr_init2(x, precision);
-    mpfr_init2(y, precision);
-    mpfr_init2(z, precision);
+    stage_1_bound(n1, t);
+    stage_2_bound(n2, t);
+    stage_3_bound(n3, t);
 
-    mpfr_cbrt(x, t, GMP_RNDN);                  // x = t^(1/3)
-    mpfr_ceil(x, x);                            // x = ceil(t^(1/3))
-    mpfr_get_z(M0, x, GMP_RNDN);                // M0 = ceil(t^(1/3))
-    mpz_mul_ui(M0, M0, 3);                      // M0 = 3 ceil(t^(1/3))
-    mpz_mul_si(M, M0, pow(2, m0));              // now M = 3 2^m0 ceil(t^{1/3})
+    Complex S1, S2, S3;
 
-    mpfr_const_pi(x, GMP_RNDN);                 // x = pi
-    mpfr_mul_si(x, x, 2, GMP_RNDN);             // x = 2 pi
-    mpfr_div(x, t, x, GMP_RNDN);                // x = t/2pi
-    mpfr_sqrt(x, x, GMP_RNDN);                  // x = sqrt(t/2pi)
-    mpfr_floor(x, x);                           // x = floor(sqrt(t/2pi))
-    mpfr_get_z(n1, x, GMP_RNDN);                // n1 = floor(sqrt(t/2pi))
-
-    mpfr_set_z(x, n1, GMP_RNDN);                // x = n1
-    mpfr_div_z(x, x, M0, GMP_RNDN);             // x = n1/M0
-    mpfr_floor(x, x);                           // x = floor(n1/M0)
-    mpfr_log2(x, x, GMP_RNDN);                  // x = log2( floor(n1/M0) )
-    mpfr_floor(x, x);                           // x = floor(log2(floor(n1/M0)))
-    m = mpfr_get_si(x, GMP_RNDN);               // m = floor(log2(floor(n1/M0)))
-
-    mpz_set_si(M1, 2);                          // M1 = 2;
-    mpz_pow_ui(M1, M1, max(m, m0));             // M1 = 2^m
-    mpz_mul(M1, M1, M0);                        // M1 = 2^m M
-    mpz_sub(M1, n1, M1);                        // M1 = n1 - 2^m M
-
-    mpz_add_ui(R, M1, 1);
-    mpz_div_ui(R, R, pow(2, max(m, m0)));
-
-    if(verbose::zeta_sum) {
-        cout << "In zeta_sum(): " << endl;
-        cout << "          n1 = " << n1 << endl;
-        cout << "           M = " << M << endl;
-        cout << "          M0 = " << M0 << endl;
-        cout << "          M1 = " << M1 << endl;
-        cout << "           R = " << R << endl;
-        cout << "          m0 = " << m0 << endl;
-        cout << "           m = " << m << endl;
-        
-        if(m < m0) {
-            cout << "m < m0... Is it going to work?" << endl;
-        }
-        if(m == m0) {
-            cout << "m == m0... Is it going to work?" << endl;
-        }
+    if(mpz_cmp(n2, n3) > 0) {      // if n2 > n3, set n2 = n3
+        mpz_set(n2, n3);
+    }
+    if(mpz_cmp(n1, n3) > 0) {      // if n1 > n3, set n1 = n3
+        mpz_set(n1, n3);
     }
 
-    if(mpz_cmp(n1, M) <= 0) {
+    cout << "For t = " << mpfr_get_d(t, GMP_RNDN) << ": " << endl;
+    cout << "   Using stage1 up to n = " << n1 << endl;
+    cout << "   Using stage2 up to n = " << n2 << endl;
+    cout << "   Using stage3 up to n = " << n3 << endl;
 
-        cout << "Warning. t was too small so we didn't apply the theta algorithm at all." << endl;
+    mpz_sub(N2, n2, n1);        // N2 and N3 hold the lengths of the sums for stage 2 and stage 3
+    mpz_sub(N3, n3, n2);
 
-        Complex S = initial_zeta_sum(n1, t, exp(-20));
-        mpz_clear(M);
-        mpz_clear(n1);
-        mpz_clear(M1);
-        mpz_clear(M0);
-        mpfr_clear(x);
-        mpfr_clear(y);
-        mpfr_clear(z);
-        return S;
-    }
+    S1 = zeta_sum_stage1(n1, t);
+    cout << "Done with stage 1. Sum was: " << S1 << endl;
+
+    S2 = zeta_sum_stage2(n1, N2, t);
+    cout << "Done with stage 2. Sum was: " << S2 << endl;
     
-    mpz_sub_ui(M, M, 1);
-    Complex S1 = initial_zeta_sum(M, t, exp(-20));
-//    Complex S1_ = initial_zeta_sum_mpfr(M, t);
-    mpz_add_ui(M, M, 1);
+    S3 = zeta_sum_stage3(n2, N3, t);
+    cout << "Done with stage 3. Sum was: " << S3 << endl;
 
-    cout << "Computed S1 =   " << S1 << endl;
-//    cout << "using mpfr, get " << S1_ << endl;
-    
-
-    mpz_t r;
-    mpz_init(r);
-
-    Complex Z[13];
-    compute_taylor_coefficients(t, Z);
-
-    Complex S2 = 0;
-
-    mpz_set(v, M);
-    unsigned int K = pow(2, m0);
-    for(int l = m0; l <= m - 1; l++) {
-        for(mpz_set_si(r, 0); mpz_cmp(r, M0) < 0; mpz_add_ui(r, r, 1)) {
-//            mpfr_set_z(x, r, GMP_RNDN);                 // x = r
-//            mpfr_add_z(x, x, M0, GMP_RNDN);              // x = r + M0
-//            mpfr_mul_si(x, x, K, GMP_RNDN);             // x = (2^l)(r + M0)
-            S2 = S2 + zeta_block(v, K, t, Z, exp(-20));
-//            S2 = S2 + zeta_block_mpfr(v, K, t);
-            mpz_add_ui(v, v, K);
-        }
-        K = K * 2;
-    }
-
-    cout << "Computed S2 =   " << S2 << endl;
-    
-//    mpz_t w;
-//    mpz_init(w);
-
-//    mpz_mul_ui(w, M, pow(2, m - m0));
-//    mpz_sub_ui(w, w, 1);
-
-//    Complex S2_ = initial_zeta_sum_mpfr(w, t) - S1_;
-
-//    cout << "using mpfr, get " << S2_ << endl;
-    Complex S3 = 0;
-
-    for(mpz_set_si(r, 0); mpz_cmp(r, R) < 0; mpz_add_ui(r, r, 1)) {
-//        mpfr_set_z(x, r, GMP_RNDN);
-//        mpfr_add_z(x, x, M0, GMP_RNDN);
-//        mpfr_mul_si(x, x, K, GMP_RNDN);
-        S3 = S3 + zeta_block(v, K, t, Z, exp(-20));
-//        S3 = S3 + zeta_block_mpfr(x, K, t);
-        mpz_add_ui(v, v, K);
-    }
-    
-    cout << "S3 = " << S3 << endl;
-
-//    mpfr_set_z(x, R, GMP_RNDN);                     // x = R
-//    mpfr_add_z(x, x, M0, GMP_RNDN);                 // x = R + M0
-//    mpfr_mul_si(x, x, K, GMP_RNDN);                 // x = 2^(max(m, m0))(R + M0)
-
-//    mpfr_sub_z(y, x, n1, GMP_RNDN);                 // y = x - n1
-//    mpfr_mul_si(y, y, -1, GMP_RNDN);                // y = n1 - x
-//    mpfr_add_si(y, y, 1, GMP_RNDN);                 // y = n1 - x + 1
-
-    mpz_sub(r, n1, v);
-    mpz_add_ui(r, r, 1);
-    K = mpz_get_ui(r);
-//    K = mpfr_get_si(y, GMP_RNDN);                   // K = n1 - x + 1
-
-    cout << "In final block, K = " << K << endl;
-
-    Complex S4 = zeta_block(v, K, t, Z, exp(-20));
-//    Complex S4 = zeta_block_mpfr(x, K, t);
-
-    cout << "S4 = " << S4 << endl;
-
-    mpz_clear(M);
-    mpz_clear(M0);
     mpz_clear(n1);
-    mpz_clear(M1);
-    mpz_clear(R);
-    mpz_clear(r);
-    mpz_clear(v);
+    mpz_clear(n2);
+    mpz_clear(n3);
+    mpz_clear(N2);
+    mpz_clear(N3);
 
-    mpfr_clear(x);
-    mpfr_clear(y);
-    mpfr_clear(z);
+    S = S1 + S2 + S3;
 
-    return S1 + S2 + S3 + S4;
-
+    return S;
 }
-
 
 Double C(int n, Double *powers_z);
 
