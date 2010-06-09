@@ -8,12 +8,10 @@ namespace verbose {
 };
 
 
-Complex zeta_block(mpz_t v, int K, mpfr_t t, Complex Z[13], int method = 0);
 Complex zeta_sum(mpfr_t t);
 void compute_taylor_coefficients(mpfr_t t, Complex Z[13]);
 
 
-Complex zeta_block_d(mpz_t v, int K, mpfr_t t, Double epsilon);
 Complex zeta_block_d_stupid(mpz_t v, int K, mpfr_t t);
 Complex zeta_block_mpfr(mpz_t v, unsigned int K, mpfr_t t);
 

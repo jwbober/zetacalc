@@ -281,44 +281,6 @@ double time_theta_algorithm(int j, int K) {
     
 }
 
-
-double time_zeta_block(int K, int samples) {
-    
-    mpfr_t t;
-    mpz_t v;
-    mpz_t inc;
-    mpz_init(v);
-    mpz_init(inc);
-    mpfr_init2(t, 150);
-    mpz_set_str(v, "400000000000000", 10);
-    mpfr_set_str(t, "1e30", 10, GMP_RNDN);
-
-    mpz_div_ui(inc, v, samples);
-
-    Complex S = 0;
-    Complex Z[30];
-    
-    compute_taylor_coefficients(t, Z);
-    
-    cout << "Timing zeta_block() with K = " << K << " and " << samples << " samples. ...";
-    
-    cout.flush();
-
-    clock_t start_time = clock();
-
-    for(int k = 0; k < samples; k++) {
-        mpz_add(v, v, inc);
-        S += zeta_block(v, K, t, Z);
-    }
-    clock_t end_time = clock();
-    double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
-    cout << elapsed_time << " seconds." << endl;
-    
-    cout << S << endl;
-
-    return elapsed_time;
-}
-
 int test_exp_itlogn(gmp_randstate_t state) {
     mpfr_t t;
     mpfr_init2(t, 158);
@@ -741,7 +703,6 @@ int main() {
     //test_fastlog();
     //test_theta_algorithm(10);
     //time_theta_algorithm(18, 10010);
-    //time_zeta_block(36000, 5000);
     //test_exp_itlogn(rand_state);
     //time_exp_itlogn();
     //time_exp_itlogn_mpfr();
