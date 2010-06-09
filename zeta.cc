@@ -43,7 +43,7 @@ void stage_2_bound(mpz_t v, mpfr_t t) {
     // and put it into v.
     //
 
-    // Right now this is 112 t^{1/3}. With this choice, we won't
+    // Right now this is 1120 t^{1/3}. With this choice, we won't
     // start stage 3 until it can use a block size of approximately 1000.
     // (It is possible that we can to make this even larger right now.)
 
