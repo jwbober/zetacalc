@@ -20,6 +20,11 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
     
     //cout << "New code called" << endl;
     
+    // Note b is _always_ (I think) either real or purely imaginary.
+    // We should take advantage of this.
+    //
+    // alpha is typically complex, however.
+
 
     check_condition(imag(alpha) >= 0, "In function G(), Imag(alpha) should be nonnegative, but it isn't");
 
@@ -44,19 +49,25 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
     // TODO: these if statements need to be optimized.
     //
 
+    Double norm_alpha = norm(alpha);
+    Double norm_b = norm(b);
+
     if(method == 0) {
 //        if(abs(alpha) < 5) {
 //            return exp(I * alpha);
 //        }
-        if(abs(alpha) < 1.5) {
+        //if(abs(alpha) < 1.5) {
+        if(norm_alpha < 2.25) {
             method = 2;
             stats::G_method2++;
         }
-        else if( (1.5 <= abs(alpha)) && (abs(alpha) <= 2.5) && abs(b) > .024) {
+        //else if( (1.5 <= abs(alpha)) && (abs(alpha) <= 2.5) && abs(b) > .024) {
+        else if( (2.25 <= norm_alpha) && (norm_alpha <= 6.25) && norm_b > .000576) {
             method = 2;
             stats::G_method2++;
         }
-        else if( (abs(alpha) >= 2.5) && (abs(alpha) - 2.0)/10.0 < abs(b)) {
+        //else if( (abs(alpha) >= 2.5) && (abs(alpha) - 2.0)/10.0 < abs(b)) {
+        else if( (norm_alpha >= 6.25) && (norm_alpha - 4.0) < 100 * norm_b) {
             method = 2;
             stats::G_method2++;
         }
@@ -224,7 +235,7 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
         cout << "In G(), starting to compute correction terms in Euler-Maclaurin summation." << endl;
     }
 
-    while(error > epsilon/2) {
+    while(2 * error > epsilon * epsilon) {
     
         if(r > 1) {
 //            p = new Complex[2 * r - 2 + 1 + j];
@@ -251,7 +262,7 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
         Complex z = bernoulli_table[2 * r]/(factorial(2 * r) * N_power) * (derivative_at_1 - derivative_at_0);
 
         S = S - z;
-        error = abs(z);
+        error = norm(z);
         if(verbose::G >= 2) {
             cout << "   Correction term " << r << " has size: " << error << endl;
             cout << "      derivative at 0 = " << derivative_at_0 << endl;

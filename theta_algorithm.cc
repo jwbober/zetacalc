@@ -8,7 +8,7 @@
 using namespace std;
 
 
-Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon) {
+Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon, int _Kmin) {
     //
     // Compute the exponential sum
     //
@@ -252,7 +252,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     }
 
     //s1 = s1 + z * compute_exponential_sum(a1, b1, q, (epsilon/12) * sqrt((Double)2 * b));
-    S1 = S1 + compute_exponential_sums(a1, b1, j, q, v2, epsilon);
+    S1 = S1 + compute_exponential_sums(a1, b1, j, q, v2, epsilon, _Kmin);
 
     //cout << "--------------------" << abs(v2[0]) * .5 << endl;
 

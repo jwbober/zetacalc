@@ -25,7 +25,7 @@ Complex H(int j, Complex alpha, Double epsilon) {
 
     if(stats::stats) {
         const Double D = 50.0;
-        if( abs(alpha) > D ) {
+        if( norm(alpha) > D * D ) {
         //    cout << alpha << endl;
             stats::H_function_big++;
         }
@@ -43,13 +43,17 @@ Complex H(int j, Complex alpha, Double epsilon) {
         cout << "                epsilon = " << epsilon << endl;
     }
 
-    if(abs(alpha) < alpha_0) {
+    Double norm_alpha = norm(alpha);
+
+    //if(abs(alpha) < alpha_0) {
+    if(norm_alpha < alpha_0 * alpha_0) {
         if(verbose::H) {
             cout << "   In function H(), using method 2" << endl;
         }
         return H_method2(j, alpha, epsilon);
     }
-    else if(abs(2 * PI * alpha) > j/4) {
+    //else if(abs(2 * PI * alpha) > j/2) {
+    else if(4 * PI * PI * norm_alpha > j * j/4) {
         if(verbose::H) {
             cout << "   In function H(), using method 1" << endl;
         }
@@ -64,10 +68,44 @@ Complex H(int j, Complex alpha, Double epsilon) {
    
 }
 
+
+inline Complex H_method1(int j, Double alpha) {
+    // In this case we compute an "exact" value using the antiderivative of the integrand.
+    // 
+    Double S = 0.0;
+    Double j_factorial = factorial(j);
+    Double alpha_power = 1.0;
+    for(int v = 0; v < j + 1; v++) {
+        if(v > 0) {
+    //        v_factorial *= v;
+            alpha_power *= alpha;
+        }
+        Double z = alpha_power * two_pi_over_factorial_power(v);  //two_pi_alpha_power/factorial(v);
+        S = S + z;
+    }
+    S = S * exp(-2 * PI * alpha);
+    S = (Double)1.0 - S;
+    alpha_power *= alpha;
+    S = S * j_factorial/(alpha_power * two_pi_power(j+1));
+
+    if(verbose::H) {
+        cout << "Computed H_method1(" << j << ", " << alpha << ") = " << S << endl;
+    }
+
+    return S;
+}
+
+
+
 Complex H_method1(int j, Complex alpha) {
     stats::H_method1++;
     // In this case we compute an "exact" value using the antiderivative of the integrand.
     // 
+
+    if(imag(alpha) == 0) {
+        return H_method1(j, real(alpha));
+    }
+
     Complex S = (Complex)0.0;
     Double j_factorial = factorial(j);
     Complex alpha_power = (Complex)1;
@@ -169,12 +207,97 @@ Complex H_method3(int j, Complex alpha, Double epsilon) {
     return S;
 }
 
+
+inline Complex H_method4(int j, Double alpha, Double epsilon) {
+    // Compute H(j, alpha) using a continued fraction expansion
+    //
+    // This code is largely copied from lcalc.
+   
+    Double P1 = (Double)1;
+    Double P2 = (Double)(j + 1);
+    Double P3 = 0.0;
+
+    Double Q1 = (Double)0;
+    Double Q2 = (Double)1;
+    Double Q3 = (Double)0;
+    
+    Double u = PI * alpha;
+    Double z = j + 1;
+    Double w = (Double)2 * PI * alpha;
+    //ttype P1=1.,P2=z,P3,Q1=0.,Q2=1.,Q3;
+    //ttype u=.5*w;
+    //ttype t1,t2;
+
+    int n=0;
+    Double error = epsilon + 1;
+    while( (error > epsilon || n < 3) && n < 1000000) {
+        n++;
+        P3=(z+n)*P2-(z+(n-1)*.5)*w*P1;
+        Q3=(z+n)*Q2-(z+(n-1)*.5)*w*Q1;
+
+        //t1=z+n;
+        //t2=(z+(n-1)*.5)*w;
+        //P3=t1*P2-t2*P1;
+        //Q3=t1*Q2-t2*Q1;
+
+        P1=P2;P2=P3;
+        Q1=Q2;Q2=Q3;
+
+        n++;
+        P3=(z+n)*P2+(Double)n*u*P1;
+        Q3=(z+n)*Q2+(Double)n*u*Q1;
+        //t1=t1+1; t2=n*u;
+        //P3=t1*P2+t2*P1;
+        //Q3=t1*Q2+t2*Q1;
+
+        P1=P2;P2=P3;
+        Q1=Q2;Q2=Q3;
+
+        //cout << P2/Q2 << " " << norm(Q2*P1-P2*Q1) / norm(Q2*P1*tolerance) <<endl;
+
+        //to prevent overlow
+        if(n%8==0&&(abs(P2)>1.e50||abs(P2)<-1.e50)){
+            P1=P1*(Double)(1.e-50);
+            P2=P2*(Double)(1.e-50);
+            Q1=Q1*(Double)(1.e-50);
+            Q2=Q2*(Double)(1.e-50);
+
+        }
+
+        error = abs( ((P1 * Q2) - (P2 * Q1))/(Q1 * Q2) );
+
+        //cout << P2 << "   "  << Q2 << P2/Q2 << endl;
+        //cout << P2/Q2 << endl;
+
+    }
+
+    Double g=P2/Q2;
+
+    //cout<< "using cfrac for comp inc " << t << " " << n << endl;
+
+    if(n>999999){
+         cout << "Mofu. Continued fraction for g(z,w) failed to converge. z = "
+         << z << "  w = " << w << endl;
+         //exit(1);
+    }
+
+    g = exp(-w)/g;
+    return g;
+}
+
+
+
+
 Complex H_method4(int j, Complex alpha, Double epsilon) {
     // Compute H(j, alpha) using a continued fraction expansion
     //
     // This code is largely copied from lcalc.
    
     stats::H_method4++;
+
+    if(imag(alpha) == 0) {
+        return H_method4(j, real(alpha), epsilon);
+    }
 
     Complex P1 = (Double)1;
     Complex P2 = (Double)(j + 1);

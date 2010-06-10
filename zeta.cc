@@ -324,7 +324,7 @@ Complex zeta_block_stage2_basic(mpz_t v, unsigned int *K, mpfr_t t, Double epsil
 }
 
 
-Complex zeta_block_stage3_basic(mpz_t v, unsigned int *K, mpfr_t t, Complex ZZ[30], Double epsilon) {
+Complex zeta_block_stage3_basic(mpz_t v, unsigned int *K, mpfr_t t, Complex ZZ[30], Double epsilon, int Kmin) {
     if(*K == 0) {
         return 0.0;
     }
@@ -392,7 +392,7 @@ Complex zeta_block_stage3_basic(mpz_t v, unsigned int *K, mpfr_t t, Complex ZZ[3
     mpfr_div_z(b, a, v, GMP_RNDN);
     mpfr_div_si(b, b, -2, GMP_RNDN);
 
-    Complex S = compute_exponential_sums(a, b, j, block_size-1, Z, epsilon);
+    Complex S = compute_exponential_sums(a, b, j, block_size-1, Z, epsilon, Kmin, 0);
 
     // we don't need the previous values of a and b anymore, so
     // we can erase them.
@@ -434,7 +434,7 @@ Complex zeta_block_stage2(mpz_t n, unsigned int N, mpfr_t t) {
     return S;
 }
 
-Complex zeta_block_stage3(mpz_t n, unsigned int N, mpfr_t t, Complex Z[30]) {
+Complex zeta_block_stage3(mpz_t n, unsigned int N, mpfr_t t, Complex Z[30], int Kmin) {
     if(N == 0) {
         return 0;
     }
@@ -447,7 +447,7 @@ Complex zeta_block_stage3(mpz_t n, unsigned int N, mpfr_t t, Complex Z[30]) {
     mpz_set(v, n);
     unsigned int K = N;
     while(N > 0) {
-        S = S + zeta_block_stage3_basic(v, &K, t, Z, exp(-20));
+        S = S + zeta_block_stage3_basic(v, &K, t, Z, exp(-20), Kmin);
         N = N - K;
         mpz_add_ui(v, v, K);
         K = N;
@@ -558,7 +558,7 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t) {
 
 }
 
-Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t) {
+Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, int Kmin) {
     //
     // Compute and return the sum
     //
@@ -587,7 +587,7 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t) {
     mpz_sub_ui(v, v, block_size);
     for(mpz_set_ui(k, 0u); mpz_cmp(k, number_of_blocks) < 0; mpz_add_ui(k, k, 1u)) {
         mpz_add_ui(v, v, block_size);
-        S = S + zeta_block_stage3(v, block_size, t, Z);
+        S = S + zeta_block_stage3(v, block_size, t, Z, Kmin);
         //S = S + zeta_block_mpfr(v, block_size, t);
         if(mpz_divisible_ui_p(k, 5u)) {
             cout << "In stage3, completed " << k << " large blocks out of " << number_of_blocks << "." << endl;
@@ -595,7 +595,7 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t) {
     }
     mpz_add_ui(v, v, block_size);
 
-    S = S + zeta_block_stage3(v, remainder, t, Z);
+    S = S + zeta_block_stage3(v, remainder, t, Z, Kmin);
     //S = S + zeta_block_mpfr(v, remainder, t);
 
     mpz_clear(v);

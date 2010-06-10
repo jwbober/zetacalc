@@ -231,7 +231,7 @@ int test_theta_algorithm(int number_of_tests) {
         }
 
         Complex S1 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29));
-        Complex S2 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 1);
+        Complex S2 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 0, 1);
 
         Double error = abs(S1 - S2);
         maxerror = max(error, maxerror);
@@ -280,6 +280,50 @@ double time_theta_algorithm(int j, int K) {
     return elapsed_time;
     
 }
+
+double time_theta_algorithm_varying_Kmin(int j, int K) {
+    Complex v[j + 1];
+    for(int k = 0; k <= j; k++) {
+        v[k] = 1.0/(k*k + 1);
+    }
+
+
+    Double epsilon = exp(-10);
+
+    Complex z1 = 0.0;
+
+    const int number_of_tests = 2398;
+
+    cout << "Timing theta_algorithm with K = " << K << " and j = " << j << endl;
+    int Kmin_start = 1599;
+    int Kmin_end = 2000;
+    int Kmin_increment = 100;
+    cout << "   Running approximately " << number_of_tests << " iterations total for various Kmin from " << Kmin_start << " to " << Kmin_end << "." << endl;
+    for(int Kmin = Kmin_start; Kmin <= Kmin_end; Kmin+=Kmin_increment) {
+        clock_t start_time = clock();
+        z1 = 0;
+        int n = 0;
+        for(Double a = 0.000001; a < .5; a += .5/(number_of_tests/1000.0) ) {
+            for(Double b = 1.0/((Double)K); b <= 1.0; b += 1.0/1000.0) {
+                n++;
+                if(n % 1000 == 0) {
+                    cout << "   Running iteration number " << n << " with a = " << a << " b = " << b << endl;
+                }
+                z1 += compute_exponential_sums(a, b, j, K, v, epsilon, Kmin, 0);
+            }
+        }
+        cout << "Sum was " << z1 << endl;
+        clock_t end_time = clock();
+        double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
+        cout << "Number of seconds with Kmin = " << Kmin << " was " << elapsed_time << endl;
+    }
+
+    return 1.0;
+    
+}
+
+
+
 
 int test_exp_itlogn(gmp_randstate_t state) {
     mpfr_t t;
@@ -648,9 +692,9 @@ int test_zeta_sum_stage3(gmp_randstate_t rand_state) {
 int test_zeta_sum() {
     mpfr_t t;
     mpfr_init2(t, 155);
-    mpfr_set_str(t, "1e12", 10, GMP_RNDN);
-    mpfr_set_str(t, "2.38137487412446e12", 10, GMP_RNDN);
-    mpfr_set_str(t, "144176897509546973538.2912188",  10, GMP_RNDN); // the 10^21st zero
+    mpfr_set_str(t, "1e15", 10, GMP_RNDN);
+    //mpfr_set_str(t, "2.38137487412446e12", 10, GMP_RNDN);
+    //mpfr_set_str(t, "144176897509546973538.2912188",  10, GMP_RNDN); // the 10^21st zero
 
     Complex rotation_factor;
     Complex S = hardy_Z(t, rotation_factor);
@@ -689,6 +733,62 @@ double time_zeta_sum_stage1() {
 }
 
 
+int time_zeta_sum_stage3(gmp_randstate_t rand_state) {
+    mpfr_t t, big_number;  
+    mpfr_init2(t, 200);
+    mpfr_init2(big_number, 200);
+    mpfr_set_str(big_number, "1e30", 10, GMP_RNDN);
+
+    mpz_t v;
+    mpz_init(v);
+
+    int length = 10000000;
+    
+    mpz_t mp_length;
+    mpz_init(mp_length);
+    mpz_set_si(mp_length, length);
+
+    Complex S1;
+    Complex S2;
+
+    cout << "Timing stage 3 sum ten times on large block sizes of length " << length << " starting at v = 20 stage2_bound for random large t...";
+    cout.flush();
+    int Kmin_start = 1100;
+    int Kmin_end = 1700;
+    int Kmin_increment = 100;
+    for(int Kmin = Kmin_start; Kmin <= Kmin_end; Kmin+=Kmin_increment) {
+        clock_t start_time = clock();
+
+        for(int k = 0; k < 10; k++) {
+            cout << k << " ";
+            cout.flush();
+            mpfr_urandomb(t, rand_state);
+            mpfr_mul_ui(t, t, 1000000000, GMP_RNDN);
+            mpfr_add(t, t, big_number, GMP_RNDN);
+
+            stage_2_bound(v, t);
+            mpz_mul_ui(v, v, 20u);
+            create_exp_itlogn_table(t);
+
+            S2 = zeta_sum_stage3(v, mp_length, t, Kmin);
+        }
+
+        clock_t end_time = clock();
+        double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
+        cout << "With Kmin = " << Kmin << ": Done in " << elapsed_time << " seconds." << endl;
+    }
+
+    mpz_clear(v);
+    mpz_clear(mp_length);
+
+    print_stats();
+
+    return 0;
+
+}
+
+
+
 int main() {
     unsigned int seed = time(NULL);
     cout << "Seeding rand() and gmp with " << seed << "." << endl;
@@ -701,7 +801,7 @@ int main() {
     cout << setprecision(15);
     //test_fastlog2();
     //test_fastlog();
-    //test_theta_algorithm(10);
+    test_theta_algorithm(10);
     //time_theta_algorithm(18, 10010);
     //test_exp_itlogn(rand_state);
     //time_exp_itlogn();
@@ -710,7 +810,8 @@ int main() {
     //time_zeta_sum_stage1();
     //test_zeta_sum_stage2(rand_state);
     //test_zeta_sum_stage3(rand_state);
-    test_zeta_sum();
-
+    //test_zeta_sum();
+    //time_theta_algorithm_varying_Kmin(10, 100010);
+    time_zeta_sum_stage3(rand_state);
     return 0;
 }

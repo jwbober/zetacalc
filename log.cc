@@ -187,7 +187,6 @@ inline void shift_right(mp_ptr output, mp_srcptr input, mp_size_t input_size, un
         *output = 0;
         output++;
     }
-
 }
 
 

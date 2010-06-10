@@ -400,11 +400,11 @@ inline Complex compute_C12(mpfr_t mp_a, mpfr_t mp_b, int K) {
 }
 
 Complex direct_exponential_sum_evaluation2(Double a, Double b, int j, int m, int M, int working_precision = 53);
-Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon);
+Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon, int _Kmin);
 Complex compute_exponential_sums_directly(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon);
 Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon);
-Complex compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon, int method=0);
-Complex compute_exponential_sums(Double a, Double b, int j, int K, Complex * v, Double epsilon, int method=0);
+Complex compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon, int _Kmin = 0, int method=0);
+Complex compute_exponential_sums(Double a, Double b, int j, int K, Complex * v, Double epsilon, int _Kmin = 0, int method=0);
 inline theta_cache * build_theta_cache(mpfr_t mp_a, mpfr_t mp_b, int j, int K) {
     //
     // At the beginning of a run of the algorithm we
@@ -476,6 +476,11 @@ inline theta_cache * build_theta_cache(mpfr_t mp_a, mpfr_t mp_b, int j, int K) {
     for(int k = 1; k <= 2 * j + 2; k++) {
         root_2pi_b_powers[k] = root_2pi_b_powers[k - 1] * root_2pi_b;
     }
+
+    // Aside from j, there are only 4 different possible inputs to H_integral_0,
+    // and H_integral_0 is likely called with the same inputs over and over again
+    //
+    // So we should cache these values here.
 
     return cache;
 }
