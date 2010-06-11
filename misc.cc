@@ -19,17 +19,10 @@ Double infinite_sum_of_differenced_inverse_powers(Double a1, Double a2, int m, i
     // We assume and a1 and a2 are both positive.
     Double S = 0;
 
-    // An upper bound for this sum is abs(a1 - a2)(1/m^2 + 1/m), so if epsilon is bigger than
-    // this we immediately return 0.
+    int p = (int)ceil( (-fastlog2(epsilon) + .61 + j * log(2 * PI) - j * (fastlog(j) + 1))/2.0 );
+    int new_m = max(m + 1, (int)ceil((j + 2 * p - 1)/(2 * PI)) + 1);
 
-    if(epsilon > abs(a1 - a2)*(1.0/(m + m) + 1.0/m)) {
-        return 0.0;
-    }
-
-    //int p = (int)ceil( (-fastlog2(epsilon) + .61 + j * log(2 * PI) - j * (fastlog(j) + 1))/2.0 );
-    //int new_m = max(m + 1, (int)ceil((j + 2 * p - 1)/(2 * PI)) + 1);
-
-    int new_m = max(m + 1, to_int(ceil(-fastlog(epsilon)) + 1));
+    //int new_m = max(m + 1, to_int(ceil(-fastlog(epsilon)) + 1));
 
     for(int k = m; k < new_m; k++) {
         S += pow( k + a1, -j ) - pow(k + a2, -j);
@@ -91,6 +84,27 @@ Double sum_of_offset_inverse_powers(Double a, int m, int M, int j, Double epsilo
     
     Double S = 0;
 
+
+    /* The following code does not seem good to put it. 
+     * It has just about no effect, but might slow things down
+     * just a little bit. Probably in the cases where we
+     * could return zero immediately we end up computing
+     * no terms in the sum and the one correction term,
+     * which doesn't take very long.
+     *
+    static int returning_zero = 0;
+
+    if(j == 1) {
+        if(epsilon > a * (fastlog(M) - fastlog(m) + 1)) {
+            return 0.0;
+        }
+    }
+    else {
+        if(epsilon > a * (pow(m, -(j-1)) - pow(M, -(j-1)))) {
+            return 0.0;
+        }
+    }
+*/
     //cout << a << "  " << m << "  " << M << "  " << j << "  " << epsilon << endl;
 
     if(j == 1 && M == -1) {
@@ -110,7 +124,10 @@ Double sum_of_offset_inverse_powers(Double a, int m, int M, int j, Double epsilo
     // We calculate a few terms directly before we use Euler-Maclaurin summation,
     // so that the Euler-Maclaurin summation can calculate a good enough error term.
 
-    int new_m = max(m + 1, to_int(ceil(-fastlog(epsilon) + 1)));
+    int p = (int)ceil( (-fastlog2(epsilon) + .61 + j * log(2 * PI) - j * (fastlog(j) + 1))/2.0 );
+    int new_m = max(m + 1, (int)ceil((j + 2 * p - 1)/(2 * PI)) + 1);
+
+    //int new_m = max(m + 1, to_int(ceil(-fastlog(epsilon) + 1)));
     new_m = max(new_m, 3);
     if(M != -1) {
         new_m = min(M + 1, new_m);
@@ -123,24 +140,56 @@ Double sum_of_offset_inverse_powers(Double a, int m, int M, int j, Double epsilo
 
     m = new_m;
 
+    Double m_plus_a_power;
+    Double M_plus_a_power;
+
+    Double one_over_m_plus_a = 1.0/(m + a);
+    Double one_over_M_plus_a;
+    if(M != -1)
+        one_over_M_plus_a = 1.0/(M + a);
+    else {
+        one_over_M_plus_a = 0;
+        M_plus_a_power = 0;
+    }
+
     if(j == 1) {
-        S = S + LOG(M + a) - LOG(m + a) + .5 * ((Double)1/(Double)(m + a) + (Double)1/(Double)(M + a));
+        m_plus_a_power = one_over_m_plus_a;
+        M_plus_a_power = one_over_M_plus_a;
+        S = S + LOG(M + a) - LOG(m + a) + .5 * (m_plus_a_power + M_plus_a_power);
     }
     else {
+        m_plus_a_power = pow(m + a, 1 - j);
         if(M != -1) {
-            S = S + (Double)1.0/(Double)(j - 1) * ( pow(m + a, 1 - j) - pow(M + a, 1 - j) ) + .5 * ( pow(m + a, -j) + pow(M + a, -j) );
+            M_plus_a_power = pow(M + a, 1 - j);
+            S = S + 1.0/(j - 1.0) * (m_plus_a_power - M_plus_a_power);
+            M_plus_a_power *= one_over_M_plus_a;
+            m_plus_a_power *= one_over_m_plus_a;
+            S = S + .5 * (m_plus_a_power + M_plus_a_power);
+            //S = S + (Double)1.0/(Double)(j - 1) * ( pow(m + a, 1 - j) - pow(M + a, 1 - j) ) + .5 * ( pow(m + a, -j) + pow(M + a, -j) );
         }
         else { // M == -1
-            S = S + (Double)1.0/(Double)(j - 1) * pow(m + a, 1 - j) + .5 * pow(m + a, -j);
+            S = S + 1.0/(j - 1.0) * m_plus_a_power;
+            m_plus_a_power *= one_over_m_plus_a;
+            S = S + .5 * m_plus_a_power;
+            //S = S + (Double)1.0/(Double)(j - 1) * pow(m + a, 1 - j) + .5 * pow(m + a, -j);
         }
     }
 
     Double error = epsilon + 1;
 
+    Double one_over_m_plus_a_squared = one_over_m_plus_a * one_over_m_plus_a;
+    Double one_over_M_plus_a_squared = one_over_M_plus_a * one_over_M_plus_a;
+    m_plus_a_power *= one_over_m_plus_a;
+    M_plus_a_power *= one_over_M_plus_a;
+
     int r = 1;
     if(M != -1) {
         while(error > epsilon) {
-            Double z = bernoulli_table[2 * r] / ( factorial(2 * r) * factorial(j - 1) ) * factorial(2 * r - 2 + j) * ( pow(m + a, -(j + 2*r - 1)) - pow(M + a, -(j + 2 * r - 1)));
+            //Double z = bernoulli_table[2 * r] / ( factorial(2 * r) * factorial(j - 1) ) * factorial(2 * r - 2 + j) * ( pow(m + a, -(j + 2*r - 1)) - pow(M + a, -(j + 2 * r - 1)));
+            Double z = bernoulli_table[2 * r] / ( factorial(2 * r) * factorial(j - 1) ) * factorial(2 * r - 2 + j) * ( m_plus_a_power - M_plus_a_power);
+
+            m_plus_a_power *= one_over_m_plus_a_squared;
+            M_plus_a_power *= one_over_M_plus_a_squared;
 
             error = abs(z);
         //cout << error << endl;
@@ -150,7 +199,8 @@ Double sum_of_offset_inverse_powers(Double a, int m, int M, int j, Double epsilo
     }
     else { // M == -1
         while(error > epsilon) {
-            Double z = bernoulli_table[2 * r] / ( factorial(2 * r) * factorial(j - 1) ) * factorial(2 * r - 2 + j) *  pow(m + a, -(j + 2*r - 1));
+            Double z = bernoulli_table[2 * r] / ( factorial(2 * r) * factorial(j - 1) ) * factorial(2 * r - 2 + j) * m_plus_a_power;
+            m_plus_a_power *= one_over_m_plus_a_squared;
 
             error = abs(z);
             S = S + z;

@@ -1261,7 +1261,6 @@ Complex G_via_Euler_MacLaurin_I_over_twopi(Complex alpha, int n, int j, Double e
     S = S + .5 * (pow(n, j) + pow(1 + n, j) * exp_factor_at_1);
     S = S/(Double)N;
 
-    Double N_power = 1;
 
     Double error = 10 * epsilon * epsilon;
     int r = 1;
@@ -1303,9 +1302,14 @@ Complex G_via_Euler_MacLaurin_I_over_twopi(Complex alpha, int n, int j, Double e
         }
     }
 
+
+    Double N_power = 1;
+    Double N_power_multiplier = 1.0/(N * N);
+
     if(verbose::G >= 2) {
         cout << "In G(), starting to compute correction terms in Euler-Maclaurin summation." << endl;
     }
+
 
     while(4 * error > epsilon * epsilon) {
         if(r > 1) {
@@ -1324,8 +1328,9 @@ Complex G_via_Euler_MacLaurin_I_over_twopi(Complex alpha, int n, int j, Double e
         derivative_at_1 *= exp_factor_at_1;
         Complex derivative_at_0 = p[0];
 
-        N_power *= ((Double)N * (Double)N);
-        Complex z = bernoulli_table[2 * r]/(factorial(2 * r) * N_power) * (derivative_at_1 - derivative_at_0);
+        N_power *= N_power_multiplier;
+        //Complex z = N_power * bernoulli_table[2 * r]/factorial(2 * r) * (derivative_at_1 - derivative_at_0);
+        Complex z = N_power * bernoulli_over_factorial(2*r) * (derivative_at_1 - derivative_at_0);
 
         S = S - z;
         error = norm(z);

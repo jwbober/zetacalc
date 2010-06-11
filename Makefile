@@ -1,5 +1,5 @@
 #OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -fno-math-errno -funsafe-math-optimizations -fno-rounding-math -fno-signaling-nans -fcx-limited-range
-OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -ffast-math
+OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -ffast-math -g
 LIBS = -lmpfr -lgmp -lprofiler -lgmpxx
 #LIBS = -lmpfr -lgmp -lgmpxx
 INCLUDEDIR = 
@@ -60,4 +60,4 @@ log.o: log.cc log.h
 	g++ -c log.cc $(OPTIONS) $(INCLUDEDIR)
 
 clean:
-	rm theta_sums.o direct_evaluation.o exp_sum_euler_maclaurin.o theta_algorithm.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o misc.o zeta.o log.o test.o test stats.o
+	rm theta_sums.o direct_evaluation.o exp_sum_euler_maclaurin.o theta_algorithm.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o misc.o zeta.o log.o test.o test stats.o w_coefficient.o
