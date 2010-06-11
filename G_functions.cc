@@ -164,8 +164,8 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
 
 //    int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((Complex)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) )), 1);
 
-    int N = to_int(ceil(  ( abs(alpha) + abs((Complex)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
-    N = 4 * max(N, 1);
+    int N = to_int(ceil(  ( abs(alpha) + abs((Double)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
+    N = 2 * max(N, 1);
 
     if(verbose::G >= 2) {
         cout << "In G(), using " << N << " sample points in Euler-Maclaurin summation." << endl;
@@ -256,8 +256,6 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
                         t += t_increment;
                     }
                 }
-
-
             
         }
 
@@ -269,7 +267,7 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
 
     Double N_power = 1;
 
-    Double error = epsilon + 1; 
+    Double error = 10 * epsilon * epsilon;
     int r = 1;
 
 
@@ -313,48 +311,109 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
         cout << "In G(), starting to compute correction terms in Euler-Maclaurin summation." << endl;
     }
 
-    while(2 * error > epsilon * epsilon) {
-    
-        if(r > 1) {
-//            p = new Complex[2 * r - 2 + 1 + j];
-            g_derivative_polynomial(2 * r - 2 + j, p, p_prev, alpha, b);
-//            delete [] p_prev;
-//            p_prev = p;
+    if(imag(b) == 0) {
+        while(4 * error > epsilon * epsilon) {
+            if(r > 1) {
+                g_derivative_polynomial_R(2 * r - 2 + j, p, p_prev, alpha, real(b));
+                ptmp = p;
+                p = p_prev;
+                p_prev = ptmp;
+            }
+            g_derivative_polynomial_R(2 * r - 1 + j, p, p_prev, alpha, real(b));
+
+            Complex derivative_at_1 = (Complex)0;
+            for(int k = 0; k <= 2 * r - 1 + j; k++) {
+                derivative_at_1 = derivative_at_1 + p[k];
+            }
+            derivative_at_1 *= exp(2 * PI * I * (alpha + real(b)));
+            Complex derivative_at_0 = p[0];
+
+            N_power *= ((Double)N * (Double)N);
+            Complex z = bernoulli_table[2 * r]/(factorial(2 * r) * N_power) * (derivative_at_1 - derivative_at_0);
+
+            S = S - z;
+            error = norm(z);
+            if(verbose::G >= 2) {
+                cout << "   Correction term " << r << " has size: " << error << endl;
+                cout << "      derivative at 0 = " << derivative_at_0 << endl;
+                cout << "      derivative at 1 = " << derivative_at_1 << endl;
+                cout << "                 N^2r = " << N_power << endl;
+            }
+            r = r + 1;
             ptmp = p;
             p = p_prev;
             p_prev = ptmp;
         }
-//        p = new Complex[2 * r - 1 + 1 + j];
-        g_derivative_polynomial(2 * r - 1 + j, p, p_prev, alpha, b);
-//        delete [] p_prev;
-//        p_prev = p;
+    }
+    else if(real(b) == 0) {
+        while(4 * error > epsilon * epsilon) {
+            if(r > 1) {
+                g_derivative_polynomial_I(2 * r - 2 + j, p, p_prev, alpha, imag(b));
+                ptmp = p;
+                p = p_prev;
+                p_prev = ptmp;
+            }
+            g_derivative_polynomial_I(2 * r - 1 + j, p, p_prev, alpha, imag(b));
 
-        Complex derivative_at_1 = (Complex)0;
-        for(int k = 0; k <= 2 * r - 1 + j; k++) {
-            derivative_at_1 = derivative_at_1 + p[k];
+            Complex derivative_at_1 = (Complex)0;
+            for(int k = 0; k <= 2 * r - 1 + j; k++) {
+                derivative_at_1 = derivative_at_1 + p[k];
+            }
+            derivative_at_1 *= exp(2 * PI * I * (alpha + b));
+            Complex derivative_at_0 = p[0];
+
+            N_power *= ((Double)N * (Double)N);
+            Complex z = bernoulli_table[2 * r]/(factorial(2 * r) * N_power) * (derivative_at_1 - derivative_at_0);
+
+            S = S - z;
+            error = norm(z);
+            if(verbose::G >= 2) {
+                cout << "   Correction term " << r << " has size: " << error << endl;
+                cout << "      derivative at 0 = " << derivative_at_0 << endl;
+                cout << "      derivative at 1 = " << derivative_at_1 << endl;
+                cout << "                 N^2r = " << N_power << endl;
+            }
+            r = r + 1;
+            ptmp = p;
+            p = p_prev;
+            p_prev = ptmp;
         }
-        derivative_at_1 *= exp(2 * PI * I * (alpha + b));
-        Complex derivative_at_0 = p[0];
+    }
+    else {
+        while(4 * error > epsilon * epsilon) {
+            if(r > 1) {
+                g_derivative_polynomial(2 * r - 2 + j, p, p_prev, alpha, b);
+                ptmp = p;
+                p = p_prev;
+                p_prev = ptmp;
+            }
+            g_derivative_polynomial(2 * r - 1 + j, p, p_prev, alpha, b);
 
-        N_power *= ((Double)N * (Double)N);
-        Complex z = bernoulli_table[2 * r]/(factorial(2 * r) * N_power) * (derivative_at_1 - derivative_at_0);
+            Complex derivative_at_1 = (Complex)0;
+            for(int k = 0; k <= 2 * r - 1 + j; k++) {
+                derivative_at_1 = derivative_at_1 + p[k];
+            }
+            derivative_at_1 *= exp(2 * PI * I * (alpha + b));
+            Complex derivative_at_0 = p[0];
 
-        S = S - z;
-        error = norm(z);
-        if(verbose::G >= 2) {
-            cout << "   Correction term " << r << " has size: " << error << endl;
-            cout << "      derivative at 0 = " << derivative_at_0 << endl;
-            cout << "      derivative at 1 = " << derivative_at_1 << endl;
-            cout << "                 N^2r = " << N_power << endl;
+            N_power *= ((Double)N * (Double)N);
+            Complex z = bernoulli_table[2 * r]/(factorial(2 * r) * N_power) * (derivative_at_1 - derivative_at_0);
+
+            S = S - z;
+            error = norm(z);
+            if(verbose::G >= 2) {
+                cout << "   Correction term " << r << " has size: " << error << endl;
+                cout << "      derivative at 0 = " << derivative_at_0 << endl;
+                cout << "      derivative at 1 = " << derivative_at_1 << endl;
+                cout << "                 N^2r = " << N_power << endl;
+            }
+            r = r + 1;
+            ptmp = p;
+            p = p_prev;
+            p_prev = ptmp;
         }
-        r = r + 1;
-        ptmp = p;
-        p = p_prev;
-        p_prev = ptmp;
     }
 
-//    delete [] p;
- 
     if(verbose::G) {
         cout << "In G(), using Euler-Maclaurin computed G(" << alpha << ", " << b << ") = " << S << endl;
     }

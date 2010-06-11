@@ -341,6 +341,8 @@ inline Complex IC9H(int K, int j, Double a, Double b, theta_cache * cache, Doubl
                                                                                 // ----------------------------------------------------------
 //Complex g_derivative_at_1(int n, Complex a, Complex b);
 void g_derivative_polynomial(int n, Complex * p, Complex * q, const Complex a, const Complex b);
+void g_derivative_polynomial_R(int n, Complex * p, Complex * q, const Complex a, const Double b);
+void g_derivative_polynomial_I(int n, Complex * p, Complex * q, const Complex a, const Double b);
 
 
 //------------------------------------------------------------------------------------------------------------
