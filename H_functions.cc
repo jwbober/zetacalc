@@ -72,6 +72,7 @@ Complex H(int j, Complex alpha, Double epsilon) {
 inline Complex H_method1(int j, Double alpha) {
     // In this case we compute an "exact" value using the antiderivative of the integrand.
     // 
+    // Specialized for real alpha.
     Double S = 0.0;
     Double j_factorial = factorial(j);
     Double alpha_power = 1.0;
@@ -212,6 +213,8 @@ inline Complex H_method4(int j, Double alpha, Double epsilon) {
     // Compute H(j, alpha) using a continued fraction expansion
     //
     // This code is largely copied from lcalc.
+    //
+    // Specialized for real alpha.
    
     Double P1 = (Double)1;
     Double P2 = (Double)(j + 1);

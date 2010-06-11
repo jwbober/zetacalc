@@ -242,7 +242,15 @@ Complex H_method4(int j, Complex alpha, Double epsilon);                        
                                                                                 //    / 1
                                                                                 //    |
 Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method = 0);  //
+Complex G_R(Complex alpha, Double b, int n, int j, Double epsilon, int method = 0);  //
+Complex G_I(Complex alpha, Double b, int n, int j, Double epsilon, int method = 0);  //
+Complex G_I_over_twopi(Complex alpha, int n, int j, Double epsilon, int method = 0);  //
+Complex G_method1(Complex alpha, Complex b, int n, int j, Double epsilon);  //
+Complex G_method1_R(Complex alpha, Double b, int n, int j, Double epsilon);  //
+Complex G_method1_I(Complex alpha, Double b, int n, int j, Double epsilon);  //
 Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double epsilon); //    / 0
+Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double epsilon); //    / 0
+Complex G_via_Euler_MacLaurin_I(Complex alpha, Double b, int n, int j, Double epsilon); //    / 0
                                                                                 //  For complex parameters alpha and b.
                                                                                 //  (Defined in G_functions.cc)
                                                                                 //----------------------------------------------
@@ -343,6 +351,7 @@ inline Complex IC9H(int K, int j, Double a, Double b, theta_cache * cache, Doubl
 void g_derivative_polynomial(int n, Complex * p, Complex * q, const Complex a, const Complex b);
 void g_derivative_polynomial_R(int n, Complex * p, Complex * q, const Complex a, const Double b);
 void g_derivative_polynomial_I(int n, Complex * p, Complex * q, const Complex a, const Double b);
+void g_derivative_polynomial_I_over_twopi(int n, Complex * p, Complex * q, const Complex a);
 
 
 //------------------------------------------------------------------------------------------------------------

@@ -162,7 +162,8 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
         for(Double m = (Double)1; m <= end_point; m = m + 1) {
             if(m > 1)
                 x = x * exp_minus_twopi_n;
-            Complex z =  G(I*(m + a + (Complex)2.0 * I * b * n), -b, n, j, epsilon/(abs(x) * end_point * Double(L - 1) * one_over_K_to_the_j));
+            //Complex z =  G(I*(m + a + (Complex)2.0 * I * b * n), -b, n, j, epsilon/(abs(x) * end_point * Double(L - 1) * one_over_K_to_the_j));
+            Complex z =  G_R(I*(m + a + (Complex)2.0 * I * b * n), -b, n, j, epsilon/(abs(x) * end_point * Double(L - 1) * one_over_K_to_the_j));
             z *= x;
             S1 = S1 + z;
         }

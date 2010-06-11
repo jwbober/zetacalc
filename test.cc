@@ -281,7 +281,7 @@ double time_theta_algorithm(int j, int K) {
     
 }
 
-double time_theta_algorithm_varying_Kmin(int j, int K) {
+double time_theta_algorithm_varying_Kmin(int j, int K, int number_of_tests) {
     Complex v[j + 1];
     for(int k = 0; k <= j; k++) {
         v[k] = 1.0/(k*k + 1);
@@ -292,25 +292,19 @@ double time_theta_algorithm_varying_Kmin(int j, int K) {
 
     Complex z1 = 0.0;
 
-    const int number_of_tests = 2398;
-
     cout << "Timing theta_algorithm with K = " << K << " and j = " << j << endl;
-    int Kmin_start = 1599;
+    int Kmin_start = 100;
     int Kmin_end = 2000;
     int Kmin_increment = 100;
-    cout << "   Running approximately " << number_of_tests << " iterations total for various Kmin from " << Kmin_start << " to " << Kmin_end << "." << endl;
+    cout << "   Running " << number_of_tests << " iterations total for various Kmin from " << Kmin_start << " to " << Kmin_end << "." << endl;
     for(int Kmin = Kmin_start; Kmin <= Kmin_end; Kmin+=Kmin_increment) {
         clock_t start_time = clock();
         z1 = 0;
         int n = 0;
-        for(Double a = 0.000001; a < .5; a += .5/(number_of_tests/1000.0) ) {
-            for(Double b = 1.0/((Double)K); b <= 1.0; b += 1.0/1000.0) {
-                n++;
-                if(n % 1000 == 0) {
-                    cout << "   Running iteration number " << n << " with a = " << a << " b = " << b << endl;
-                }
-                z1 += compute_exponential_sums(a, b, j, K, v, epsilon, Kmin, 0);
-            }
+        for(int k = 0; k < number_of_tests; k++) {
+            Double a = rand()/(Double)RAND_MAX;
+            Double b = rand()/(Double)RAND_MAX;
+            z1 += compute_exponential_sums(a, b, j, K, v, epsilon, Kmin, 0);
         }
         cout << "Sum was " << z1 << endl;
         clock_t end_time = clock();
@@ -753,9 +747,9 @@ int time_zeta_sum_stage3(gmp_randstate_t rand_state) {
 
     cout << "Timing stage 3 sum ten times on large block sizes of length " << length << " starting at v = 20 stage2_bound for random large t...";
     cout.flush();
-    int Kmin_start = 1100;
-    int Kmin_end = 1700;
-    int Kmin_increment = 100;
+    int Kmin_start = 500;
+    int Kmin_end = 1300;
+    int Kmin_increment = 200;
     for(int Kmin = Kmin_start; Kmin <= Kmin_end; Kmin+=Kmin_increment) {
         clock_t start_time = clock();
 
@@ -801,7 +795,7 @@ int main() {
     cout << setprecision(15);
     //test_fastlog2();
     //test_fastlog();
-    test_theta_algorithm(5);
+    //test_theta_algorithm(5);
     //time_theta_algorithm(18, 10010);
     //test_exp_itlogn(rand_state);
     //time_exp_itlogn();
@@ -811,7 +805,10 @@ int main() {
     //test_zeta_sum_stage2(rand_state);
     //test_zeta_sum_stage3(rand_state);
     //test_zeta_sum();
-    //time_theta_algorithm_varying_Kmin(10, 100010);
-    time_zeta_sum_stage3(rand_state);
+    time_theta_algorithm_varying_Kmin(10, 10010, 10000);
+    time_theta_algorithm_varying_Kmin(10, 2010, 10000);
+    time_theta_algorithm_varying_Kmin(18, 10010, 10000);
+    time_theta_algorithm_varying_Kmin(18, 2010, 10000);
+    //time_zeta_sum_stage3(rand_state);
     return 0;
 }
