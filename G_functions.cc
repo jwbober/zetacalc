@@ -181,9 +181,87 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
     */
 
     Complex S = (Complex)0;
-    for(int s = 0; s <= N; s++) {
-        //S = S + g(alpha, b, n, j, (Double)s/(Double)N) * one_over_two_n_to_the_j;
-        S = S + g(alpha, b, n, j, (Double)s/(Double)N);
+    {
+        Complex alpha_term = 1.0;
+        Complex alpha_term_multiplier = EXP(2 * PI * I * alpha/(Double)N);
+        double t = 0;
+        double t_increment = 1.0/N;
+        switch(j) {
+            case 0:
+                if(imag(b) == 0) {
+                    for(int s = 0; s <= N; s++) {
+                        S = S + Complex(cos(2 * PI * real(b) * t * t), sin(2 * PI * real(b) * t * t)) * alpha_term;
+                        alpha_term *= alpha_term_multiplier;
+                        t += t_increment;
+                    }
+                }
+                else if(real(b) == 0) {
+                    for(int s = 0; s <= N; s++) {
+                        S = S + exp(-2 * PI * imag(b) * t * t) * alpha_term;
+                        alpha_term *= alpha_term_multiplier;
+                        t += t_increment;
+                    }
+                }
+                else {
+                    for(int s = 0; s <= N; s++) {
+                        S = S + EXP(2 * PI * I * b * t * t) * alpha_term;
+                        alpha_term *= alpha_term_multiplier;
+                        t += t_increment;
+                    }
+                }
+                break;
+            case 1:
+                if(imag(b) == 0) {
+                    for(int s = 0; s <= N; s++) {
+                        S = S + (n + t) * Complex(cos(2 * PI * real(b) * t * t), sin(2 * PI * real(b) * t * t)) * alpha_term;
+                        alpha_term *= alpha_term_multiplier;
+                        t += t_increment;
+                    }
+                }
+                else if(real(b) == 0) {
+                    for(int s = 0; s <= N; s++) {
+                        S = S + (n + t) * exp(-2 * PI * imag(b) * t * t) * alpha_term;
+                        alpha_term *= alpha_term_multiplier;
+                        t += t_increment;
+                    }
+                }
+                else {
+                    for(int s = 0; s <= N; s++) {
+                        S = S + (n + t) * EXP(2 * PI * I * b * t * t) * alpha_term;
+                        alpha_term *= alpha_term_multiplier;
+                        t += t_increment;
+                    }
+                }
+                break;
+
+            default:
+                if(imag(b) == 0) {
+                    for(int s = 0; s <= N; s++) {
+                        S = S + pow(t + n, j) * Complex(cos(2 * PI * real(b) * t * t), sin(2 * PI * real(b) * t * t)) * alpha_term;
+                        alpha_term *= alpha_term_multiplier;
+                        t += t_increment;
+                    }
+                }
+                else if(real(b) == 0) {
+                    for(int s = 0; s <= N; s++) {
+                        S = S + pow(t + n, j) * exp(-2 * PI * imag(b) * t * t) * alpha_term;
+                        alpha_term *= alpha_term_multiplier;
+                        t += t_increment;
+                    }
+                }
+                else {
+                    for(int s = 0; s <= N; s++) {
+                        S = S + pow(t + n, j) * EXP(2 * PI * I * b * t * t) * alpha_term;
+                        alpha_term *= alpha_term_multiplier;
+                        t += t_increment;
+                    }
+                }
+
+
+            
+        }
+
+
     }
     //S = S - (Double)(.5) * (g(alpha, b, n, j, 0) + g(alpha, b, n, j, 1)) * one_over_two_n_to_the_j;
     S = S - (Double)(.5) * (g(alpha, b, n, j, 0) + g(alpha, b, n, j, 1));
