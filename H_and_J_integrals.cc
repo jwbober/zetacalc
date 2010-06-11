@@ -34,6 +34,7 @@ Complex H_Integral_0(int j, Double a, int M, Double epsilon) {
 
     //int C = max(to_int(ceil(j/(2 * PI * E))), to_int(ceil(-LOG(epsilon)/(2 * PI))) );
     int C = max(to_int(ceil(j/(2 * PI * E))), to_int(ceil(-fastlog(epsilon)/(2 * PI))) );
+    //int C = ceil(max(j/E, -(Double)(fastlog(epsilon)))/2 * PI) ;
 
     if(M != -1) {
         C = min(M, C);
@@ -47,8 +48,10 @@ Complex H_Integral_0(int j, Double a, int M, Double epsilon) {
     if(C == M) {
         return S;
     }
+    
+    Double z = factorial(j)/two_pi_power(j + 1);
 
-    S = S + factorial(j)/two_pi_power(j + 1) * sum_of_offset_inverse_powers(a, C + 1, M, j+1, epsilon * two_pi_power(j + 1)/factorial(j));
+    S = S + z * sum_of_offset_inverse_powers(a, C + 1, M, j+1, epsilon/z);
 
     return S;
 
@@ -86,17 +89,16 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cach
     int N = max(1, to_int(ceil(-fastlog(epsilon))));    // an approximation of the number of terms
                                                     // we compute in the taylor expansion
 
-    Complex Ib_power = (Complex)1.0/(I * b);
+    Double b_power = (Double)1.0;
     while(error > epsilon) {
-        sign = -sign;
-        Ib_power *= (I * b);
-        Complex z = sign * two_pi_over_factorial_power(r) * Ib_power;
+        Complex z = minus_I_power(r) * two_pi_over_factorial_power(r) * b_power;
         error = abs(z);
         z *= H_Integral_0(2 * r + j, a, M, epsilon/(error *N));  // TODO: We really don't need to compute this term to
                                                                                 // this much precision usually. We really should figure
                                                                                 // our how many terms we are going to compute
                                                                                 // and then divide appropriately.
         S = S + z;
+        b_power *= b;
         r++;
     }
 
@@ -143,6 +145,9 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
     Double exp_minus_twopi = exp(-2.0 * PI);
     Double exp_minus_twopi_n = 1.0;
 
+    //Double a_factor = exp(-2.0 * PI * (1 + a));
+    //Double a_multiplier = a_factor;
+
     for(Double n = (Double)1; n <= L - 1; n = n + 1) {
         exp_minus_twopi_n *= exp_minus_twopi;
         int end_point;
@@ -158,6 +163,8 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
         Complex S1 = 0;
 
         Complex x = EXP(-2.0 * PI * n * (1.0 + a + I * b * n));
+        //Double d = -2 * PI * b * n * n;
+        //Complex x = a_factor * Complex(cos(d), sin(d));
 
         for(Double m = (Double)1; m <= end_point; m = m + 1) {
             if(m > 1)
@@ -169,6 +176,7 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
         }
         S1 = S1 * one_over_K_to_the_j;
         S = S + S1;
+        //a_factor *= a_multiplier;
     }
 
     return S;
@@ -181,7 +189,7 @@ Complex H_Integral_2(int j, Double a1, Double a2, Double epsilon) {
 
     Complex S = (Complex)0;
 
-    int C = max(to_int(ceil(j/(2*PI*E))), to_int(ceil(-LOG(epsilon)/(2 * PI) ) ));
+    int C = max(to_int(ceil(j/(2*PI*E))), to_int(ceil(-fastlog(epsilon)/(2 * PI) ) ));
 
     for(int m = 1; m <= C; m++) {
         Complex z = H(j, m + a1, epsilon/(C + 1)) - H(j, m + a2, epsilon/(C + 1));

@@ -130,7 +130,6 @@ Complex G_R(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
     //
     // alpha is typically complex, however.
 
-
     check_condition(imag(alpha) >= 0, "In function G(), Imag(alpha) should be nonnegative, but it isn't");
 
     if(verbose::G) {

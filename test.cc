@@ -795,7 +795,7 @@ int main() {
     cout << setprecision(15);
     //test_fastlog2();
     //test_fastlog();
-    //test_theta_algorithm(5);
+    test_theta_algorithm(5);
     //time_theta_algorithm(18, 10010);
     //test_exp_itlogn(rand_state);
     //time_exp_itlogn();
@@ -805,10 +805,10 @@ int main() {
     //test_zeta_sum_stage2(rand_state);
     //test_zeta_sum_stage3(rand_state);
     //test_zeta_sum();
-    time_theta_algorithm_varying_Kmin(10, 10010, 10000);
-    time_theta_algorithm_varying_Kmin(10, 2010, 10000);
-    time_theta_algorithm_varying_Kmin(18, 10010, 10000);
-    time_theta_algorithm_varying_Kmin(18, 2010, 10000);
-    //time_zeta_sum_stage3(rand_state);
+    //time_theta_algorithm_varying_Kmin(10, 10010, 10000);
+    //time_theta_algorithm_varying_Kmin(10, 2010, 10000);
+    //time_theta_algorithm_varying_Kmin(18, 10010, 10000);
+    //time_theta_algorithm_varying_Kmin(18, 2010, 10000);
+    time_zeta_sum_stage3(rand_state);
     return 0;
 }
