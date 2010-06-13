@@ -139,7 +139,8 @@ inline Complex exp_minus_i_pi4(int n) {
 
 
 
-const int Kmin = 1600;
+const int Kmin = 100;
+//const int Kmin = 100;
 typedef struct{
     Double a;
     Double b;

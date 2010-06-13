@@ -795,7 +795,7 @@ int main() {
     cout << setprecision(15);
     //test_fastlog2();
     //test_fastlog();
-    //test_theta_algorithm(5);
+    test_theta_algorithm(5);
     //time_theta_algorithm(18, 10010);
     //test_exp_itlogn(rand_state);
     //time_exp_itlogn();

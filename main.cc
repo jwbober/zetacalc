@@ -185,9 +185,9 @@ int run_theta_sums_accuracy_test() {
                 cout << "Running test number " << n << " with a = " << a << " b = " << b << endl;
             }
             Complex z1, z2;
-            z1 = compute_exponential_sums(a, b, j, K, coeffs, epsilon, 0);
+            z1 = compute_exponential_sums(a, b, j, K, coeffs, epsilon, 0, 0);
             //z2 = z1;
-            z2 = compute_exponential_sums(a, b, j, K, coeffs, epsilon, 1);
+            z2 = compute_exponential_sums(a, b, j, K, coeffs, epsilon, 0, 1);
             if( abs(z1 - z2) > error_allowance) {
                 cout << "For a = " << a << " b = " << b << " K = " << K << " epsilon = " << epsilon << ": " << endl;
                 cout << "                                       Error was   " << abs(z1 - z2)  << endl;
