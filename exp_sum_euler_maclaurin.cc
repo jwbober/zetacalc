@@ -76,13 +76,16 @@ Complex compute_exponential_sum_via_Euler_Maclaurin(mpfr_t mp_a, mpfr_t mp_b, in
             K_power *= (Double)K;
         }
 
-        derivative_at_K *= (Complex)1.0/(ExpA(mp_a, K) * ExpB(mp_b, K)); //exp(2 * PI * I * (alpha + b));
+        //derivative_at_K *= (Complex)1.0/(ExpA(mp_a, K) * ExpB(mp_b, K)); //exp(2 * PI * I * (alpha + b));
+        derivative_at_K *= (Complex)1.0/(ExpA(mp_a, K) * ExpB(mp_b, K));
+
      //   cout << (2 * r - 1) << "th derivative at K: " << derivative_at_K << endl;
         Complex derivative_at_0 = p[0];
      //   cout << (2 * r - 1) << "th derivative at 0: " << derivative_at_0 << endl;
 
         //Complex z2 = bernoulli_table[2 * r]/factorial(2 * r) * (z * g_derivative_at_K_without_exponential_factor(2 * r - 1, K) - g_derivative_at_0(2 * r - 1));
-        Complex z2 = bernoulli_table[2 * r]/factorial(2 * r) * (derivative_at_K - derivative_at_0) * pow(K, -j);
+        //Complex z2 = bernoulli_table[2 * r]/factorial(2 * r) * (derivative_at_K - derivative_at_0) * pow(K, -j);
+        Complex z2 = bernoulli_over_factorial(2*r) * (derivative_at_K - derivative_at_0) * pow(K, -j);
         S = S + z2;
         error = abs(z2);
         r = r + 1;
@@ -161,7 +164,7 @@ Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, in
 
         Complex z = 0;
         for(int l = 0; l <= j; l++) {
-            z = z + Z[l] * compute_exponential_sum_via_Euler_Maclaurin(tmp, mp_b, l, K2/8 - 1, epsilon);
+            z = z + Z[l] * compute_exponential_sum_via_Euler_Maclaurin(tmp, mp_b, l, K2/8 - 1, epsilon/(8 * (j+1) * abs(Z[l])));
         }
 
         //Complex z = dm * compute_exponential_sum_via_Euler_Maclaurin(tmp, mp_b, K/8 - 1, epsilon);

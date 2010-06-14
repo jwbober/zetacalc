@@ -785,6 +785,7 @@ int time_zeta_sum_stage3(gmp_randstate_t rand_state) {
 
 int main() {
     unsigned int seed = time(NULL);
+    seed = 1276487827;
     cout << "Seeding rand() and gmp with " << seed << "." << endl;
     srand(seed);
     

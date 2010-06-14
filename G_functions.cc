@@ -28,12 +28,12 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
     // alpha is typically complex, however.
 
 
-    //if(imag(b) == 0) {
-    //    return G_R(alpha, real(b), n, j, epsilon, method);
-    //}
-    //else if(real(b) == 0) {
-    //    return G_I(alpha, imag(b), n, j, epsilon, method);
-    //}
+    if(imag(b) == 0) {
+        return G_R(alpha, real(b), n, j, epsilon, method);
+    }
+    else if(real(b) == 0) {
+        return G_I(alpha, imag(b), n, j, epsilon, method);
+    }
 
     check_condition(imag(alpha) >= 0, "In function G(), Imag(alpha) should be nonnegative, but it isn't");
 
