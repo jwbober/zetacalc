@@ -901,7 +901,6 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
     {
         double t_increment = 1.0/N;
         double t = t_increment;
-        double a = (n + t);
         switch(j) {
             case 0:
                 for(int s = 1; s < N; s++) {
@@ -912,6 +911,7 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
                 break;
             case 1:
                 for(int s = 1; s < N; s++) {
+                    double a = (n + t);
                     S = S + a * Complex(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
@@ -919,6 +919,7 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
                 break;
             case 2:
                 for(int s = 1; s < N; s++) {
+                    double a = (n + t);
                     S = S + a*a * Complex(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
@@ -926,6 +927,7 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
                 break;
             case 3:
                 for(int s = 1; s < N; s++) {
+                    double a = (n + t);
                     S = S + a*a*a * Complex(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
@@ -933,6 +935,7 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
                 break;
             case 4:
                 for(int s = 1; s < N; s++) {
+                    double a = (n + t);
                     S = S + a*a*a*a * Complex(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
@@ -940,6 +943,7 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
                 break;
             case 5:
                 for(int s = 1; s < N; s++) {
+                    double a = (n + t);
                     S = S + a*a*a*a*a * Complex(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
@@ -947,6 +951,7 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
                 break;
             case 6:
                 for(int s = 1; s < N; s++) {
+                    double a = (n + t);
                     S = S + a*a*a*a*a*a * Complex(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
@@ -954,6 +959,7 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
                 break;
             case 7:
                 for(int s = 1; s < N; s++) {
+                    double a = (n + t);
                     S = S + a*a*a*a*a*a*a * Complex(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
@@ -961,6 +967,7 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
                 break;
             case 8:
                 for(int s = 1; s < N; s++) {
+                    double a = (n + t);
                     S = S + a*a*a*a*a*a*a*a * Complex(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
@@ -969,6 +976,7 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
    
             default:
                 for(int s = 1; s < N; s++) {
+                    double a = (n + t);
                     S = S + pow(a, j) * Complex(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
@@ -1284,16 +1292,16 @@ Complex G_via_Euler_MacLaurin_I_over_twopi(Complex alpha, int n, int j, Double e
         switch(j) {
             case 0:
                 for(int s = 1; s < N; s++) {
-                    S = S + exp(-t * t) * alpha_term;
-                    //S = S + exp_t_over_N_squared(s, N) * alpha_term;
+                    //S = S + exp(-t * t) * alpha_term;
+                    S = S + exp_t_over_N_squared(s, N) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
                 }
                 break;
             case 1:
                 for(int s = 1; s < N; s++) {
-                    S = S + (n + t) * exp(-t * t) * alpha_term;
-                    //S = S + (n + t) * exp_t_over_N_squared(s, N) * alpha_term;
+                    //S = S + (n + t) * exp(-t * t) * alpha_term;
+                    S = S + (n + t) * exp_t_over_N_squared(s, N) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
                 }
@@ -1301,8 +1309,8 @@ Complex G_via_Euler_MacLaurin_I_over_twopi(Complex alpha, int n, int j, Double e
 
             default:
                 for(int s = 1; s < N; s++) {
-                    S = S + pow(t + n, j) * exp(-t * t) * alpha_term;
-                    //S = S + pow(t + n, j) * exp_t_over_N_squared(s, N) * alpha_term;
+                    //S = S + pow(t + n, j) * exp(-t * t) * alpha_term;
+                    S = S + pow(t + n, j) * exp_t_over_N_squared(s, N) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
                 }

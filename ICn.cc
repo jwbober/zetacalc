@@ -446,8 +446,8 @@ Complex IC7(int K, int j, Double a, Double b, theta_cache * cache, Double epsilo
                 if( j * fastlog(n + 1) + fastlog(abs(z3)) < fastlog(newepsilon)) {          // TODO: This is a possible source of error,
                     break;                                                                  // because this isn't necessarily decreasing.
                 }
-                z = G( alpha, I/( (Double)2 * PI), n, j, newepsilon/abs(z3));
-                //z = G_I_over_twopi(alpha, n, j, newepsilon/abs(z3));
+                //z = G( alpha, I/( (Double)2 * PI), n, j, newepsilon/abs(z3));
+                z = G_I_over_twopi(alpha, n, j, newepsilon/abs(z3));
                 z = z * z3;
                 S = S + z;
                 alpha = alpha + I/PI;
