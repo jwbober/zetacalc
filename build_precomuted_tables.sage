@@ -2,11 +2,11 @@ import sys
 
 ranges = {}
 
-ranges['factorial'] = 100
-ranges['bernoulli'] = 100
-ranges['two_pi_powers'] = 100
-ranges['two_pi_power_over_factorial'] = 100
-ranges['bernoulli_over_factorial'] = 100
+ranges['factorial'] = 170
+ranges['bernoulli'] = 200
+ranges['two_pi_powers'] = 200
+ranges['two_pi_power_over_factorial'] = 200
+ranges['bernoulli_over_factorial'] = 200
 ranges['exp_t_over_N_squared'] = 22;
 
 def write_all_tables():

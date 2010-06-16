@@ -392,6 +392,8 @@ Complex zeta_block_stage3_basic(mpz_t v, unsigned int *K, mpfr_t t, Complex ZZ[3
     mpfr_div_z(b, a, v, GMP_RNDN);
     mpfr_div_si(b, b, -2, GMP_RNDN);
 
+//    cout << mpfr_get_d(b, GMP_RNDN) << endl;
+
     Complex S = compute_exponential_sums(a, b, j, block_size-1, Z, epsilon, Kmin, 0);
 
     // we don't need the previous values of a and b anymore, so
@@ -405,6 +407,8 @@ Complex zeta_block_stage3_basic(mpz_t v, unsigned int *K, mpfr_t t, Complex ZZ[3
     mpfr_clear(b);
     mpfr_clear(x);
 
+
+//    cout << *K << endl;
 
     return S;
 }
@@ -447,7 +451,7 @@ Complex zeta_block_stage3(mpz_t n, unsigned int N, mpfr_t t, Complex Z[30], int 
     mpz_set(v, n);
     unsigned int K = N;
     while(N > 0) {
-        S = S + zeta_block_stage3_basic(v, &K, t, Z, exp(-20), Kmin);
+        S = S + zeta_block_stage3_basic(v, &K, t, Z, exp(-13), Kmin);
         N = N - K;
         mpz_add_ui(v, v, K);
         K = N;

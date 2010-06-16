@@ -165,6 +165,7 @@ Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, in
         Complex z = 0;
         for(int l = 0; l <= j; l++) {
             z = z + Z[l] * compute_exponential_sum_via_Euler_Maclaurin(tmp, mp_b, l, K2/8 - 1, epsilon/(8 * (j+1) * abs(Z[l])));
+            //z = z + Z[l] * direct_exponential_sum_evaluation2(tmp, mp_b, l, 0, K2/8 - 1);
         }
 
         //Complex z = dm * compute_exponential_sum_via_Euler_Maclaurin(tmp, mp_b, K/8 - 1, epsilon);

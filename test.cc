@@ -733,10 +733,11 @@ int time_zeta_sum_stage3(gmp_randstate_t rand_state) {
     mpfr_init2(big_number, 200);
     mpfr_set_str(big_number, "1e30", 10, GMP_RNDN);
 
-    mpz_t v;
+    mpz_t v, v_increment;
     mpz_init(v);
+    mpz_init(v_increment);
 
-    int length = 10000000;
+    int length = 20000000;
     
     mpz_t mp_length;
     mpz_init(mp_length);
@@ -748,8 +749,12 @@ int time_zeta_sum_stage3(gmp_randstate_t rand_state) {
     cout << "Timing stage 3 sum ten times on large block sizes of length " << length << " starting at v = 20 stage2_bound for random large t...";
     cout.flush();
     int Kmin_start = 500;
-    int Kmin_end = 1300;
+    int Kmin_end = 3000;
     int Kmin_increment = 200;
+    Complex Z[30];
+
+    int number_of_gridpoints = 200;
+
     for(int Kmin = Kmin_start; Kmin <= Kmin_end; Kmin+=Kmin_increment) {
         clock_t start_time = clock();
 
@@ -760,11 +765,23 @@ int time_zeta_sum_stage3(gmp_randstate_t rand_state) {
             mpfr_mul_ui(t, t, 1000000000, GMP_RNDN);
             mpfr_add(t, t, big_number, GMP_RNDN);
 
+            compute_taylor_coefficients(t, Z);
+
             stage_2_bound(v, t);
+            mpz_cdiv_q_ui(v_increment, v, number_of_gridpoints);
+
+//            cout << v << endl;
+
             mpz_mul_ui(v, v, 20u);
             create_exp_itlogn_table(t);
 
-            S2 = zeta_sum_stage3(v, mp_length, t, Kmin);
+            for(int n = 0; n < number_of_gridpoints; n++) {
+                S2 += zeta_block_stage3(v, 200000, t, Z, Kmin);
+                //S2 += zeta_block_stage2(v, 200000, t);
+                mpz_add(v, v, v_increment);
+            }
+
+            //S2 = zeta_sum_stage3(v, mp_length, t, Kmin);
         }
 
         clock_t end_time = clock();
@@ -773,7 +790,9 @@ int time_zeta_sum_stage3(gmp_randstate_t rand_state) {
     }
 
     mpz_clear(v);
+    mpz_clear(v_increment);
     mpz_clear(mp_length);
+    mpfr_clear(t);
 
     print_stats();
 
@@ -786,6 +805,7 @@ int time_zeta_sum_stage3(gmp_randstate_t rand_state) {
 int main() {
     unsigned int seed = time(NULL);
     seed = 1276487827;
+    seed = 1276414014;
     cout << "Seeding rand() and gmp with " << seed << "." << endl;
     srand(seed);
     
@@ -796,7 +816,7 @@ int main() {
     cout << setprecision(15);
     //test_fastlog2();
     //test_fastlog();
-    test_theta_algorithm(5);
+    //test_theta_algorithm(5);
     //time_theta_algorithm(18, 10010);
     //test_exp_itlogn(rand_state);
     //time_exp_itlogn();
@@ -811,5 +831,7 @@ int main() {
     //time_theta_algorithm_varying_Kmin(18, 10010, 10000);
     //time_theta_algorithm_varying_Kmin(18, 2010, 10000);
     time_zeta_sum_stage3(rand_state);
+
+    gmp_randclear(rand_state);
     return 0;
 }

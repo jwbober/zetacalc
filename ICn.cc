@@ -15,10 +15,18 @@ Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t m
             cout << "In ICO(), 'really small b' case:" << endl;
         }
 
-        int N = to_int(ceil(std::max ((Double)1.0, -LOG(epsilon)) ));
+        int N = to_int(ceil(std::max ((Double)1.0, abs(-LOG(epsilon))) ));
         if(verbose::IC0 >= 2) {
             cout << "N = " << N << endl;
         }
+ 
+        //cout << "K: " << K << endl;
+        //cout << "N: " << N << endl;
+        //cout << "a: " << a << endl;
+        //cout << "b: " << b << endl;
+        //cout << "j: " << j << endl;
+        //cout << "epsilon: " << epsilon << endl;
+
         mpfr_t mp_a2, mp_b2, tmp;
         mpfr_init2(mp_a2, mpfr_get_prec(mp_a));
         mpfr_init2(mp_b2, mpfr_get_prec(mp_b));
@@ -29,6 +37,8 @@ Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t m
 
         Double a2 = mpfr_get_d(mp_a2, GMP_RNDN);    // a2 = aK/N
         
+        //cout << "a2: " << a2 << endl;
+
         mpfr_floor(tmp, mp_a2);                     // tmp = floor(aK/N) 
         mpfr_sub(mp_a2, mp_a2, tmp, GMP_RNDN);      // mp_a2 = {aK/N}
 
@@ -38,11 +48,16 @@ Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t m
 
         Double b2 = mpfr_get_d(mp_b2, GMP_RNDN);    // b2 = bK^2/N^2
 
+        //cout << "b2: " << b2 << endl;
+
         mpfr_floor(tmp, mp_b2);                     // tmp = floor(bK^2/N^2)
         mpfr_sub(mp_b2, mp_b2, tmp, GMP_RNDN);      // mp_b2 = {bK^2/N^2}
 
         Double a2_mod1 = mpfr_get_d(mp_a2, GMP_RNDN);
         Double b2_mod1 = mpfr_get_d(mp_b2, GMP_RNDN);
+
+        //cout << "a2 mod 1: " << a2_mod1 << endl;
+        //cout << "b2 mod 1: " << b2_mod1 << endl;
 
         mpfr_clear(mp_a2);
         mpfr_clear(mp_b2);
@@ -54,17 +69,18 @@ Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t m
 
         for(int n = 0; n < N; n++) {
             Complex C = exp((Double)2 * PI * I * (Double)n * (a2_mod1 + b2_mod1 * (Double)n));
-            Complex z = G(a2 + (Double) 2 * (Double)n * b2, b2, n, j, (epsilon) * N_to_the_j/K);
+            Complex z = G_method1(a2 + (Double) 2 * (Double)n * b2, b2, n, j, (epsilon) * N_to_the_j/K);
+            //Complex z = G(a2 + (Double) 2 * (Double)n * b2, b2, n, j, (epsilon));
             
             //S = S + C * z;
             if(verbose::IC0 >= 2) {
-                cout << n << ": " << z << endl;
+//                cout << n << ": " << z << endl;
                 cout << n << ": " << K * pow(N, -(j+1)) * C * z << endl;
             }
             S = S + C * z * (Double)K * pow(N, -(j+1));
         }
         if(verbose::IC0 >= 2) {
-            cout << "After summation, before normalization, answer is S = " << S << endl;
+            cout << "IC0 returning S = " << S << endl;
         }
 //        S = S * (Double)K;
 //        S = S / (Double)(N);

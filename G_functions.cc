@@ -47,7 +47,7 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
     }
 
     //if(epsilon >= pow((Double)n + 1, (Double)j)) {
-    if(fastlog(epsilon) > j * fastlog(n+1)) {
+    if(fastlog2(epsilon) > j * fastlog2(n+1)) {
         if(verbose::G) {
             cout << "in G: epsilon >= 1, so returning 0" << endl;
         }
@@ -142,7 +142,7 @@ Complex G_R(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
     }
 
     //if(epsilon >= pow((Double)n + 1, (Double)j)) {
-    if(fastlog(epsilon) > j * fastlog(n+1)) {
+    if(fastlog(epsilon) > j * fastlog(n+1) + j) {
         if(verbose::G) {
             cout << "in G: epsilon >= 1, so returning 0" << endl;
         }
@@ -308,7 +308,7 @@ Complex G_I_over_twopi(Complex alpha, int n, int j, Double epsilon, int method) 
     }
 
     //if(epsilon >= pow((Double)n + 1, (Double)j)) {
-    if(fastlog(epsilon) > j * fastlog(n+1)) {
+    if(fastlog(epsilon) > j * fastlog(n+1) + j) {
         if(verbose::G) {
             cout << "in G: epsilon >= 1, so returning 0" << endl;
         }
@@ -365,7 +365,7 @@ Complex G_method1(Complex alpha, Complex b, int n, int j, Double epsilon) {
         Double n_power = 1.0;
         for(int s = 0; s <= j; s++) {
             Double z = binomial_coefficient(j, s) * n_power;
-            S = S + z * G(alpha, b, 0, j - s, epsilon/(z * (j + 1)));
+            S = S + z * G_method1(alpha, b, 0, j - s, epsilon/(z * (j + 1)));
             n_power *= n;
         }
         return S;
