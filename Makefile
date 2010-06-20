@@ -5,11 +5,11 @@ LIBS = -lmpfr -lgmp -lprofiler -lgmpxx
 INCLUDEDIR = 
 #INCLUDEDIR = -I/usr/local/sage/local/include
 
-a.out: theta_sums.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o misc.o zeta.o log.o zeta.h log.h direct_evaluation.o exp_sum_euler_maclaurin.o theta_algorithm.o stats.o w_coefficient.o
-	g++ -O3 theta_sums.o direct_evaluation.o exp_sum_euler_maclaurin.o theta_algorithm.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o misc.o zeta.o log.o stats.o w_coefficient.o $(LIBS)
+a.out: theta_sums.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o misc.o zeta.o log.o zeta.h log.h direct_evaluation.o exp_sum_euler_maclaurin.o theta_algorithm.o stats.o w_coefficient.o cache.o
+	g++ -O3 theta_sums.o direct_evaluation.o exp_sum_euler_maclaurin.o theta_algorithm.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o misc.o zeta.o log.o stats.o w_coefficient.o cache.o $(LIBS)
 
-test:  theta_sums.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o misc.o zeta.o log.o zeta.h log.h direct_evaluation.o exp_sum_euler_maclaurin.o theta_algorithm.o test.o stats.o w_coefficient.o
-	g++ -O3 -o test theta_sums.o direct_evaluation.o exp_sum_euler_maclaurin.o theta_algorithm.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o test.o misc.o zeta.o log.o stats.o w_coefficient.o $(LIBS)
+test:  theta_sums.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o misc.o zeta.o log.o zeta.h log.h direct_evaluation.o exp_sum_euler_maclaurin.o theta_algorithm.o test.o stats.o w_coefficient.o cache.o
+	g++ -O3 -o test theta_sums.o direct_evaluation.o exp_sum_euler_maclaurin.o theta_algorithm.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o test.o misc.o zeta.o log.o stats.o w_coefficient.o cache.o $(LIBS)
 
 test.o: test.cc theta_sums.h log.h
 	g++ -c test.cc $(OPTIONS) $(INCLUDEDIR)
@@ -43,6 +43,9 @@ ICn.o: ICn.cc theta_sums.h precomputed_tables.h log.h
 
 H_and_J_integrals.o: H_and_J_integrals.cc theta_sums.h precomputed_tables.h
 	g++ -c H_and_J_integrals.cc $(OPTIONS) $(INCLUDEDIR)
+
+cache.o: cache.cc theta_sums.h
+	g++ -c cache.cc $(OPTIONS) $(INCLUDEDIR)
 
 derivative_computations.o: derivative_computations.cc theta_sums.h
 	g++ -c derivative_computations.cc $(OPTIONS) $(INCLUDEDIR)

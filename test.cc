@@ -230,7 +230,7 @@ int test_theta_algorithm(int number_of_tests) {
             v[k] = random_complex() * 2.0 - complex<double>(1.0, 1.0);
         }
 
-        Complex S1 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29));
+        Complex S1 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 100, 0);
         Complex S2 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 0, 1);
 
         Double error = abs(S1 - S2);
@@ -793,6 +793,7 @@ int time_zeta_sum_stage3(gmp_randstate_t rand_state) {
     mpz_clear(v_increment);
     mpz_clear(mp_length);
     mpfr_clear(t);
+    mpfr_clear(big_number);
 
     print_stats();
 
@@ -804,8 +805,8 @@ int time_zeta_sum_stage3(gmp_randstate_t rand_state) {
 
 int main() {
     unsigned int seed = time(NULL);
-    seed = 1276487827;
-    seed = 1276414014;
+    //seed = 1276487827;
+    //seed = 1276414014;
     cout << "Seeding rand() and gmp with " << seed << "." << endl;
     srand(seed);
     
@@ -814,9 +815,19 @@ int main() {
     gmp_randseed_ui(rand_state, seed);
 
     cout << setprecision(15);
+
+    //build_F0_cache(11, 6, 25, 11000, exp(-20));
+    build_F1_cache(181, 51, 25, exp(-30));
+    test_theta_algorithm(5);
+
+    //free_F1_cache();
+
+    //free_F0_cache();
+    //build_F2_cache(20000, 20000, 10, 10, exp(-20));
+    //free_F2_cache();
+
     //test_fastlog2();
     //test_fastlog();
-    //test_theta_algorithm(5);
     //time_theta_algorithm(18, 10010);
     //test_exp_itlogn(rand_state);
     //time_exp_itlogn();
@@ -830,7 +841,7 @@ int main() {
     //time_theta_algorithm_varying_Kmin(10, 2010, 10000);
     //time_theta_algorithm_varying_Kmin(18, 10010, 10000);
     //time_theta_algorithm_varying_Kmin(18, 2010, 10000);
-    time_zeta_sum_stage3(rand_state);
+    //time_zeta_sum_stage3(rand_state);
 
     gmp_randclear(rand_state);
     return 0;

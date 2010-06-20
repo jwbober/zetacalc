@@ -47,7 +47,6 @@ Complex compute_exponential_sum_via_Euler_Maclaurin(mpfr_t mp_a, mpfr_t mp_b, in
     }
     p_prev[j] = 1;
 
-
     int r = 1;
     while(error > epsilon/2) {
         /*
@@ -91,7 +90,10 @@ Complex compute_exponential_sum_via_Euler_Maclaurin(mpfr_t mp_a, mpfr_t mp_b, in
         r = r + 1;
     }
 
-    delete [] p;
+    if(r > 1)
+        delete [] p;
+    else
+        delete [] p_prev;
 
     //cout << "Using Euler-Maclaurin summation, computed F(" << a << ", " << b << ", " << K << ") = " << S << endl;
     //cout << "Using direct evaluation, computed         F(" << a << ", " << b << ", " << K << ") = " << direct_exponential_sum_evaluation(mp_a, mp_b, 0, K) << endl;

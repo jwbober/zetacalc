@@ -439,6 +439,8 @@ Complex zeta_block_stage2(mpz_t n, unsigned int N, mpfr_t t) {
 }
 
 Complex zeta_block_stage3(mpz_t n, unsigned int N, mpfr_t t, Complex Z[30], int Kmin) {
+
+
     if(N == 0) {
         return 0;
     }
