@@ -45,10 +45,10 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     //Complex C8 = -I * ExpB(mp_b, K);
     Complex C8 = -I * C_BK_inverse;
     Complex CF;
-    if(53 + 2 + log2(epsilon * b) < 0)
+    //if(53 + 2 + log2(epsilon * b) < 0)
         CF = ExpAB(mp_a, mp_b);
-    else
-        CF = exp(-I * PI * a * a * .5/b);
+    //else
+    //    CF = exp(-I * PI * a * a * .5/b);
 
     int q = to_int(a + 2 * b * K); // note that a and b are both positive, so this will do the right thing.
     Double w = a + 2 * b * K - (Double)q;
@@ -247,7 +247,8 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
         v2[l] = 0;
         for(int s = l; s <= j; s++) {
             if(v[s] != 0.0)
-                v2[l] += v[s] * w_coefficient(a_powers, sqrt_b_powers, q_powers, K_powers, l, s, CF);
+                //v2[l] += v[s] * w_coefficient(a_powers, sqrt_b_powers, q_powers, K_powers, l, s, CF);
+                v2[l] += v[s] * w_coefficient_slow(mp_a, mp_b, K, l, s, CF);
         }
     }
 

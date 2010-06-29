@@ -117,7 +117,14 @@ Complex compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex
         cout << K << ") = ";
         cout << S << " using method " << method << endl;
 
-        cout << v[0] * direct_exponential_sum_evaluation2(a, b, j, 0, K) << endl;
+        //cout << v[0] * direct_exponential_sum_evaluation2(a, b, j, 0, K) << endl;
+        
+        Complex S2 = compute_exponential_sums_directly(mp_a, mp_b, j, K, v2, epsilon);
+        if(conjugate)
+            S2 = conj(S2);
+
+        cout << "Answer should be " << S2 << endl;
+        cout << "log2(error) was " << log2(abs(S - S2)) << endl;
     }
 
     return S;

@@ -5,6 +5,7 @@ typedef double Double;
 typedef std::complex<double> Complex;
 
 Complex w_coefficient(Double * a_powers, Double * b_powers, Double * q_powers, Double * K_powers, int s, int j, Complex CF);
+Complex w_coefficient_slow(mpfr_t mp_a, mpfr_t mp_b, int K, int s, int j, Complex CF);
 void print_w_coefficient_stats();
 
 Double sum_of_offset_inverse_powers(Double a, int m, int M, int j, Double epsilon, int method = 0);

@@ -212,7 +212,7 @@ int test_fastlog2() {
     return failures1 + failures2 + failures3;
 }
 
-int test_theta_algorithm(int number_of_tests) {
+int test_theta_algorithm(int number_of_tests, int approx_K) {
     const int j_max = 18;
 
     Complex v[j_max + 1];
@@ -223,7 +223,7 @@ int test_theta_algorithm(int number_of_tests) {
         Double a = (double)rand()/(double)RAND_MAX * 20.0 - 10.0;
         Double b = (double)rand()/(double)RAND_MAX * 20.0 - 10.0;
 
-        int K = (int)((double)rand()/(double)RAND_MAX * 500.0 + 10000);
+        int K = (int)((double)rand()/(double)RAND_MAX * 500.0 + approx_K);
         int j = (int)((double)rand()/(double)RAND_MAX * j_max);
     
         for(int k = 0; k <= j; k++) {
@@ -241,6 +241,36 @@ int test_theta_algorithm(int number_of_tests) {
     cout << "Largest error was " << maxerror << "; log2(maxerror) = " << log2(maxerror) << endl;
 
     return 0;
+}
+
+void test2() {
+    Complex v[10];
+
+    Double a = -9.25347071106242;
+    Double b = 7.26188676304272;
+
+    int K = 2462;
+    int j = 1;
+
+    K = 120;
+    a = .0001;
+    //a = 0;
+    b = 1.1/K;
+    j = 1;
+
+
+    for(int k = 0; k <= j; k++) {
+        v[k] = 1;
+    }
+    v[0] = 1;
+    v[1] = 1;
+
+    Complex S1 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 100, 0);
+    Complex S2 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 0, 1);
+
+    Double error = abs(S1 - S2);
+    cout << "a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ": log2(error) = " << log2(error) << endl;
+
 }
 
 double time_theta_algorithm(int j, int K) {
@@ -817,14 +847,18 @@ int main() {
     cout << setprecision(15);
 
     //build_F0_cache(11, 6, 25, 11000, exp(-20));
-    build_F1_cache(181, 51, 25, exp(-30));
-    test_theta_algorithm(5);
+    //build_F1_cache(181, 51, 25, exp(-30));
+    //build_F1_cache(181, 51, 25, exp(-30));
+    //build_F1_cache(361, 101, 25, exp(-30));
+    
+    //build_F0_cache(11, 6, 25, 1300, exp(-20));
+    //build_F2_cache(11, 11, 6, 1300, exp(-30));
+    //test_theta_algorithm(20, 2000);
+    test2();
+
+    print_stats();
 
     //free_F1_cache();
-
-    //free_F0_cache();
-    //build_F2_cache(20000, 20000, 10, 10, exp(-20));
-    //free_F2_cache();
 
     //test_fastlog2();
     //test_fastlog();
@@ -843,6 +877,7 @@ int main() {
     //time_theta_algorithm_varying_Kmin(18, 2010, 10000);
     //time_zeta_sum_stage3(rand_state);
 
+    cout << "Used random seed " << seed << endl;
     gmp_randclear(rand_state);
     return 0;
 }

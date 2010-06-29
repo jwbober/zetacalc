@@ -165,8 +165,8 @@ namespace verbose {
     const int IC6 = 0;
     const int IC7 = 0;
     const int IC9E = 0;
-    const int compute_exponential_sum = 0;
-    const int S1 = 0;
+    const int compute_exponential_sum = 1;
+    const int S1 = 1;
     const int S2 = 0;
     const int G = 0;
     const int H = 0;
@@ -260,7 +260,7 @@ Complex H_Integral_0(int j, Double a, int M, Double epsilon);                   
 Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon, bool use_cache = true);  //
 Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon, bool use_cache = true);  //
 Complex H_Integral_2(int j, Double a1, Double a2, Double epsilon);              //
-Complex J_Integral_2(Double a1, Double a2, Double b, int j, int K, theta_cache * cache, Double epsilon, bool use_cache = true);// Various integrals.
+Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double epsilon, bool use_cache = true);// Various integrals.
 
 void build_F0_cache(long number_of_a, long number_of_b, long max_j, long max_M, Double epsilon);
 void build_F1_cache(long number_of_a, long number_of_b, long max_j, Double epsilon);
@@ -276,7 +276,7 @@ inline Complex JBulk(Double a, Double b, int j, int M, int K, theta_cache * cach
                                                                                         //
 inline Complex JBoundary(Double a1, Double a2, Double b, int j, int K, theta_cache * cache, Double epsilon){ 
     if(j == 0) {
-        return J_Integral_2(a1, a2, b, j, K, cache, epsilon/3)                                    
+        return J_Integral_2(a1, a2, b, cache, epsilon/3)                                    
                                         + J_Integral_1(a1, b, j, -1, K, cache, epsilon/3)     
                                         - J_Integral_1(a2, b, j, -1, K, cache, epsilon/3);
     }
