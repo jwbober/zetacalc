@@ -11,7 +11,7 @@ Complex compute_exponential_sums_directly(mpfr_t mp_a, mpfr_t mp_b, int j, int K
     Double a = mpfr_get_d(mp_a, GMP_RNDN);
     Double b = mpfr_get_d(mp_b, GMP_RNDN);
 
-    if (K > Kmin) {
+    if (K > 2000) {
         for(int l = 0; l <= j; l++) {
             if(v[l] != 0.0) {
                 S = S + v[l] * direct_exponential_sum_evaluation2(mp_a, mp_b, l, 0, K);

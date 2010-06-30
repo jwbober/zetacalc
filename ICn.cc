@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <assert.h>
 
 using namespace std;
 
@@ -332,6 +333,9 @@ Complex IC7(int K, int j, Double a, Double b, theta_cache * cache, Double epsilo
     //  (2) 2bK >= 1
     //  (3) a >= 0
 
+    //assert(a <= 1);
+
+
     stats::IC7++;
 
     if(verbose::IC7) {
@@ -343,64 +347,8 @@ Complex IC7(int K, int j, Double a, Double b, theta_cache * cache, Double epsilo
         cout << "   epsilon = " << epsilon << endl;
     }
 
-    Complex C9;
-    switch(j % 8) {
-        case 0:
-            C9 = Complex(sqrt(2.0)/2.0, -sqrt(2.0)/2.0);
-            break;
-        case 1:
-            C9 = Complex(0, -1);
-            break;
-        case 2:
-            C9 = Complex(-sqrt(2.0)/2.0, -sqrt(2.0)/2.0);
-            break;
-        case 3:
-            C9 = Complex(-1, 0);
-            break;
-        case 4:
-            C9 = Complex(-sqrt(2.0)/2.0, sqrt(2.0)/2.0);
-            break;
-        case 5:
-            C9 = Complex(0, 1);
-            break;
-        case 6:
-            C9 = Complex(sqrt(2.0)/2.0, sqrt(2.0)/2.0);
-            break;
-        case 7:
-            C9 = Complex(1, 0);
-            break;
-    }
-
-    Complex C10(sqrt(2.0)/2.0, sqrt(2.0)/2.0);
-
-    //
-    // Note that conditions (1) and (2) above should ensure that we
-    // can make a change of variables and then truncate this
-    // integral at an integer.
-    //
-    
-    //
-    // TODO: When K == -1 and j > 1, we are not truncating this integral
-    // as early as we should. We should think about this a little bit more.
-    //
-
-    int L = 0;
-/*
-    if(K == -1) {
-        if(x > 1) {
-            L = to_int(ceil( -LOG(epsilon*sqrt(b))/(2.0 * PI * x)));
-            if(K == -1)
-                L = max((int)ceil(((Double)j + 1.0) * pow(log(j + (Double)1), 2) / x), L);
-        }
-        else {
-            L = to_int(ceil( sqrt(max(-LOG(epsilon*sqrt(b)), 0.0)) ));
-            if(K == -1)
-                L = max((int)ceil(((Double)j + 1.0) * pow(log(j + (Double)1), 2)), L);
-        }
-    }
-    else {
-*/
     Double z;
+    int L;
     if(K == -1) {
         //z = sqrt( 2 * max(0.0, -log(epsilon * pow(b, (j + 1.0)/2.0))) );
         z = sqrt( 2 * max(0.0, - (fastlog(epsilon) + (j + 1.0)/2.0 * fastlog(b))));
@@ -416,30 +364,42 @@ Complex IC7(int K, int j, Double a, Double b, theta_cache * cache, Double epsilo
         L = ceil(z);
     }
     
-    L = max(0, L);
-
-    if(stats::stats)
-        if(L == 0) {
-            stats::IC7zero++;
-            return 0.0;
-        }
-
-    if(verbose::IC7) {
-        cout << "In IC7(): L = " << L << endl;
-    }
-
-    //check_condition(L <= K, "Warning: In IC7, K was too small.");
-
-    //cout << L << endl;
-
-    if(K != -1) {
-        //L = min(L, to_int(sqrt((Double)4 * PI * b) * K));
-        L = min(L, to_int(root_2pi_b_power(1, cache) * sqrt(2) * K));
-    }
-
-    if(L == 0) {
+    if(L <= 0) {
         return 0.0;
     }
+
+    if(K != -1 && 4 * PI * b * K * K < L * L) {
+        return IC7_method1(K, j, a, b, cache, epsilon, L);
+    }
+
+    //return IC7_method1(K, j, a, b, cache, epsilon, L);
+    
+    if(K == -1)
+        return exp_minus_i_pi4(j + 1) * root_2pi_b_power(-(j + 1), cache) * IC7star(a * root_2pi_b_power(-1, cache), j, epsilon * root_2pi_b_power(j + 1, cache));
+    else
+        return exp_minus_i_pi4(j + 1) * root_2pi_b_power(-(j + 1), cache) * K_power(-j, cache) * IC7star(a * root_2pi_b_power(-1, cache), j, epsilon * root_2pi_b_power(j + 1, cache) * K_power(j, cache));
+        
+
+//    return IC7_method1(K, j, a, b, cache, epsilon, L);
+
+}
+
+Complex IC7_method1(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon, int L) {
+    Complex C9;
+    C9 = exp_minus_i_pi4(j + 1);
+
+    Complex C10(sqrt(2.0)/2.0, sqrt(2.0)/2.0);
+
+    //
+    // Note that conditions (1) and (2) above should ensure that we
+    // can make a change of variables and then truncate this
+    // integral at an integer.
+    //
+    
+    //
+    // TODO: When K == -1 and j > 1, we are not truncating this integral
+    // as early as we should. We should think about this a little bit more.
+    //
 
     Complex S = (Complex)0;
 
@@ -510,7 +470,149 @@ Complex IC7(int K, int j, Double a, Double b, theta_cache * cache, Double epsilo
         cout << "IC7() returning " << S << endl;
 
     return S;
+
+
+
+
 }
+
+static struct {
+    int a_per_unit_interval;
+    int number_of_a;
+    int max_j;
+    Complex ** values;
+} IC7_cache;
+
+static bool IC7_cache_initialized = false;
+
+void build_IC7_cache(int a_per_unit_interval, Double max_a, int max_j, Double epsilon) {
+    int number_of_a = max_a * a_per_unit_interval + 1;
+    
+    IC7_cache.number_of_a = number_of_a;
+    IC7_cache.a_per_unit_interval = a_per_unit_interval;
+    IC7_cache.max_j = max_j;
+
+    IC7_cache.values = new Complex * [number_of_a];
+    Double a = 0;
+    Double a_increment = 1.0/a_per_unit_interval;
+    for(int n = 0; n < number_of_a; n++) {
+        IC7_cache.values[n] = new Complex[max_j + 1];
+        for(int j = 0; j <= max_j; j++) {
+            IC7_cache.values[n][j] = IC7star(a, j, epsilon, false);
+        }
+        a += a_increment;
+        if(n % 100 == 0)
+            cout << "Building IC7 cache: " << n + 1 << " of " << number_of_a << " points computed." << endl;
+    }
+
+    IC7_cache_initialized = true;
+}
+
+void free_IC7_cache() {
+    IC7_cache_initialized = false;
+}
+
+inline Complex get_cached_IC7star_value(int a_index, int j) {
+    if(a_index < IC7_cache.number_of_a && j <= IC7_cache.max_j) {
+        return IC7_cache.values[a_index][j];
+    }
+    else {
+        cout << "Warning. IC7 cache called with values out of range." << endl;
+        cout << "a_index = " << a_index << ", j = " << j << endl;
+        return 0.0/0.0;
+    }
+}
+
+Complex IC7star(Double a, int j, Double epsilon, bool use_cache) {
+    if(verbose::IC7star) {
+        cout << "Entering IC7star() with " << endl;
+        cout << "         j = " << j << endl;
+        cout << "         a = " << a << endl;
+        cout << "   epsilon = " << epsilon << endl;
+    }
+
+    Complex C10(sqrt(2.0)/2.0, sqrt(2.0)/2.0);
+
+    Double z;
+    int L;
+    
+    //z = sqrt( 2 * max(0.0, - (fastlog(epsilon) + (j + 1.0)/2.0 * fastlog(b))));
+    z = sqrt( 2 * max(0, -fastlog(epsilon)) );
+    
+    if(j > z) {
+        L = j + 1;
+    }
+    else {
+        L = ceil(z);
+    }
+    
+    L = max(0, L);
+
+    if(verbose::IC7star) {
+        cout << "In IC7star(): L = " << L << endl;
+    }
+
+    if(L == 0) {
+        return 0.0;
+    }
+
+    if(use_cache && IC7_cache_initialized) {
+        int a0_index = round(IC7_cache.a_per_unit_interval * a);
+        Double a0 = (Double)a0_index / (Double)IC7_cache.a_per_unit_interval;
+
+        int l = 0;
+        Double error = 2 * epsilon;
+
+        Double a_minus_a0_power = 1.0;
+        
+        Complex S = 0;
+        Double L_power = pow(L, j);
+        while(error > epsilon) {
+            Double z = minus_one_power(l) * two_pi_over_factorial_power(l) * a_minus_a0_power;
+            error = abs(z) * L_power;
+
+            //S = S + z * exp_minus_i_pi4(l) * IC7star(a0, j + l, epsilon, false);
+            S = S + z * exp_minus_i_pi4(l) * get_cached_IC7star_value(a0_index, j + l);
+
+            l++;
+            a_minus_a0_power *= (a - a0);
+            L_power *= L;
+        }
+
+        //cout << l << " ";
+    }
+
+    Complex S = (Complex)0;
+
+    {
+        Double one_over_L = 1.0/L;
+        Complex alpha = C10 * a;
+        Complex s1 = alpha;
+        Complex y1 = exp(2 * PI * I * s1);
+        Complex y = 1.0;
+        Double newepsilon = epsilon * one_over_L;
+        for(int n = 0; n <= L-1; n = n + 1) {
+            //Complex z3 = exp(2 * PI * I * n * s1- n * n);
+            Double y3 = exp(-n * n);
+            Complex z3 = y * y3;
+            Complex z = 0.0;
+            if( j * fastlog(n + 1) + fastlog(abs(z3)) < fastlog(newepsilon)) {          // TODO: This is a possible source of error,
+                break;                                                                  // because this isn't necessarily decreasing.
+            }
+            //z = G( alpha, I/( (Double)2 * PI), n, j, newepsilon/abs(z3));
+            z = G_I_over_twopi(alpha, n, j, newepsilon/abs(z3));
+            z = z * z3;
+            S = S + z;
+            alpha = alpha + I/PI;
+            y = y * y1;
+        }
+    }
+
+    return S;
+
+}
+
+
 
 Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b, theta_cache * cache) {
     Double a = mpfr_get_d(mp_a, GMP_RNDN);

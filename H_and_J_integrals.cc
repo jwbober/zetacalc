@@ -365,7 +365,7 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
             b_minus_b0_power *= (b - b0);
         }
 
-        cout << "number of terms computed = " << number_of_terms << endl;
+        //cout << "number of terms computed = " << number_of_terms << endl;
 
         //Complex answer = S * one_over_K_to_the_j;
         //Complex direct_computed_answer = J_Integral_1(a, b, j, M, K, NULL, epsilon, false);
@@ -642,9 +642,9 @@ Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double
         if(verbose::J_Integral_2)
             cout << "Computed J_Integral_2( " << a1 << ", " << a2 << ", " << b << ") = " << answer << endl;
 
-        cout << "                   Computed J_Integral_2( " << a1 << ", " << a2 << ", " << b << ") = " << answer << endl;
-        Complex answer2 = J_Integral_2(a1, a2, b, NULL, epsilon, 0);
-        cout << "should have computed " << answer2 << endl;
+        //cout << "                   Computed J_Integral_2( " << a1 << ", " << a2 << ", " << b << ") = " << answer << endl;
+        //Complex answer2 = J_Integral_2(a1, a2, b, NULL, epsilon, 0);
+        //cout << "should have computed " << answer2 << endl;
 
 
         return answer;
@@ -747,8 +747,8 @@ void build_F0_cache(long number_of_a, long number_of_b, long max_j, long max_M, 
         // M == 0 case
         F0_cache.values[0] = new Complex ** [(number_of_a - 1) * max_M + 2];
         for(int k = 0; k < (number_of_a - 1) * max_M + 2; k++) {
-            if(k % 100 == 0)
-                cout << "a index = " << k << ", a = " << a << endl;
+            //if(k % 100 == 0)
+            //    cout << "a index = " << k << ", a = " << a << endl;
             F0_cache.values[0][k] = new Complex * [number_of_b];
             for(int l = 0; l < number_of_b; l++) {
 //                cout << "b index = " << l << ", b = " << b << endl;
@@ -769,12 +769,12 @@ void build_F0_cache(long number_of_a, long number_of_b, long max_j, long max_M, 
 
     for(int M = 1; M <= max_M; M++) {
         F0_cache.values[M] = new Complex ** [number_of_a];
-        cout << "M = " << M << endl;
+        //cout << "M = " << M << endl;
         for(int k = 0; k < number_of_a; k++) {
-            cout << "a index = " << k << ", a = " << a << endl;
+            //cout << "a index = " << k << ", a = " << a << endl;
             F0_cache.values[M][k] = new Complex * [number_of_b];
             for(int l = 0; l < number_of_b; l++) {
-                cout << a << " " << b << endl;
+            //    cout << a << " " << b << endl;
                 F0_cache.values[M][k][l] = new Complex [max_j + 1];
                 for(int j = 0; j <= max_j; j++) {
                     F0_cache.values[M][k][l][j] = J_Integral_0(a, b, j, M, 1, NULL, epsilon, false);
@@ -805,7 +805,7 @@ void build_F1_cache(long number_of_a, long number_of_b, long max_j, Double epsil
     Double b_increment = .25/(number_of_b - 1);
 
     for(long k = 0; k < number_of_a; k++) {
-        cout << "a index = " << k << ", a = " << a << endl;
+        //cout << "a index = " << k << ", a = " << a << endl;
         F1_cache.values[k] = new Complex * [number_of_b];
         for(long l = 0; l < number_of_b; l++) {
 //            cout << a << " " << b << endl;
@@ -844,7 +844,7 @@ void build_F2_cache(long max_a1, long number_of_a1, long number_of_a2, long numb
         for(long j = 0; j < number_of_a2; j++) {
             F2_cache.values[k][j] = new Complex[number_of_b];
             for(long l = 0; l < number_of_b; l++) {
-                cout << a1 << " " << a2 << " " << b << endl;
+                //cout << a1 << " " << a2 << " " << b << endl;
                 F2_cache.values[k][j][l] = J_Integral_2(a1, a2, b, NULL, epsilon, false);
                 b += b_increment;
             }

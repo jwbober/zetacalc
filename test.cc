@@ -286,15 +286,15 @@ double time_theta_algorithm(int j, int K) {
     int n = 0;
     Complex z1 = 0.0;
 
-    const int number_of_tests = 10000;
+    const int number_of_tests = 1000;
 
     cout << "Timing theta_algorithm with K = " << K << " and j = " << j << endl;
-    cout << "   Running approximately 10000 iterations total." << endl;
+    cout << "   Running approximately 1000 iterations total." << endl;
 
     for(Double a = 0; a < .5; a += .5/(number_of_tests/1000.0) ) {
-        for(Double b = 1.0/((Double)2 * K * K); b <= 1.0; b += 1.0/1000.0) {
+        for(Double b = 1.1/((Double)K); b <= 1.0; b += 1.0/1000.0) {
             n++;
-            if(n % 500 == 0) {
+            if(n % 100 == 0) {
                 cout << "   Running iteration number " << n << " with a = " << a << " b = " << b << endl;
             }
             z1 += compute_exponential_sums(a, b, j, K, v, epsilon);
@@ -318,13 +318,13 @@ double time_theta_algorithm_varying_Kmin(int j, int K, int number_of_tests) {
     }
 
 
-    Double epsilon = exp(-10);
+    Double epsilon = exp(-20);
 
     Complex z1 = 0.0;
 
     cout << "Timing theta_algorithm with K = " << K << " and j = " << j << endl;
-    int Kmin_start = 100;
-    int Kmin_end = 2000;
+    int Kmin_start = 500;
+    int Kmin_end = 1000;
     int Kmin_increment = 100;
     cout << "   Running " << number_of_tests << " iterations total for various Kmin from " << Kmin_start << " to " << Kmin_end << "." << endl;
     for(int Kmin = Kmin_start; Kmin <= Kmin_end; Kmin+=Kmin_increment) {
@@ -837,7 +837,7 @@ int main() {
     unsigned int seed = time(NULL);
     //seed = 1276487827;
     //seed = 1276414014;
-    seed = 1277852897;
+    //seed = 1277852897;
     cout << "Seeding rand() and gmp with " << seed << "." << endl;
     srand(seed);
     
@@ -853,10 +853,16 @@ int main() {
     //build_F1_cache(361, 101, 25, exp(-30));
     
     //build_F0_cache(11, 6, 25, 2800, exp(-25));
-    build_F0_cache(6, 6, 25, 2800, exp(-25));
+    //build_F0_cache(6, 6, 25, 5100, exp(-25));
     //build_F1_cache(181, 51, 25, exp(-30));
-    build_F2_cache(2800, 6, 6, 6, exp(-30));
-    test_theta_algorithm(20, 5000);
+    //build_F2_cache(5100, 6, 6, 6, exp(-30));
+    
+    //build_IC7_cache(100, 200, 25, exp(-30));
+
+    test_theta_algorithm(5, 5000);
+    time_theta_algorithm_varying_Kmin(10, 10010, 10000);
+
+    //time_theta_algorithm(15, 10000);
     //test2();
 
     print_stats();

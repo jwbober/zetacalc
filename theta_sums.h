@@ -107,28 +107,28 @@ inline Complex exp_minus_i_pi4(int n) {
     Complex S = 0;
     switch(n % 8) {
         case 0:
-            S = Complex(sqrt(2.0)/2.0, -sqrt(2.0)/2.0);
+            S = Complex(1, 0);
             break;
         case 1:
-            S = Complex(0, -1);
+            S = Complex(sqrt(2.0)/2.0, -sqrt(2.0)/2.0);
             break;
         case 2:
-            S = Complex(-sqrt(2.0)/2.0, -sqrt(2.0)/2.0);
+            S = Complex(0, -1);
             break;
         case 3:
-            S = Complex(-1, 0);
+            S = Complex(-sqrt(2.0)/2.0, -sqrt(2.0)/2.0);
             break;
         case 4:
-            S = Complex(-sqrt(2.0)/2.0, sqrt(2.0)/2.0);
+            S = Complex(-1, 0);
             break;
         case 5:
-            S = Complex(0, 1);
+            S = Complex(-sqrt(2.0)/2.0, sqrt(2.0)/2.0);
             break;
         case 6:
-            S = Complex(sqrt(2.0)/2.0, sqrt(2.0)/2.0);
+            S = Complex(0, 1);
             break;
         case 7:
-            S = Complex(1, 0);
+            S = Complex(sqrt(2.0)/2.0, sqrt(2.0)/2.0);
             break;
     }
     return S;
@@ -164,6 +164,7 @@ namespace verbose {
     const int IC1c = 0;
     const int IC6 = 0;
     const int IC7 = 0;
+    const int IC7star = 0;
     const int IC9E = 0;
     const int compute_exponential_sum = 0;
     const int S1 = 0;
@@ -173,7 +174,7 @@ namespace verbose {
 
     const int J_Integral_0 = 0;
     const int J_Integral_1 = 0;
-    const int J_Integral_2 = 1;
+    const int J_Integral_2 = 0;
 }
 
 namespace stats {
@@ -304,12 +305,16 @@ Complex IC4c(int K, int j, Double a, Double b, Complex C11, theta_cache * cache,
 Complex IC5(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon);                  //
 Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, theta_cache * cache, Double epsilon);     //      
 Complex IC7(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon);                  //
+Complex IC7_method1(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon, int L);                  //
+Complex IC7star(Double a, int j, Double epsilon, bool use_cache = true);                  //
 Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b, theta_cache * cache);                            //
 Complex IC9E(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon);                 //
 inline Complex IC9H(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon);          //
                                                                                 //  (Defined in ICn.cc, unless defined inline below)
                                                                                 //
                                                                                 //
+
+void build_IC7_cache(int a_per_unit_interval, Double max_a, int max_j, Double epsilon); //max_a should be passed as about sqrt(K) to compute sums of length K
 
 inline Complex IC3(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon) {
     // needs a <= 0
