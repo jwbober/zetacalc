@@ -21,6 +21,8 @@ inline Complex get_cached_F0_value(int a_index, int b_index, int j, int M) {
             return F0_cache.values[0][a_index][b_index][j];
         }
         else {
+            cout << "Warning: F0 called for a value out of range." << endl;
+            return 0.0/0.0;
             Double a = 1.0/(F0_cache.number_of_a - 1.0) * a_index;
             Double b = .25/(F0_cache.number_of_b - 1.0) * b_index;
             return J_Integral_0(a, b, j, M, 1, NULL, exp(-20), false);
@@ -31,6 +33,8 @@ inline Complex get_cached_F0_value(int a_index, int b_index, int j, int M) {
         return F0_cache.values[M][a_index][b_index][j];
     }
     else {
+        cout << "Warning: F0 called for a value out of range." << endl;
+        return 0.0/0.0;
         Double a = 1.0/(F0_cache.number_of_a - 1.0) * a_index;
         Double b = .25/(F0_cache.number_of_b - 1.0) * b_index;
 //        cout << "a = " << a << "  b = " << b << endl;
@@ -77,7 +81,7 @@ inline Complex get_cached_F1_value(int a_index, int b_index, int j) {
 }
 
 inline Complex get_cached_F2_value(int a1_index, int a2_index, int b_index, int j) {
-    if(a1_index < (F2_cache.number_of_a1 - 1) * F2_cache.max_a1 + 1 && a1_index < F2_cache.number_of_a2 && b_index < F2_cache.number_of_b) {
+    if(a1_index < (F2_cache.number_of_a1 - 1) * F2_cache.max_a1 + 1 && a2_index < F2_cache.number_of_a2 && b_index < F2_cache.number_of_b) {
         if(j == 0) {
             return F2_cache.values[a1_index][a2_index][b_index];
         }
@@ -86,6 +90,8 @@ inline Complex get_cached_F2_value(int a1_index, int a2_index, int b_index, int 
         }
     }
     else {
+        cout << "Warning. F2 value not precomputed." << endl;
+        cout << "Asked for a1_index = " << a1_index << " a2_index = " << a2_index << " b_index = " << b_index << " j = " << j << endl;
         return 0.0/0.0;
     }
 }
@@ -214,7 +220,12 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cach
             b_minus_b0_power *= (b - b0);
         }
 
-        return K_pow_minus_j * S;
+        Complex answer = K_pow_minus_j * S;
+        
+        if(verbose::J_Integral_0)
+            cout << "Computed J_Integral_0( " << a << ", " << b << ", " << j << ", " << M << ", " << K << ") = " << answer << endl;
+
+        return answer;
     }
 
     Complex S = (Complex)0;
@@ -223,7 +234,11 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cach
     Double error = 2 * epsilon;
     
     if(b == 0) {
-        return H_Integral_0(j, a, M, epsilon)*K_pow_minus_j;
+        Complex answer = H_Integral_0(j, a, M, epsilon)*K_pow_minus_j;
+        if(verbose::J_Integral_0)
+            cout << "Computed J_Integral_0( " << a << ", " << b << ", " << j << ", " << M << ", " << K << ") = " << answer << endl;
+
+        return answer;
     }
     
     int N = max(1, to_int(ceil(-fastlog(epsilon))));    // an approximation of the number of terms
@@ -243,6 +258,9 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cach
     }
 
     S = S * K_pow_minus_j;
+
+    if(verbose::J_Integral_0)
+        cout << "Computed J_Integral_0( " << a << ", " << b << ", " << j << ", " << M << ", " << K << ") = " << S << endl;
 
     return S;
 }
@@ -354,7 +372,14 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
         //cout << "For J_Integral_1(" << a << ", " << b << ", " << j << ", " << M << ", " << K << "):" << endl;
         //cout << "Using taylor expansion returning " << answer << endl;
         //cout << "Directly computing, get " << direct_computed_answer << endl;
-        return S * one_over_K_to_the_j;
+        
+        Complex answer = S * one_over_K_to_the_j;
+
+        if(verbose::J_Integral_1)
+            cout << "Computed J_Integral_1( " << a << ", " << b << ", " << j << ", " << M << ", " << K << ", " << epsilon << ") = " << answer << endl;
+        
+        return answer;
+
     }
 
 
@@ -376,7 +401,8 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
             end_point = min(M, to_int(ceil(-fastlog(epsilon)/(2 * PI * n) ) ));
         }
 
-        end_point = end_point - j * fastlog((Double)K/(n + 1))/(2 * PI);
+        end_point = ceil(end_point - j * fastlog((Double)K/(n + 1))/(2 * PI));
+        //end_point = max(1, (int)(end_point - j * fastlog((Double)K/(n + 1))/(2 * PI)));
 
         Complex S1 = 0;
 
@@ -396,6 +422,11 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
         S = S + S1;
         //a_factor *= a_multiplier;
     }
+
+
+    if(verbose::J_Integral_1)
+        cout << "Computed J_Integral_1( " << a << ", " << b << ", " << j << ", " << M << ", " << K << ", " << epsilon << ") = " << S << endl;
+
 
     return S;
 
@@ -518,6 +549,7 @@ Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double
     }
 
     if(use_cache && F2_cache_initialized) {
+
         int sign = 1;
         if(a2 > a1) {
             Double tmp = a1;
@@ -528,59 +560,94 @@ Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double
 
 
         int a1_0_index = round( (F2_cache.number_of_a1 - 1) * a1);
-        Double a1_0 = a1_0_index /(F2_cache.number_of_a1 - 1);
+        Double a1_0 = (Double)a1_0_index /(Double)(F2_cache.number_of_a1 - 1);
 
-        int a2_0_index = round( (F2_cache.number_of_a2 - 1) * a1);
+        int a2_0_index = round( (F2_cache.number_of_a2 - 1) * a2);
         Double a2_0 = a2_0_index * 1.0/(F2_cache.number_of_a2 - 1);
 
         int b0_index = round( (F0_cache.number_of_b - 1) * b/.25);
         Double b0 = b0_index * .25/(F2_cache.number_of_b - 1);
 
+        if(verbose::J_Integral_2) {
+            cout << "With a1 = " << a1 << ", a2 = " << a2 << ", b = " << b << endl;
+            cout << "    using a1_0 = " << a1_0 << endl;
+            cout << "    using a2_0 = " << a2_0 << endl;
+            cout << "    using b0 = " << b0 << endl;
+            cout << "  a1_0 index = " << a1_0_index << endl;
+            cout << "  a2_0 index = " << a2_0_index << endl;
+            cout << "    b0 index = " << b0_index << endl;
+        }
+
         Complex S = 0;
 
         S = S + get_cached_F2_value(a1_0_index, a2_0_index, b0_index, 0);
+        //S = S + J_Integral_2(a1_0, a2_0, b0, NULL, epsilon, 0);
 
         Complex S1 = 0;
-        int r = 1;
         Double error = 2 * epsilon;
-        Double a2_minus_a2_0_power = (a2 - a2_0);
-        while(error > epsilon/3) {
-            Double z = minus_one_power(r) * two_pi_over_factorial_power(r) * a2_minus_a2_0_power;
-            error = abs(z);
-            S1 = S1 + z * get_cached_F0_value(a2_0_index, b0_index, r, -1);
-            a2_minus_a2_0_power *= (a2 - a2_0);
-            r++;
+        
+        {
+            int r = 1;
+            Double a2_minus_a2_0_power = (a2 - a2_0);
+            while(error > epsilon/3) {
+                Double z = minus_one_power(r) * two_pi_over_factorial_power(r) * a2_minus_a2_0_power;
+                error = abs(z);
+                S1 = S1 + z * get_cached_F0_value(a2_0_index, b0_index, r, -1);
+                a2_minus_a2_0_power *= (a2 - a2_0);
+                r++;
+            }
+            if(verbose::J_Integral_2)
+                cout << r << " terms in first loop." << endl;
         }
 
         S = S - S1;
 
-        error = 2 * epsilon;
         S1 = 0.0;
-        Double a1_minus_a1_0_power = (a2 - a2_0);
-        int l = 1;
-        while(error > epsilon/3) {
-            Double z = minus_one_power(l) * two_pi_over_factorial_power(l) * a1_minus_a1_0_power;
-            error = abs(z);
-            S1 = S1 + z * get_cached_F0_value(a1_0_index, b0_index, l, -1);
-            a1_minus_a1_0_power *= (a1 - a1_0);
-            l++;
+        {
+            Double a1_minus_a1_0_power = (a1 - a1_0);
+            int l = 1;
+            error = 2 * epsilon;
+            while(error > epsilon/3) {
+                Double z = minus_one_power(l) * two_pi_over_factorial_power(l) * a1_minus_a1_0_power;
+                error = abs(z);
+                S1 = S1 + z * get_cached_F0_value(a1_0_index, b0_index, l, -1);
+                a1_minus_a1_0_power *= (a1 - a1_0);
+                l++;
+            }
+            if(verbose::J_Integral_2)
+                cout << l << " terms in second loop." << endl;
         }
 
         S = S + S1;
 
         S1 = 0;
-        int s = 1;
-        Double b_minus_b0_power = b - b0;
-        error = 2 * epsilon;
-        while(error > epsilon/3) {
-            Double z = two_pi_over_factorial_power(s) * b_minus_b0_power;
-            error = abs(z);
-            S1 = S1 + z * minus_I_power(s) * (J_Integral_0(a1, b0, 2 * s, -1, 1, NULL, epsilon/error) - J_Integral_0(a2, b0, 2 * s, -1, 1, NULL, epsilon/error));
-            b_minus_b0_power *= b - b0;
-            s++;
+        {
+            int s = 1;
+            Double b_minus_b0_power = b - b0;
+            error = 2 * epsilon;
+            while(error > epsilon/3) {
+                Double z = two_pi_over_factorial_power(s) * b_minus_b0_power;
+                error = abs(z);
+                S1 = S1 + z * minus_I_power(s) * (J_Integral_0(a1, b0, 2 * s, -1, 1, NULL, epsilon/error) - J_Integral_0(a2, b0, 2 * s, -1, 1, NULL, epsilon/error));
+                b_minus_b0_power *= b - b0;
+                s++;
+            }
+            if(verbose::J_Integral_2)
+                cout << s << " terms in third loop." << endl;
         }
         S = S + S1;
-        return (Double)sign * S;
+
+        Complex answer = (Double)sign * S;
+
+        if(verbose::J_Integral_2)
+            cout << "Computed J_Integral_2( " << a1 << ", " << a2 << ", " << b << ") = " << answer << endl;
+
+        cout << "                   Computed J_Integral_2( " << a1 << ", " << a2 << ", " << b << ") = " << answer << endl;
+        Complex answer2 = J_Integral_2(a1, a2, b, NULL, epsilon, 0);
+        cout << "should have computed " << answer2 << endl;
+
+
+        return answer;
     }
 
     Complex S = (Complex)0;
@@ -590,7 +657,10 @@ Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double
     int sign = -1;
     
     if(b == 0) {
-        return H_Integral_2(0, a1, a2, epsilon);
+        Complex answer = H_Integral_2(0, a1, a2, epsilon);
+        if(verbose::J_Integral_2)
+            cout << "Computed J_Integral_2( " << a1 << ", " << a2 << ", " << b << ") = " << answer << endl;
+        return answer;
     }
    
     int N = max(1, to_int(-fastlog(epsilon)));
@@ -609,6 +679,10 @@ Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double
         S = S + z;
         r++;
     }
+
+
+    if(verbose::J_Integral_2)
+        cout << "Computed J_Integral_2( " << a1 << ", " << a2 << ", " << b << ") = " << S << endl;
 
     return S;
 
@@ -678,6 +752,7 @@ void build_F0_cache(long number_of_a, long number_of_b, long max_j, long max_M, 
             F0_cache.values[0][k] = new Complex * [number_of_b];
             for(int l = 0; l < number_of_b; l++) {
 //                cout << "b index = " << l << ", b = " << b << endl;
+//                cout << a << " " << b << endl;
                 F0_cache.values[0][k][l] = new Complex [max_j + 1];
                 for(int j = 1; j <= max_j; j++) {
                     F0_cache.values[0][k][l][j] = J_Integral_0(a, b, j, -1, 1, NULL, epsilon, false);
@@ -699,6 +774,7 @@ void build_F0_cache(long number_of_a, long number_of_b, long max_j, long max_M, 
             cout << "a index = " << k << ", a = " << a << endl;
             F0_cache.values[M][k] = new Complex * [number_of_b];
             for(int l = 0; l < number_of_b; l++) {
+                cout << a << " " << b << endl;
                 F0_cache.values[M][k][l] = new Complex [max_j + 1];
                 for(int j = 0; j <= max_j; j++) {
                     F0_cache.values[M][k][l][j] = J_Integral_0(a, b, j, M, 1, NULL, epsilon, false);
@@ -732,6 +808,7 @@ void build_F1_cache(long number_of_a, long number_of_b, long max_j, Double epsil
         cout << "a index = " << k << ", a = " << a << endl;
         F1_cache.values[k] = new Complex * [number_of_b];
         for(long l = 0; l < number_of_b; l++) {
+//            cout << a << " " << b << endl;
 //            cout << "b index = " << l << ", b = " << b << endl;
             F1_cache.values[k][l] = new Complex[max_j + 1];
             for(long j = 0; j <= max_j; j++) {
@@ -763,12 +840,11 @@ void build_F2_cache(long max_a1, long number_of_a1, long number_of_a2, long numb
 
     F2_cache.values = new Complex ** [number_of_a1];
     for(long k = 0; k < (number_of_a1 - 1) * max_a1 + 2; k++) {
-//        cout << a1 << endl;
         F2_cache.values[k] = new Complex * [number_of_a2];
         for(long j = 0; j < number_of_a2; j++) {
-//            cout << a2 << endl;
             F2_cache.values[k][j] = new Complex[number_of_b];
             for(long l = 0; l < number_of_b; l++) {
+                cout << a1 << " " << a2 << " " << b << endl;
                 F2_cache.values[k][j][l] = J_Integral_2(a1, a2, b, NULL, epsilon, false);
                 b += b_increment;
             }

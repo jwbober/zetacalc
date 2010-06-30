@@ -837,6 +837,7 @@ int main() {
     unsigned int seed = time(NULL);
     //seed = 1276487827;
     //seed = 1276414014;
+    seed = 1277852897;
     cout << "Seeding rand() and gmp with " << seed << "." << endl;
     srand(seed);
     
@@ -851,10 +852,12 @@ int main() {
     //build_F1_cache(181, 51, 25, exp(-30));
     //build_F1_cache(361, 101, 25, exp(-30));
     
-    //build_F0_cache(11, 6, 25, 1300, exp(-20));
-    //build_F2_cache(11, 11, 6, 1300, exp(-30));
-    //test_theta_algorithm(20, 2000);
-    test2();
+    //build_F0_cache(11, 6, 25, 2800, exp(-25));
+    build_F0_cache(6, 6, 25, 2800, exp(-25));
+    //build_F1_cache(181, 51, 25, exp(-30));
+    build_F2_cache(2800, 6, 6, 6, exp(-30));
+    test_theta_algorithm(20, 5000);
+    //test2();
 
     print_stats();
 

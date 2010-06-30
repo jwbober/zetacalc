@@ -165,11 +165,15 @@ namespace verbose {
     const int IC6 = 0;
     const int IC7 = 0;
     const int IC9E = 0;
-    const int compute_exponential_sum = 1;
-    const int S1 = 1;
+    const int compute_exponential_sum = 0;
+    const int S1 = 0;
     const int S2 = 0;
     const int G = 0;
     const int H = 0;
+
+    const int J_Integral_0 = 0;
+    const int J_Integral_1 = 0;
+    const int J_Integral_2 = 1;
 }
 
 namespace stats {
