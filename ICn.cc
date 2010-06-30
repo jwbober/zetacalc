@@ -133,7 +133,7 @@ Complex IC1(int K, int j, Double a, Double b, Complex C11, Complex C12, theta_ca
     // (NEED (-log(epsilon)^2/(K^2 * 2 pi)) < b <= 1/8K )
     //
 
-    if(b < (LOG(epsilon) * LOG(epsilon)/(K * K * 2 * PI))) {
+    if(b < (LOG(epsilon) * LOG(epsilon)/(K * K))) {
         cout << "************Warning: b is too small in IC1" << endl;
     }
 
