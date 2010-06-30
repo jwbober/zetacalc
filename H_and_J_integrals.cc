@@ -838,7 +838,7 @@ void build_F2_cache(long max_a1, long number_of_a1, long number_of_a2, long numb
     Double a2 = 0;
     Double b = 0;
 
-    F2_cache.values = new Complex ** [number_of_a1];
+    F2_cache.values = new Complex ** [(number_of_a1 - 1) * max_a1 + 2];
     for(long k = 0; k < (number_of_a1 - 1) * max_a1 + 2; k++) {
         F2_cache.values[k] = new Complex * [number_of_a2];
         for(long j = 0; j < number_of_a2; j++) {
