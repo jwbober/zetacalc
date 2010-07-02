@@ -370,7 +370,7 @@ Complex IC7(int K, int j, Double a, Double b, theta_cache * cache, Double epsilo
         return 0.0;
     }
 
-    if(K != -1 && 4 * PI * b * K * K < L * L) {
+    if(K != -1 && (4 * PI * b * K * K < L * L)) {
         return IC7_method1(K, j, a, b, cache, epsilon, L);
     }
 
@@ -533,6 +533,34 @@ Complex IC7star(Double a, int j, Double epsilon, bool use_cache) {
         cout << "   epsilon = " << epsilon << endl;
     }
 
+    if(use_cache && IC7_cache_initialized) {
+        int a0_index = round(IC7_cache.a_per_unit_interval * a);
+        Double a0 = (Double)a0_index / (Double)IC7_cache.a_per_unit_interval;
+
+        if(a0_index < IC7_cache.number_of_a) {
+            int l = 0;
+            Double error = 2 * epsilon;
+
+            Double a_minus_a0_power = 1.0;
+            
+            Complex S = 0;
+            while(error > epsilon) {
+                Double z = minus_one_power(l) * two_pi_over_factorial_power(l) * a_minus_a0_power;
+                error = abs(z) * .5 * gamma_s_over_2(j + l + 1);
+
+                //S = S + z * exp_minus_i_pi4(l) * IC7star(a0, j + l, epsilon, false);
+                S = S + z * exp_minus_i_pi4(l) * get_cached_IC7star_value(a0_index, j + l);
+
+                l++;
+                a_minus_a0_power *= (a - a0);
+            }
+
+            //cout << l << " ";
+
+            return S;
+        }
+    }
+
     Complex C10(sqrt(2.0)/2.0, sqrt(2.0)/2.0);
 
     Double z;
@@ -556,32 +584,6 @@ Complex IC7star(Double a, int j, Double epsilon, bool use_cache) {
 
     if(L == 0) {
         return 0.0;
-    }
-
-    if(use_cache && IC7_cache_initialized) {
-        int a0_index = round(IC7_cache.a_per_unit_interval * a);
-        Double a0 = (Double)a0_index / (Double)IC7_cache.a_per_unit_interval;
-
-        int l = 0;
-        Double error = 2 * epsilon;
-
-        Double a_minus_a0_power = 1.0;
-        
-        Complex S = 0;
-        Double L_power = pow(L, j);
-        while(error > epsilon) {
-            Double z = minus_one_power(l) * two_pi_over_factorial_power(l) * a_minus_a0_power;
-            error = abs(z) * L_power;
-
-            //S = S + z * exp_minus_i_pi4(l) * IC7star(a0, j + l, epsilon, false);
-            S = S + z * exp_minus_i_pi4(l) * get_cached_IC7star_value(a0_index, j + l);
-
-            l++;
-            a_minus_a0_power *= (a - a0);
-            L_power *= L;
-        }
-
-        //cout << l << " ";
     }
 
     Complex S = (Complex)0;

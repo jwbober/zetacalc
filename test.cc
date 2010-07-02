@@ -906,15 +906,15 @@ int main() {
     //build_F1_cache(361, 101, 25, exp(-30));
     
     //build_F0_cache(11, 6, 25, 2800, exp(-25));
-    build_F0_cache(11, 6, 25, 10500, exp(-25));
-    build_F1_cache(181, 51, 25, exp(-30));
-    build_F2_cache(10500, 11, 11, 6, exp(-30));
+    //build_F0_cache(11, 6, 25, 10500, exp(-25));
+    //build_F1_cache(181, 51, 25, exp(-30));
+    //build_F2_cache(10500, 11, 11, 6, exp(-30));
     
-    build_IC7_cache(100, 200, 25, exp(-30));
+    build_IC7_cache(600, 200, 25, exp(-30));
 
     //test3();
 
-    //test_theta_algorithm(5, 5000);
+    test_theta_algorithm(5, 5000);
     time_theta_algorithm_varying_Kmin(10, 20010, 5000);
 
     //time_theta_algorithm(15, 10000);

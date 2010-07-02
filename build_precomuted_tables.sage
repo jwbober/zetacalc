@@ -7,7 +7,8 @@ ranges['bernoulli'] = 200
 ranges['two_pi_powers'] = 200
 ranges['two_pi_power_over_factorial'] = 200
 ranges['bernoulli_over_factorial'] = 200
-ranges['exp_t_over_N_squared'] = 22;
+ranges['exp_t_over_N_squared'] = 22
+ranges['gamma_s_over_2'] = 330
 
 def write_all_tables():
     outfile = open("precomputed_tables.h", 'w')
@@ -20,6 +21,7 @@ def write_all_tables():
     write_twopi_over_factorial_table(outfile)
     write_bernoulli_over_factorial_table(outfile)
     write_exp_table(outfile)
+    write_gamma_s_over_2_table(outfile)
 
     outfile.close()
 
@@ -195,4 +197,33 @@ inline Double exp_t_over_N_squared(int t, int N) {
         return exp(-(t/(double)N)*(t/(double)N));
 }
 """)
+
+def write_gamma_s_over_2_table(outfile):
+    M = ranges['gamma_s_over_2']
+    R = RealField(100)
+    outfile.write("const int gamma_s_over_2_range = %s;\n" % (M,))
+
+    outfile.write("const Double gamma_s_over_2_table[gamma_s_over_2_range] = {\n")
+    for s in srange(M):
+        if s == 0:
+            outfile.write( "0.0" );
+        else:
+            outfile.write( R(gamma(s/2)).str(truncate=False) ) 
+        if(s < M - 1):
+            outfile.write(",\n")
+
+    outfile.write("};\n\n")
+    
+    outfile.write("""
+inline Double gamma_s_over_2(int s) {
+    if(s < gamma_s_over_2_range) {
+        return gamma_s_over_2_table[s];
+    }
+    else {
+        cout << "Warning. gamma_s_over_2() called with s out of range." << endl;
+        return 0.0/0.0;
+    }
+}
+""")
+
 
