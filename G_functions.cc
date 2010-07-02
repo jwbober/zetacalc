@@ -27,16 +27,6 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
     //
     // alpha is typically complex, however.
 
-
-    if(imag(b) == 0) {
-        return G_R(alpha, real(b), n, j, epsilon, method);
-    }
-    else if(real(b) == 0) {
-        return G_I(alpha, imag(b), n, j, epsilon, method);
-    }
-
-    check_condition(imag(alpha) >= 0, "In function G(), Imag(alpha) should be nonnegative, but it isn't");
-
     if(verbose::G) {
         cout << "G() called with:  " << endl;
         cout << "          alpha = " << alpha << endl;
@@ -45,6 +35,16 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
         cout << "              j = " << j << endl;
         cout << "        epsilon = " << epsilon << endl;
     }
+
+
+    //if(imag(b) == 0) {
+    //    return G_R(alpha, real(b), n, j, epsilon, method);
+    //}
+    //else if(real(b) == 0) {
+    //    return G_I(alpha, imag(b), n, j, epsilon, method);
+    //}
+
+    check_condition(imag(alpha) >= 0, "In function G(), Imag(alpha) should be nonnegative, but it isn't");
 
     //if(epsilon >= pow((Double)n + 1, (Double)j)) {
     if(fastlog2(epsilon) > j * fastlog2(n+1)) {

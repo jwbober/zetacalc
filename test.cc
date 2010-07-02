@@ -230,6 +230,8 @@ int test_theta_algorithm(int number_of_tests, int approx_K) {
             v[k] = random_complex() * 2.0 - complex<double>(1.0, 1.0);
         }
 
+        
+
         Complex S1 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 100, 0);
         Complex S2 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 0, 1);
 
@@ -272,6 +274,38 @@ void test2() {
     cout << "a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ": log2(error) = " << log2(error) << endl;
 
 }
+
+
+void test3() {
+    Complex v[12];
+
+    Double a = -9.25347071106242;
+    Double b = 7.26188676304272;
+
+    int K;
+    int j = 10;
+
+    K = 20010;
+    a = .817876690448204;
+    b = 0.999958985019456;
+
+    for(int k = 0; k <= j; k++) {
+        v[k] = 1.0/(k * k + 1);
+    }
+    v[0] = 1;
+    v[1] = 1;
+
+    Complex S1 = compute_exponential_sums(a, b, j, K, v, exp(-20), 700, 0);
+    Complex S2 = compute_exponential_sums(a, b, j, K, v, exp(-20), 0, 1);
+
+    Double error = abs(S1 - S2);
+    cout << "a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ": log2(error) = " << log2(error) << endl;
+
+}
+
+
+
+
 
 double time_theta_algorithm(int j, int K) {
     Complex v[j + 1];
@@ -330,11 +364,20 @@ double time_theta_algorithm_varying_Kmin(int j, int K, int number_of_tests) {
     for(int Kmin = Kmin_start; Kmin <= Kmin_end; Kmin+=Kmin_increment) {
         clock_t start_time = clock();
         z1 = 0;
-        int n = 0;
         for(int k = 0; k < number_of_tests; k++) {
             Double a = rand()/(Double)RAND_MAX;
             Double b = rand()/(Double)RAND_MAX;
-            z1 += compute_exponential_sums(a, b, j, K, v, epsilon, Kmin, 0);
+            //z1 += compute_exponential_sums(a, b, j, K, v, epsilon, Kmin, 0);
+            z1 = compute_exponential_sums(a, b, j, K, v, epsilon, Kmin, 0);
+
+
+            if(isnan(real(z1))) {
+                Complex z2 = compute_exponential_sums(a, b, j, K, v, epsilon, Kmin, 1);
+                Double error = abs(z1 - z2);
+                cout << "Test " << k << ": a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ": log2(error) = " << log2(error) << endl;
+                
+            }
+
         }
         cout << "Sum was " << z1 << endl;
         clock_t end_time = clock();
@@ -831,6 +874,15 @@ int time_zeta_sum_stage3(gmp_randstate_t rand_state) {
 
 }
 
+void H_test() {
+
+    cout << H_method1(58, 72.0 * I) << endl;
+    cout << H_method1(58, 80.0 * I) << endl;
+    cout << H_method1(65, 80.0 * I) << endl;
+    cout << H_method1(70, 80.0 * I) << endl;
+    cout << H_method1(80, 80.0 * I) << endl;
+    cout << H_method1(85, 80.0 * I) << endl;
+}
 
 
 int main() {
@@ -838,6 +890,7 @@ int main() {
     //seed = 1276487827;
     //seed = 1276414014;
     //seed = 1277852897;
+    //seed = 1277923991;
     cout << "Seeding rand() and gmp with " << seed << "." << endl;
     srand(seed);
     
@@ -859,8 +912,10 @@ int main() {
     
     //build_IC7_cache(100, 200, 25, exp(-30));
 
-    test_theta_algorithm(5, 5000);
-    time_theta_algorithm_varying_Kmin(10, 10010, 10000);
+    //test3();
+
+    //test_theta_algorithm(5, 5000);
+    time_theta_algorithm_varying_Kmin(10, 20010, 5000);
 
     //time_theta_algorithm(15, 10000);
     //test2();

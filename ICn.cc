@@ -71,12 +71,13 @@ Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t m
         for(int n = 0; n < N; n++) {
             Complex C = exp((Double)2 * PI * I * (Double)n * (a2_mod1 + b2_mod1 * (Double)n));
             Complex z = G_method1(a2 + (Double) 2 * (Double)n * b2, b2, n, j, (epsilon) * N_to_the_j/K);
-            //Complex z = G(a2 + (Double) 2 * (Double)n * b2, b2, n, j, (epsilon));
-            
+            //Complex z = G_via_Euler_MacLaurin(a2 + (Double) 2 * (Double)n * b2, b2, n, j, epsilon * N_to_the_j/K);
+
             //S = S + C * z;
             if(verbose::IC0 >= 2) {
 //                cout << n << ": " << z << endl;
                 cout << n << ": " << K * pow(N, -(j+1)) * C * z << endl;
+                cout << "   G returned " << z << endl;
             }
             S = S + C * z * (Double)K * pow(N, -(j+1));
         }
@@ -93,7 +94,8 @@ Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t m
         Complex A = IC8(K, j, mp_a, mp_b, cache);
         Complex B = IC6(K, j, a, b, mp_a, cache, epsilon/4);
         Complex C = IC5(K, j, a, b, cache, epsilon/4);
-        Complex D = IC1(K, j, a, b, C11, C12, cache, epsilon/4);
+        //Complex D = IC1(K, j, a, b, C11, C12, cache, epsilon/4);
+        Complex D = IC1(K, j, a, b, C11, C12, cache, epsilon);
         if(verbose::IC0) {
             std::cout << "   IC1:" << D << std::endl;
             std::cout << "   IC5:" << C << std::endl;

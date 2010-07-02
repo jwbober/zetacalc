@@ -53,7 +53,7 @@ Complex H(int j, Complex alpha, Double epsilon) {
         return H_method2(j, alpha, epsilon);
     }
     //else if(abs(2 * PI * alpha) > j/2) {
-    else if(4 * PI * PI * norm_alpha > j * j/4) {
+    else if(4 * PI * PI * norm_alpha > j * j / 4) {
         if(verbose::H) {
             cout << "   In function H(), using method 1" << endl;
         }
@@ -116,12 +116,27 @@ Complex H_method1(int j, Complex alpha) {
             alpha_power *= alpha;
         }
         Complex z = alpha_power * two_pi_over_factorial_power(v);  //two_pi_alpha_power/factorial(v);
+        if(verbose::H >= 2) {
+            cout << v << ": " << alpha_power << " * " << two_pi_over_factorial_power(v) << " = " << z << endl;
+        }
         S = S + z;
     }
+    if(verbose::H >= 2) {
+        cout << "In H_method1(): after summing, S = " << S << endl;
+    }
     S = S * EXP(-2 * PI * alpha);
+    if(verbose::H >= 2) {
+        cout << "In H_method1(): after multiplying by exponential, S = " << S << endl;
+    }
     S = (Double)1.0 - S;
     alpha_power *= alpha;
-    S = S * j_factorial/(alpha_power * two_pi_power(j+1));
+    //S = S * j_factorial/(alpha_power * two_pi_power(j+1));
+    S = S * j_factorial;
+    S = S/two_pi_power(j+1);
+    S = S/alpha_power;
+    if(verbose::H >= 2) {
+        cout << "In H_method1(): after multiplying by j! term..., S = " << S << endl;
+    }
 
     if(verbose::H) {
         cout << "Computed H_method1(" << j << ", " << alpha << ") = " << S << endl;
