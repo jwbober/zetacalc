@@ -357,7 +357,7 @@ double time_theta_algorithm_varying_Kmin(int j, int K, int number_of_tests) {
     Complex z1 = 0.0;
 
     cout << "Timing theta_algorithm with K = " << K << " and j = " << j << endl;
-    int Kmin_start = 500;
+    int Kmin_start = 100;
     int Kmin_end = 1000;
     int Kmin_increment = 100;
     cout << "   Running " << number_of_tests << " iterations total for various Kmin from " << Kmin_start << " to " << Kmin_end << "." << endl;
@@ -906,11 +906,11 @@ int main() {
     //build_F1_cache(361, 101, 25, exp(-30));
     
     //build_F0_cache(11, 6, 25, 2800, exp(-25));
-    //build_F0_cache(6, 6, 25, 5100, exp(-25));
-    //build_F1_cache(181, 51, 25, exp(-30));
-    //build_F2_cache(5100, 6, 6, 6, exp(-30));
+    build_F0_cache(11, 6, 25, 10500, exp(-25));
+    build_F1_cache(181, 51, 25, exp(-30));
+    build_F2_cache(10500, 11, 11, 6, exp(-30));
     
-    //build_IC7_cache(100, 200, 25, exp(-30));
+    build_IC7_cache(100, 200, 25, exp(-30));
 
     //test3();
 
