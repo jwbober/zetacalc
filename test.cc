@@ -212,7 +212,7 @@ int test_fastlog2() {
     return failures1 + failures2 + failures3;
 }
 
-int test_theta_algorithm(int number_of_tests, int approx_K) {
+int test_theta_algorithm(int number_of_tests, int approx_K, int run_only = -1) {
     const int j_max = 18;
 
     Complex v[j_max + 1];
@@ -230,15 +230,24 @@ int test_theta_algorithm(int number_of_tests, int approx_K) {
             v[k] = random_complex() * 2.0 - complex<double>(1.0, 1.0);
         }
 
-        
+        if(run_only == -1) {
+            Complex S1 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 100, 0);
+            Complex S2 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 0, 1);
 
-        Complex S1 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 100, 0);
-        Complex S2 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 0, 1);
+            Double error = abs(S1 - S2);
+            maxerror = max(error, maxerror);
 
-        Double error = abs(S1 - S2);
-        maxerror = max(error, maxerror);
+            cout << "Test " << n << ": a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ": log2(error) = " << log2(error) << endl;
+        }
+        else if(run_only == n) {
+            Complex S1 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 100, 0);
+            Complex S2 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 0, 1);
 
-        cout << "Test " << n << ": a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ": log2(error) = " << log2(error) << endl;
+            Double error = abs(S1 - S2);
+            maxerror = max(error, maxerror);
+            
+            cout << "Test " << n << ": a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ": log2(error) = " << log2(error) << endl;
+        }
     }
     cout << "Largest error was " << maxerror << "; log2(maxerror) = " << log2(maxerror) << endl;
 
@@ -345,20 +354,18 @@ double time_theta_algorithm(int j, int K) {
     
 }
 
-double time_theta_algorithm_varying_Kmin(int j, int K, int number_of_tests) {
+double time_theta_algorithm_varying_Kmin(int j, int K, int number_of_tests, Double epsilon) {
     Complex v[j + 1];
     for(int k = 0; k <= j; k++) {
         v[k] = 1.0/(k*k + 1);
     }
 
 
-    Double epsilon = exp(-20);
-
     Complex z1 = 0.0;
 
     cout << "Timing theta_algorithm with K = " << K << " and j = " << j << endl;
     int Kmin_start = 100;
-    int Kmin_end = 1000;
+    int Kmin_end = 1500;
     int Kmin_increment = 100;
     cout << "   Running " << number_of_tests << " iterations total for various Kmin from " << Kmin_start << " to " << Kmin_end << "." << endl;
     for(int Kmin = Kmin_start; Kmin <= Kmin_end; Kmin+=Kmin_increment) {
@@ -891,6 +898,9 @@ int main() {
     //seed = 1276414014;
     //seed = 1277852897;
     //seed = 1277923991;
+
+    seed = 1278127602;
+
     cout << "Seeding rand() and gmp with " << seed << "." << endl;
     srand(seed);
     
@@ -906,16 +916,21 @@ int main() {
     //build_F1_cache(361, 101, 25, exp(-30));
     
     //build_F0_cache(11, 6, 25, 2800, exp(-25));
-    //build_F0_cache(11, 6, 25, 10500, exp(-25));
-    //build_F1_cache(181, 51, 25, exp(-30));
-    //build_F2_cache(10500, 11, 11, 6, exp(-30));
-    
-    build_IC7_cache(600, 200, 25, exp(-30));
+    build_F0_cache(11, 6, 25, 10500, exp(-25));
+    build_F1_cache(1801, 501, 30, exp(-30));
+    build_F2_cache(10500, 11, 11, 6, exp(-30));
+    build_IC7_cache(6000, 200, 25, exp(-30));
+
+    //build_F0_cache(101, 51, 25, 10500, exp(-25));
+    //build_F1_cache(1801, 501, 30, exp(-30));
+    //build_F2_cache(10500, 101, 101, 51, exp(-30));
+    //build_IC7_cache(600, 200, 25, exp(-30));
+
 
     //test3();
 
-    test_theta_algorithm(5, 5000);
-    time_theta_algorithm_varying_Kmin(10, 20010, 5000);
+    //test_theta_algorithm(6, 5000, 5);
+    time_theta_algorithm_varying_Kmin(10, 20010, 10000, exp(-14));
 
     //time_theta_algorithm(15, 10000);
     //test2();

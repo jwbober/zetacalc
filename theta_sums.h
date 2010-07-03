@@ -12,6 +12,9 @@
 
 #include "misc.h"
 
+const bool FAKE_PRECOMPUTATION = true;
+
+
 inline Complex I_power(int n) {
     Complex S = 0;
     switch(n % 4) {
@@ -201,6 +204,18 @@ namespace stats {
     extern int J_Integral_0;
     extern int J_Integral_1;
     extern int J_Integral_2;
+
+    extern int J_Integral_0_taylor_expansion;
+    extern int J_Integral_1_taylor_expansion;
+    extern int J_Integral_2_taylor_expansion;
+
+    extern int J_Integral_0_zero;
+    extern int J_Integral_1_zero;
+    extern int J_Integral_2_zero;
+
+    extern int J_Integral_0_terms_used;
+    extern int J_Integral_1_terms_used;
+    extern int J_Integral_2_terms_used;
 
     extern int IC7;
     extern int IC7zero;

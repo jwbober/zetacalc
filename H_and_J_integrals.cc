@@ -18,7 +18,12 @@ static struct{
 inline Complex get_cached_F0_value(int a_index, int b_index, int j, int M) {
     if(M == -1) {
         if(a_index <= (F0_cache.number_of_a  - 1 )* F0_cache.max_M  + 1 && b_index < F0_cache.number_of_b && j <= F0_cache.max_j) {
-            return F0_cache.values[0][a_index][b_index][j];
+            if(FAKE_PRECOMPUTATION) {
+                return 1.0;
+            }
+            else{
+                return F0_cache.values[0][a_index][b_index][j];
+            }
         }
         else {
             cout << "Warning: F0 called for a value out of range." << endl;
@@ -30,7 +35,12 @@ inline Complex get_cached_F0_value(int a_index, int b_index, int j, int M) {
     }
 
     if(a_index < F0_cache.number_of_a && b_index < F0_cache.number_of_b && j <= F0_cache.max_j && M <= F0_cache.max_M) {
-        return F0_cache.values[M][a_index][b_index][j];
+        if(FAKE_PRECOMPUTATION) {
+            return 1.0;
+        }
+        else {
+            return F0_cache.values[M][a_index][b_index][j];
+        }
     }
     else {
         cout << "Warning: F0 called for a value out of range." << endl;
@@ -69,9 +79,15 @@ static bool F2_cache_initialized = false;
 
 inline Complex get_cached_F1_value(int a_index, int b_index, int j) {
     if(a_index < F1_cache.number_of_a && b_index < F1_cache.number_of_b && j <= F1_cache.max_j) {
-        return F1_cache.values[a_index][b_index][j];
+        if(FAKE_PRECOMPUTATION) {
+            return 1.0;
+        }
+        else {
+            return F1_cache.values[a_index][b_index][j];
+        }
     }
     else {
+        cout << "Warning: requested F1 value out of range. a_index = " << a_index << ", b_index = " << b_index << ", j = " << j << endl;
         return 0.0/0.0;
 //        Double a = 6.0/(F0_cache.number_of_a - 1.0) * a_index;
 //        Double b = .25/(F0_cache.number_of_b - 1.0) * b_index;
@@ -82,11 +98,16 @@ inline Complex get_cached_F1_value(int a_index, int b_index, int j) {
 
 inline Complex get_cached_F2_value(int a1_index, int a2_index, int b_index, int j) {
     if(a1_index < (F2_cache.number_of_a1 - 1) * F2_cache.max_a1 + 1 && a2_index < F2_cache.number_of_a2 && b_index < F2_cache.number_of_b) {
-        if(j == 0) {
-            return F2_cache.values[a1_index][a2_index][b_index];
+        if(FAKE_PRECOMPUTATION) {
+            return 1.0;
         }
         else {
-            return F0_cache.values[0][a1_index][b_index][j] - F0_cache.values[0][a2_index][b_index][j];
+            if(j == 0) {
+                return F2_cache.values[a1_index][a2_index][b_index];
+            }
+            else {
+                return F0_cache.values[0][a1_index][b_index][j] - F0_cache.values[0][a2_index][b_index][j];
+            }
         }
     }
     else {
@@ -173,11 +194,15 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cach
 
     //if(2 * pow(K, -j) * log(abs((Double)M) + 10) < epsilon) {
     if( 3 + fastlog2(K_pow_minus_j) + fastlog2(fastlog(abs(M) + 10.0)) < fastlog2(epsilon)) {
+        stats::J_Integral_0_zero++;
         return 0.0;
     }
     epsilon = epsilon * K_pow_j;
 
     if(use_cache && F0_cache_initialized) {
+        if(stats::stats)
+            stats::J_Integral_0_taylor_expansion++;
+
         int a0_index = round( (F0_cache.number_of_a - 1) * a );
         Double a0 = a0_index * 1.0/(F0_cache.number_of_a - 1);
         int b0_index = round( (F0_cache.number_of_b - 1) * b/.25);
@@ -192,6 +217,8 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cach
 //        cout << "a = " << a << ",  b = " << b << endl;
 //        cout << "a0 = " << a0 << ", b0 = " << b0 << endl;
 //        cout << "M = " << M << endl;
+
+        int number_of_terms = 0;
 
         while(outside_error > epsilon/2) {
             Double a_minus_a0_power = 1.0;
@@ -212,6 +239,8 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cach
                 S2 = S2 + z;
                 a_minus_a0_power *= (a - a0);
                 l++;
+                if(stats::stats)
+                    number_of_terms++;
             }
 
             z1 = z1 * S2;
@@ -219,6 +248,9 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cach
             s++;
             b_minus_b0_power *= (b - b0);
         }
+
+        if(stats::stats)
+            stats::J_Integral_0_terms_used += number_of_terms;
 
         Complex answer = K_pow_minus_j * S;
         
@@ -282,6 +314,8 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
     L = min(K, L);
 
     if(L <= 1) {
+        if(stats::stats)
+            stats::J_Integral_1_zero++;
         return 0.0;
     }
 
@@ -303,12 +337,16 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
 
     //if(2 * pow(L, j) * one_over_K_to_the_j * log(abs((Double)M) + 10) < epsilon) {
     if( 5 + j * fastlog2(L) + fastlog2(one_over_K_to_the_j) - 2 * PI * (a + 1) * log2(E) < fastlog2(epsilon)) {
+        if(stats::stats)
+            stats::J_Integral_1_zero++;
         return 0.0;
     }
 
 
-    if(a <= 6 && use_cache && F1_cache_initialized && M > ceil(-fastlog(epsilon)/(PI)) ) {
+    if(a <= 6 && use_cache && F1_cache_initialized && (M > ceil(-fastlog(epsilon)/(PI)) || M == -1)) {
 
+        if(stats::stats)
+            stats::J_Integral_1_taylor_expansion++;
 
         epsilon /= one_over_K_to_the_j;
         
@@ -327,23 +365,26 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
 //        cout << "a0 = " << a0 << ", b0 = " << b0 << endl;
 //        cout << "M = " << M << endl;
 
-        Double L_power1 = pow(L, j);
+        Double outside_a_plus_1_power = pow(a + 1, -j);
+        Double a_plus_1_inverse = 1.0/(a + 1.0);
 
         int number_of_terms = 0;
 
-        while(s == 0 || L_power1 * outside_error > epsilon/2) {
+        //while(s == 0 || L_power1 * outside_error > epsilon/2) {
+        while(s == 0 ||  outside_a_plus_1_power/(two_pi_over_factorial_power(j + 2 *  s) * 2 * PI) * outside_error > epsilon/2) {
         //while(L_power1 * outside_error > epsilon/100) {
             Double a_minus_a0_power = 1.0;
 
-            Complex S2 = 0;
-            int l = 0;
 
             Complex z1 = two_pi_over_factorial_power(s) * minus_I_power(s) * b_minus_b0_power;
             outside_error = abs(z1);
             
             Double inside_error = 0;
-            Double L_power2 = L_power1;
-            while(l == 0 || inside_error *  outside_error * L_power2 > epsilon/6) {
+            
+            int l = 0;
+            Complex S2 = 0;
+            Double inside_a_plus_1_power = outside_a_plus_1_power;
+            while(l == 0 || inside_error *  outside_error * inside_a_plus_1_power/(two_pi_over_factorial_power(j + 2*s + l) * 2 * PI) > epsilon/6) {
             //while(inside_error *  outside_error * L_power2 > epsilon/300) {
                 //Complex z = minus_one_power(l) * two_pi_over_factorial_power(l) * a_minus_a0_power * F0_cache.values[M][a0_index][b0_index][j + l + 2 * s];
                 //Complex z = minus_one_power(l) * two_pi_over_factorial_power(l) * a_minus_a0_power * get_cached_F0_value(a0_index, b0_index, j + l + 2 * s, M);
@@ -353,17 +394,21 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
                 S2 = S2 + z;
                 a_minus_a0_power *= (a - a0);
                 l++;
-                L_power2 *= L;
-                number_of_terms++;
+                inside_a_plus_1_power *= a_plus_1_inverse;
+                if(stats::stats)
+                    number_of_terms++;
             }
 
-            L_power1 *= L * L;
 
+            outside_a_plus_1_power *= (a_plus_1_inverse * a_plus_1_inverse);
             z1 = z1 * S2;
             S = S + z1;
             s++;
             b_minus_b0_power *= (b - b0);
         }
+
+        if(stats::stats)
+            stats::J_Integral_1_terms_used += number_of_terms;
 
         //cout << "number of terms computed = " << number_of_terms << endl;
 
@@ -382,9 +427,6 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
 
     }
 
-
-
-
     Double exp_minus_twopi = exp(-2.0 * PI);
     Double exp_minus_twopi_n = 1.0;
 
@@ -401,7 +443,7 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
             end_point = min(M, to_int(ceil(-fastlog(epsilon)/(2 * PI * n) ) ));
         }
 
-        end_point = ceil(end_point - j * fastlog((Double)K/(n + 1))/(2 * PI));
+        end_point = max(1, (int)ceil(end_point - j * fastlog((Double)K/(n + 1))/(2 * PI)));
         //end_point = max(1, (int)(end_point - j * fastlog((Double)K/(n + 1))/(2 * PI)));
 
         Complex S1 = 0;
@@ -443,8 +485,6 @@ Complex J_Integral_1_precomputation(Double a, Double b, int j, Double epsilon) {
     int M = -1;
 
     // We truncate the integral at L, where L is given by
-    stats::J_Integral_1++;
-
     //int L = min(K, max(1, to_int(ceil(-LOG(epsilon)/(2 * PI * (1 + a))))));
 
     int L = max(1.0, ceil(-fastlog(epsilon)/(2 * PI * (1 + a))));
@@ -483,6 +523,8 @@ Complex J_Integral_1_precomputation(Double a, Double b, int j, Double epsilon) {
         else {
             end_point = min(M, to_int(ceil(-fastlog(epsilon)/(2 * PI * n) ) ));
         }
+
+        end_point = max(end_point, 1);
 
         Complex S1 = 0;
 
@@ -538,17 +580,24 @@ Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double
     stats::J_Integral_2++;
 
     if(a2 > a1) {
-        //if (2.0 * pow(K, -j) * ( (a2 - a1)/a2 * log(1 + a2) ) < epsilon)
-        if(1 + fastlog2( (a2 - a1)/a2 * (fastlog(1 + a2) + 1.0)) < fastlog2(epsilon))
+        //if (2.0 * ( (a2 - a1)/a2 * log(1 + a2) ) < epsilon) {
+        if(1 + fastlog2( (a2 - a1)/a2 * (fastlog(1 + a2) + 1.0)) < fastlog2(epsilon)) {
+            stats::J_Integral_2_zero++;
             return 0.0;
+        }
     }
     else {
-        //if (2.0 * pow(K, -j) * ( (a1 - a2)/a1 * log(1 + a1) ) < epsilon)
-        if(1 + fastlog2( (a1 - a2)/a1 * (fastlog(1 + a1) + 1.0)) < fastlog2(epsilon))
+        //if (2.0 * ( (a1 - a2)/a1 * log(1 + a1) ) < epsilon) {
+        if(1 + fastlog2( (a1 - a2)/a1 * (fastlog(1 + a1) + 1.0)) < fastlog2(epsilon)) {
+            stats::J_Integral_2_zero++;
             return 0.0;
+        }
     }
 
     if(use_cache && F2_cache_initialized) {
+
+        if(stats::stats)
+            stats::J_Integral_2_taylor_expansion++;
 
         int sign = 1;
         if(a2 > a1) {
@@ -580,12 +629,14 @@ Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double
 
         Complex S = 0;
 
+        int number_of_terms = 1;
+
         S = S + get_cached_F2_value(a1_0_index, a2_0_index, b0_index, 0);
         //S = S + J_Integral_2(a1_0, a2_0, b0, NULL, epsilon, 0);
 
         Complex S1 = 0;
         Double error = 2 * epsilon;
-        
+
         {
             int r = 1;
             Double a2_minus_a2_0_power = (a2 - a2_0);
@@ -595,6 +646,8 @@ Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double
                 S1 = S1 + z * get_cached_F0_value(a2_0_index, b0_index, r, -1);
                 a2_minus_a2_0_power *= (a2 - a2_0);
                 r++;
+                if(stats::stats)
+                    number_of_terms++;
             }
             if(verbose::J_Integral_2)
                 cout << r << " terms in first loop." << endl;
@@ -613,6 +666,8 @@ Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double
                 S1 = S1 + z * get_cached_F0_value(a1_0_index, b0_index, l, -1);
                 a1_minus_a1_0_power *= (a1 - a1_0);
                 l++;
+                if(stats::stats)
+                    number_of_terms++;
             }
             if(verbose::J_Integral_2)
                 cout << l << " terms in second loop." << endl;
@@ -631,10 +686,16 @@ Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double
                 S1 = S1 + z * minus_I_power(s) * (J_Integral_0(a1, b0, 2 * s, -1, 1, NULL, epsilon/error) - J_Integral_0(a2, b0, 2 * s, -1, 1, NULL, epsilon/error));
                 b_minus_b0_power *= b - b0;
                 s++;
+                if(stats::stats)
+                    number_of_terms++;
             }
             if(verbose::J_Integral_2)
                 cout << s << " terms in third loop." << endl;
         }
+
+        if(stats::stats)
+            stats::J_Integral_2_terms_used += number_of_terms;
+
         S = S + S1;
 
         Complex answer = (Double)sign * S;
@@ -731,10 +792,16 @@ void build_F0_cache(long number_of_a, long number_of_b, long max_j, long max_M, 
 
 void build_F0_cache(long number_of_a, long number_of_b, long max_j, long max_M, Double epsilon) {
 
+
     F0_cache.number_of_a = number_of_a;
     F0_cache.number_of_b = number_of_b;
     F0_cache.max_j = max_j;
     F0_cache.max_M = max_M;
+
+    if(FAKE_PRECOMPUTATION) {
+        F0_cache_initialized = true;
+        return;
+    }
 
     F0_cache.values = new Complex *** [max_M + 1];
 
@@ -797,6 +864,13 @@ void build_F1_cache(long number_of_a, long number_of_b, long max_j, Double epsil
     F1_cache.number_of_b = number_of_b;
     F1_cache.max_j = max_j;
 
+    if(FAKE_PRECOMPUTATION) {
+        F1_cache_initialized = true;
+        return;
+    }
+
+
+
     F1_cache.values = new Complex ** [number_of_a];
 
     Double a = 0;
@@ -829,6 +903,13 @@ void build_F2_cache(long max_a1, long number_of_a1, long number_of_a2, long numb
     F2_cache.number_of_a1 = number_of_a1;
     F2_cache.number_of_a2 = number_of_a2;
     F2_cache.number_of_b = number_of_b;
+
+
+    if(FAKE_PRECOMPUTATION) {
+        F2_cache_initialized = true;
+        return;
+    }
+
 
     Double a1_increment = 1.0/(number_of_a1 - 1.0);
     Double a2_increment = 1.0/(number_of_a2 - 1.0);

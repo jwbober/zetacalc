@@ -494,6 +494,15 @@ void build_IC7_cache(int a_per_unit_interval, Double max_a, int max_j, Double ep
     IC7_cache.a_per_unit_interval = a_per_unit_interval;
     IC7_cache.max_j = max_j;
 
+    if(FAKE_PRECOMPUTATION) {
+        IC7_cache_initialized = true;
+        return;
+    }
+
+
+
+
+
     IC7_cache.values = new Complex * [number_of_a];
     Double a = 0;
     Double a_increment = 1.0/a_per_unit_interval;
@@ -516,7 +525,12 @@ void free_IC7_cache() {
 
 inline Complex get_cached_IC7star_value(int a_index, int j) {
     if(a_index < IC7_cache.number_of_a && j <= IC7_cache.max_j) {
-        return IC7_cache.values[a_index][j];
+        if(FAKE_PRECOMPUTATION) {
+            return 1.0;
+        }
+        else {
+            return IC7_cache.values[a_index][j];
+        }
     }
     else {
         cout << "Warning. IC7 cache called with values out of range." << endl;

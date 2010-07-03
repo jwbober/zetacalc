@@ -26,6 +26,18 @@ namespace stats {
     int J_Integral_1 = 0;
     int J_Integral_2 = 0;
 
+    int J_Integral_0_taylor_expansion = 0;
+    int J_Integral_1_taylor_expansion = 0;
+    int J_Integral_2_taylor_expansion = 0;
+
+    int J_Integral_0_zero = 0;
+    int J_Integral_1_zero = 0;
+    int J_Integral_2_zero = 0;
+
+    int J_Integral_0_terms_used = 0;
+    int J_Integral_1_terms_used = 0;
+    int J_Integral_2_terms_used = 0;
+
     int IC7 = 0;
     int IC7zero = 0;
 }
@@ -53,9 +65,24 @@ void print_stats() {
 
     std::cout << "H_Integral_0 called " << stats::H_Integral_0 << " times." << std::endl;
     std::cout << "H_Integral_2 called " << stats::H_Integral_2 << " times." << std::endl;
-    std::cout << "J_Integral_0 called " << stats::J_Integral_0 << " times." << std::endl;
-    std::cout << "J_Integral_1 called " << stats::J_Integral_1 << " times." << std::endl;
-    std::cout << "J_Integral_2 called " << stats::J_Integral_2 << " times." << std::endl;
+
+    std::cout << "J_Integral_0: " << std::endl;
+    std::cout << "      called " << stats::J_Integral_0 << " times." << std::endl;
+    std::cout << "      used taylor expansions " << stats::J_Integral_0_taylor_expansion << " times." << endl;
+    std::cout << "          average number of terms used was " << (Double)stats::J_Integral_0_terms_used/(Double)stats::J_Integral_0_taylor_expansion << endl;
+    std::cout << "      quickly returned 0 " << stats::J_Integral_0_zero << " times. " << std::endl;
+
+    std::cout << "J_Integral_1: " << std::endl;
+    std::cout << "      called " << stats::J_Integral_1 << " times." << std::endl;
+    std::cout << "      used taylor expansions " << stats::J_Integral_1_taylor_expansion << " times." << endl;
+    std::cout << "          average number of terms used was " << (Double)stats::J_Integral_1_terms_used/(Double)stats::J_Integral_1_taylor_expansion << endl;
+    std::cout << "      quickly returned 0 " << stats::J_Integral_1_zero << " times. " << std::endl;
+
+    std::cout << "J_Integral_2: " << std::endl;
+    std::cout << "      called " << stats::J_Integral_2 << " times." << std::endl;
+    std::cout << "      used taylor expansions " << stats::J_Integral_2_taylor_expansion << " times." << endl;
+    std::cout << "          average number of terms used was " << (Double)stats::J_Integral_2_terms_used/(Double)stats::J_Integral_2_taylor_expansion << endl;
+    std::cout << "      quickly returned 0 " << stats::J_Integral_2_zero << " times. " << std::endl;
 
     std::cout << "IC7 called " << stats::IC7 << " times." << endl;
     std::cout << "IC7 quickly returned 0 " << stats::IC7zero << " times." << endl;
