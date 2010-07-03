@@ -1044,6 +1044,7 @@ inline Double bernoulli_over_factorial(int n) {
         return bernoulli_over_factorial_table[n];
     }
     else {
+        cout << "Warning: bernoulli_over_factorial called out of range. Returning nan." << endl;
         return 0.0/0.0;
     }
 }

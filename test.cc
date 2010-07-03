@@ -254,6 +254,52 @@ int test_theta_algorithm(int number_of_tests, int approx_K, int run_only = -1) {
     return 0;
 }
 
+int test_theta_algorithm_EM_case(int number_of_tests, int approx_K, int run_only = -1) {
+    const int j_max = 18;
+
+    Complex v[j_max + 1];
+
+    cout << "Testing theta algorithm with various random parameters " << number_of_tests << " times." << endl;
+    Double maxerror = 0.0;
+    for(int n = 0; n < number_of_tests; n++) {
+        Double a = (double)rand()/(double)RAND_MAX * 20.0 - 10.0;
+
+        int K = (int)((double)rand()/(double)RAND_MAX * 500.0 + approx_K);
+        int j = (int)((double)rand()/(double)RAND_MAX * j_max);
+ 
+        Double b = ((double)rand()/(double)RAND_MAX) / K;
+
+        for(int k = 0; k <= j; k++) {
+            v[k] = random_complex() * 2.0 - complex<double>(1.0, 1.0);
+        }
+
+        if(run_only == -1) {
+            Complex S1 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 100, 0);
+            Complex S2 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 0, 1);
+
+            Double error = abs(S1 - S2);
+            maxerror = max(error, maxerror);
+
+            cout << "Test " << n << ": a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ": log2(error) = " << log2(error) << endl;
+        }
+        else if(run_only == n) {
+            Complex S1 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 100, 0);
+            Complex S2 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 0, 1);
+
+            Double error = abs(S1 - S2);
+            maxerror = max(error, maxerror);
+            
+            cout << "Test " << n << ": a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ": log2(error) = " << log2(error) << endl;
+        }
+    }
+    cout << "Largest error was " << maxerror << "; log2(maxerror) = " << log2(maxerror) << endl;
+
+    return 0;
+}
+
+
+
+
 void test2() {
     Complex v[10];
 
@@ -829,8 +875,8 @@ int time_zeta_sum_stage3(gmp_randstate_t rand_state) {
     cout << "Timing stage 3 sum ten times on large block sizes of length " << length << " starting at v = 20 stage2_bound for random large t...";
     cout.flush();
     int Kmin_start = 500;
-    int Kmin_end = 3000;
-    int Kmin_increment = 200;
+    int Kmin_end = 1000;
+    int Kmin_increment = 100;
     Complex Z[30];
 
     int number_of_gridpoints = 200;
@@ -899,8 +945,8 @@ int main() {
     //seed = 1277852897;
     //seed = 1277923991;
 
-    seed = 1278127602;
-
+    //seed = 1278127602;
+    seed = 1278182770;
     cout << "Seeding rand() and gmp with " << seed << "." << endl;
     srand(seed);
     
@@ -927,10 +973,13 @@ int main() {
     //build_IC7_cache(600, 200, 25, exp(-30));
 
 
+    time_zeta_sum_stage3(rand_state);
+
     //test3();
 
-    //test_theta_algorithm(6, 5000, 5);
-    time_theta_algorithm_varying_Kmin(10, 20010, 10000, exp(-14));
+    //test_theta_algorithm(100, 5000);
+    //test_theta_algorithm_EM_case(500, 10000);
+    //time_theta_algorithm_varying_Kmin(10, 20010, 10000, exp(-14));
 
     //time_theta_algorithm(15, 10000);
     //test2();

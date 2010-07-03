@@ -56,7 +56,7 @@ zeta.o: zeta.cc zeta.h
 misc.o: misc.cc precomputed_tables.h misc.h log.h
 	g++ -c misc.cc $(OPTIONS) $(INCLUDEDIR)
 
-w_coefficient.o: w_coefficient.cc precomputed_tables.h w_coefficient.h misc.h
+w_coefficient.o: w_coefficient.cc w_coefficient.h misc.h
 	g++ -c w_coefficient.cc $(OPTIONS) $(INCLUDEDIR)
 
 log.o: log.cc log.h

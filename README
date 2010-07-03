@@ -1,0 +1,9 @@
+Possible sources of nan:
+    -out of range errors in precomputed tables
+    -out of range errors in data that is precomputed for J_Integrals and IC7 (shouldn't even happen if the data is created correctly)
+    
+    -When K is large or epsilon is very small, compute_exponential_sums_via_euler_maclaurin() might end with nans or infs from out
+        of range errors on the correction terms.
+    -H_method1() can end up returning nan if j is very large from out of range errors. When this is compiled
+        with -ffast-math, these errors are much more likely, because -ffast-math doesn't always work correctly with
+        the full exponent range for complex numbers. For this reason, we don't compile this file with -ffast-math.
