@@ -552,12 +552,17 @@ Complex IC7star(Double a, int j, Double epsilon, bool use_cache) {
         Double a0 = (Double)a0_index / (Double)IC7_cache.a_per_unit_interval;
 
         if(a0_index < IC7_cache.number_of_a) {
+            if(stats::stats) {
+                stats::IC7_taylor_expansion++;
+            }
+
             int l = 0;
             Double error = 2 * epsilon;
 
             Double a_minus_a0_power = 1.0;
             
             Complex S = 0;
+            int number_of_terms = 0;
             while(error > epsilon) {
                 Double z = minus_one_power(l) * two_pi_over_factorial_power(l) * a_minus_a0_power;
                 error = abs(z) * .5 * gamma_s_over_2(j + l + 1);
@@ -567,6 +572,13 @@ Complex IC7star(Double a, int j, Double epsilon, bool use_cache) {
 
                 l++;
                 a_minus_a0_power *= (a - a0);
+                if(stats::stats) {
+                    number_of_terms++;
+                }
+            }
+
+            if(stats::stats) {
+                stats::IC7_terms_used += number_of_terms;
             }
 
             //cout << l << " ";

@@ -219,6 +219,9 @@ namespace stats {
 
     extern int IC7;
     extern int IC7zero;
+    
+    extern int IC7_taylor_expansion;
+    extern int IC7_terms_used;
 }
 
 void print_stats();

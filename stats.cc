@@ -40,6 +40,8 @@ namespace stats {
 
     int IC7 = 0;
     int IC7zero = 0;
+    int IC7_taylor_expansion = 0;
+    int IC7_terms_used = 0;
 }
 
 
@@ -84,8 +86,11 @@ void print_stats() {
     std::cout << "          average number of terms used was " << (Double)stats::J_Integral_2_terms_used/(Double)stats::J_Integral_2_taylor_expansion << endl;
     std::cout << "      quickly returned 0 " << stats::J_Integral_2_zero << " times. " << std::endl;
 
-    std::cout << "IC7 called " << stats::IC7 << " times." << endl;
-    std::cout << "IC7 quickly returned 0 " << stats::IC7zero << " times." << endl;
+    std::cout << "IC7: " << endl;
+    std::cout << "      called " << stats::IC7 << " times." << endl;
+    std::cout << "      used taylor expansions " << stats::IC7_taylor_expansion << " times." << endl;
+    std::cout << "          average number of terms used was " << (Double)stats::IC7_terms_used/(Double)stats::IC7_taylor_expansion << " times." << endl;
+    std::cout << "      quickly returned 0 " << stats::IC7zero << " times." << endl;
 
 
 }

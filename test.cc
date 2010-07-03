@@ -919,7 +919,7 @@ int main() {
     build_F0_cache(11, 6, 25, 10500, exp(-25));
     build_F1_cache(1801, 501, 30, exp(-30));
     build_F2_cache(10500, 11, 11, 6, exp(-30));
-    build_IC7_cache(6000, 200, 25, exp(-30));
+    build_IC7_cache(600, 200, 25, exp(-30));
 
     //build_F0_cache(101, 51, 25, 10500, exp(-25));
     //build_F1_cache(1801, 501, 30, exp(-30));
