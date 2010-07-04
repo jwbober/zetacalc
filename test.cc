@@ -424,13 +424,6 @@ double time_theta_algorithm_varying_Kmin(int j, int K, int number_of_tests, Doub
             z1 = compute_exponential_sums(a, b, j, K, v, epsilon, Kmin, 0);
 
 
-            if(isnan(real(z1))) {
-                Complex z2 = compute_exponential_sums(a, b, j, K, v, epsilon, Kmin, 1);
-                Double error = abs(z1 - z2);
-                cout << "Test " << k << ": a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ": log2(error) = " << log2(error) << endl;
-                
-            }
-
         }
         cout << "Sum was " << z1 << endl;
         clock_t end_time = clock();
@@ -441,6 +434,38 @@ double time_theta_algorithm_varying_Kmin(int j, int K, int number_of_tests, Doub
     return 1.0;
     
 }
+
+
+double time_theta_algorithm_EM_case(int j, int K, int number_of_tests, Double epsilon) {
+    Complex v[j + 1];
+    for(int k = 0; k <= j; k++) {
+        v[k] = 1.0/(k*k + 1);
+    }
+
+
+    Complex z1 = 0.0;
+
+    cout << "Timing theta_algorithm euler-maclaurin case with K = " << K << " and j = " << j << endl;
+    clock_t start_time = clock();
+    z1 = 0;
+    for(int k = 0; k < number_of_tests; k++) {
+        Double a = (rand()/(Double)RAND_MAX);
+        Double b = (rand()/(Double)RAND_MAX)/K;
+        //z1 += compute_exponential_sums(a, b, j, K, v, epsilon, Kmin, 0);
+        z1 = compute_exponential_sums(a, b, j, K, v, epsilon, Kmin, 0);
+
+    }
+    cout << "Sum was " << z1 << endl;
+    clock_t end_time = clock();
+    double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
+    cout << "Number of seconds was " << elapsed_time << endl;
+
+    return elapsed_time;
+    
+}
+
+
+
 
 
 
@@ -946,7 +971,7 @@ int main() {
     //seed = 1277923991;
 
     //seed = 1278127602;
-    seed = 1278182770;
+    //seed = 1278182770; // this seed makes the first test in test_theta_algorithm(20, 5000)
     cout << "Seeding rand() and gmp with " << seed << "." << endl;
     srand(seed);
     
@@ -973,13 +998,20 @@ int main() {
     //build_IC7_cache(600, 200, 25, exp(-30));
 
 
-    time_zeta_sum_stage3(rand_state);
+    //time_zeta_sum_stage3(rand_state);
 
     //test3();
 
-    //test_theta_algorithm(100, 5000);
-    //test_theta_algorithm_EM_case(500, 10000);
-    //time_theta_algorithm_varying_Kmin(10, 20010, 10000, exp(-14));
+    //test_theta_algorithm(10, 5000);
+    //test_theta_algorithm_EM_case(10, 10000);
+    //test_theta_algorithm_EM_case(10, 1000);
+    //test_theta_algorithm_EM_case(10, 123);
+    time_theta_algorithm_varying_Kmin(10, 20010, 10000, exp(-14));
+    
+
+    //int new_seed = 1278263575;
+    //srand(new_seed);
+    //time_theta_algorithm_EM_case(10, 20010, 1000, exp(-14));
 
     //time_theta_algorithm(15, 10000);
     //test2();

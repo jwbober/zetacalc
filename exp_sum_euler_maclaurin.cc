@@ -10,7 +10,7 @@ using namespace std;
 Complex compute_exponential_sum_via_Euler_Maclaurin(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Double epsilon) {
     Complex S = (Complex)0;
  
-    theta_cache * cache = build_theta_cache(mp_a, mp_b, j, K);
+    theta_cache * cache = build_theta_cache(mp_a, mp_b, j + 1, K);
 
     //cout << "Warning: Euler Maclaurin case not implemented yet. Evaluating directly." << endl;
     //return direct_exponential_sum_evaluation2(mp_a, mp_b, j, 0, K);
@@ -138,14 +138,14 @@ Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, in
 
 //    check_condition( 0 < a + 2 * b * K && a + 2 * b * K < 2 , "Warning: in compute_exponential_sum_for_small_b(), a + 2bK was not between 0 and 2");
 
-       
+    
     {
         Double new_a = a;
         if(new_a > .5) {
             new_a = new_a - 1.0;
         }
         Double z = abs(new_a) + 2 * b * K;
-        if(z <= .75) {
+        if(z <= .5 + 1.0/6) {
             mpfr_t mp_new_a;
             mpfr_init2(mp_new_a, mpfr_get_prec(mp_a));
             mpfr_set(mp_new_a, mp_a, GMP_RNDN);
@@ -167,8 +167,9 @@ Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, in
     
     Complex S = (Complex)0;
     
-    int number_of_divisions = ceil(4 * 2 * b * K);
-    //cout << number_of_divisions << " ";
+    int number_of_divisions = ceil(6 * 2 * b * K);
+    //cout << "Number of divisions = " << number_of_divisions << endl;
+    //number_of_divisions = 8;
     //cout.flush();
 
     for(int l = 0; l <= j; l++) {

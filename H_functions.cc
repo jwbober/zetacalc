@@ -96,6 +96,36 @@ inline Complex H_method1(int j, Double alpha) {
     return S;
 }
 
+inline Complex H_method1_I(int j, Double alpha) {
+    // In this case we compute an "exact" value using the antiderivative of the integrand.
+    // 
+    // Specialized for imaginary alpha. Here alpha has an implicit I multiplying it.
+    Complex S = 0.0;
+    Double j_factorial = factorial(j);
+    Double alpha_power = 1.0;
+    for(int v = 0; v < j + 1; v++) {
+        if(v > 0) {
+    //        v_factorial *= v;
+            alpha_power *= alpha;
+        }
+        Double z = alpha_power * two_pi_over_factorial_power(v);  //two_pi_alpha_power/factorial(v);
+        S = S + I_power(v) * z;
+    }
+    //S = S * exp(-2 * PI * alpha);
+    S = S * Complex( cos(-2 * PI * alpha), sin(-2 * PI * alpha) );
+    S = (Double)1.0 - S;
+    alpha_power *= alpha;
+    S = S * j_factorial/(I_power(j + 1) * alpha_power * two_pi_power(j+1));
+
+    if(verbose::H) {
+        cout << "Computed H_method1(" << j << ", " << alpha << ") = " << S << endl;
+    }
+
+    return S;
+}
+
+
+
 
 
 Complex H_method1(int j, Complex alpha) {
@@ -105,6 +135,9 @@ Complex H_method1(int j, Complex alpha) {
 
     if(imag(alpha) == 0) {
         return H_method1(j, real(alpha));
+    }
+    if(real(alpha) == 0) {
+        return H_method1_I(j, imag(alpha));
     }
 
     Complex S = (Complex)0.0;

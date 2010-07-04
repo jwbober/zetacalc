@@ -23,13 +23,17 @@ Complex compute_exponential_sums_directly(mpfr_t mp_a, mpfr_t mp_b, int j, int K
         Double one_over_K = 1. / (Double)K;
         for(int n = 0; n <= K; n++) {
            Double n_over_K_powers = 1.;
-           Complex common_exp = EXP( two_pi_i * (Double)n * (a + b * (Double)n) );
+           //Complex common_exp = EXP( two_pi_i * (Double)n * (a + b * (Double)n) );
+           Double z = 2 * PI * n * ( a + b * n);
+           Complex common_exp = Complex( cos(z), sin(z) );
+           Complex S2 = 0.0;
            for(int l = 0; l <= j; l++) {
                 if(v[l] != 0.) {
-                    S = S + v[l] * n_over_K_powers * common_exp;
+                    S2 = S2 + v[l] * n_over_K_powers;
                 }
                 n_over_K_powers *= (Double)n * one_over_K;
            }
+           S += S2 * common_exp;
         }
     }
  

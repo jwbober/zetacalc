@@ -68,9 +68,13 @@ Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t m
 
         Double N_to_the_j = pow(N, j);
 
+        Double exp_linear_term = 0;
+        Double new_epsilon = epsilon * N_to_the_j * K_power(-1, cache);
         for(int n = 0; n < N; n++) {
-            Complex C = exp((Double)2 * PI * I * (Double)n * (a2_mod1 + b2_mod1 * (Double)n));
-            Complex z = G_method1(a2 + (Double) 2 * (Double)n * b2, b2, n, j, (epsilon) * N_to_the_j/K);
+            //Complex C = exp((Double)2 * PI * I * (Double)n * (a2_mod1 + b2_mod1 * (Double)n));
+            Double exp_quadratic_term = 2 * PI * b2_mod1 * n * n;
+            Complex C = Complex( cos(exp_linear_term + exp_quadratic_term), sin(exp_linear_term + exp_quadratic_term) );
+            Complex z = G_method1_R(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
             //Complex z = G_via_Euler_MacLaurin(a2 + (Double) 2 * (Double)n * b2, b2, n, j, epsilon * N_to_the_j/K);
 
             //S = S + C * z;
@@ -79,8 +83,11 @@ Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t m
                 cout << n << ": " << K * pow(N, -(j+1)) * C * z << endl;
                 cout << "   G returned " << z << endl;
             }
-            S = S + C * z * (Double)K * pow(N, -(j+1));
+            //S = S + C * z * (Double)K * pow(N, -(j+1));
+            S = S + C * z;
+            exp_linear_term += 2 * PI * a2_mod1;
         }
+        S *= K * pow(N, -(j + 1));
         if(verbose::IC0 >= 2) {
             cout << "IC0 returning S = " << S << endl;
         }
