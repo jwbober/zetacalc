@@ -163,7 +163,8 @@ typedef struct{
 } theta_cache;
 
 namespace verbose {
-    const int IC0 = 0;
+    const int IC0 = 1;
+    const int IC1 = 0;
     const int IC1c = 0;
     const int IC6 = 0;
     const int IC7 = 0;
@@ -436,13 +437,13 @@ inline Complex compute_C11(mpfr_t a, mpfr_t b, int K) {
 }
 
 inline Complex compute_C12(mpfr_t mp_a, mpfr_t mp_b, int K) {
-    Complex z = ExpB(mp_b, K);
+    Complex z = ExpBK(mp_b, K);
     Double a = mpfr_get_d(mp_a, GMP_RNDN);
     Double b = mpfr_get_d(mp_b, GMP_RNDN);
     
     Complex w = I * exp(-2 * PI * (a + 2 * b * K) * K) / (sqrt(2 * PI * b));
  
-    return w * z;
+    return w/z;
 }
 
 Complex direct_exponential_sum_evaluation2(Double a, Double b, int j, int m, int M, int working_precision = 53);

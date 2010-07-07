@@ -10,7 +10,18 @@
 using namespace std;
 
 Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mpfr_t mp_b, theta_cache * cache, Double epsilon) {
+    if(verbose::IC0 >= 2) {
+        cout << "IC0 called with:   " << endl;
+        cout << "               a = " << a << endl;
+        cout << "               b = " << b << endl;
+        cout << "               j = " << j << endl;
+        cout << "               K = " << K << endl;
+        cout << "         epsilon = " << epsilon << endl;
+    }
     if(b <= (-LOG(epsilon)) * (-LOG(epsilon))/((Double)K * (Double)K)) {
+        if(verbose::IC0) {
+            cout << "IC0() using method 1. " << endl;
+        }
 
         if(verbose::IC0 >= 2) {
             cout << "In ICO(), 'really small b' case:" << endl;
@@ -98,6 +109,11 @@ Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t m
         return S;
     }
     if(-a/(2 * b) >= 0 && -a/(2 * b) <= K) {
+
+        if(verbose::IC0) {
+            cout << "IC0() using method 2. " << endl;
+        }
+
         Complex A = IC8(K, j, mp_a, mp_b, cache);
         Complex B = IC6(K, j, a, b, mp_a, cache, epsilon/4);
         Complex C = IC5(K, j, a, b, cache, epsilon/4);
@@ -109,25 +125,42 @@ Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t m
             std::cout << "   IC6:" << B << std::endl;
             std::cout << "   IC8:" << A << std::endl;
         }
+        if(verbose::IC0 >= 2) {
+            cout << "IC0 returning S = " << A - B - C - D << endl;
+        }
         // Really here we are computing IC2 - IC1...
         return A - B - C - D;
     }
     else {
         if(-a/(2 * b) > K) {
+            if(verbose::IC0) {
+                cout << "IC0() using method 3. " << endl;
+            }
+            
             Complex A = IC3(K, j, a, b, cache, epsilon/2);
             Complex B = IC4(K, j, a, b, C11, cache, epsilon/2);
             if(verbose::IC0) {
                 std::cout << "   IC3:" << A << std::endl;
                 std::cout << "   IC4:" << B << std::endl;
             }
+            if(verbose::IC0 >= 2) {
+                cout << "IC0 returning S = " << A - B << endl;
+            }
             return A - B;
         }
         else {// -a/(2b) < 0
+            if(verbose::IC0) {
+                cout << "IC0() using method 4. " << endl;
+            }
+
             Complex A = IC3c(K, j, a, b, cache, epsilon/2);
             Complex B = IC4c(K, j, a, b, C11, cache, epsilon/2);
             if(verbose::IC0) {
                 std::cout << "   IC3c:" << A << std::endl;
                 std::cout << "   IC4c:" << B << std::endl;
+            }
+            if(verbose::IC0 >= 2) {
+                cout << "IC0 returning S = " << A - B << endl;
             }
             return A - B;
         }
@@ -146,23 +179,63 @@ Complex IC1(int K, int j, Double a, Double b, Complex C11, Complex C12, theta_ca
         cout << "************Warning: b is too small in IC1" << endl;
     }
 
+    C11 = I * cache->ExpABK;
+    //cout  << "C11 = " << C11 << endl;
+
     Complex S = 0;
     for(int r = 0; r <= j; r++) {
         Double z = binomial_coefficient(j, r);
-        S = S + z * I_power(r) * IC7(K, r, a + 2 * b * K, b, cache, epsilon /(2.0 * z * (j + 1)));
+        Complex y = IC7(K, r, a + 2 * b * K, b, cache, epsilon /(2.0 * z * (j + 1)));
+        S = S + z * I_power(r) * y;
+        if(verbose::IC1) {
+            cout << r << ": IC7(" << a + 2 * b * K << ", " << b << ", " << r << ", " << K << ") returned " << y << endl;
+        }
     }
 
     if( a + 2 * b * K <= - LOG(epsilon * sqrt(b))/((Double)2 * PI * K) + 1) {
+        Complex C12 = I * cache->ExpBK_inverse * exp(-2 * PI * (a + 2 * b * K) * K);
+
+        /*
         Complex S2 = 0;
         for(int r = 0; r <= j; r++) {
-            Double z = binomial_coefficient(j, r) * pow(2 * PI * b, (Double)r / 2.0) * K_power(r, cache);        
-            S2 = S2 + z * I_power(r) * G((a + 2 * b * K)/sqrt(2 * PI * b) + I * (Double)2 * sqrt(b) * (Double)K/sqrt(2 * PI), (Double)1/(2 * PI), 0, r, sqrt(2 * PI * b) * epsilon/(abs(C12) * (Double)2 * z * (j + 1)));
+            Double z = binomial_coefficient(j, r) * pow(2 * PI * b, (Double)(-(r+1)) / 2.0) * pow(K, -r);
+            //S2 = S2 + z * I_power(r) * G((a + 2 * b * K)/sqrt(2 * PI * b) + I * (Double)2 * sqrt(b) * (Double)K/sqrt(2 * PI), (Double)1/(2 * PI), 0, r, sqrt(2 * PI * b) * epsilon/(abs(C12) * (Double)2 * z * (j + 1)));
+            Complex y = G((a + 2 * b * K)/sqrt(2 * PI * b) + I * sqrt(2 * b) * (Double)K/sqrt(PI), (Double)1/(2 * PI), 0, r, epsilon/(abs(C12) * (Double)2 * z * (j + 1)));
+            S2 = S2 + z * I_power(r) * y;
+            if(verbose::IC1) {
+                cout << r << ": G( " << (a + 2 * b * K)/sqrt(2 * PI * b) + I * sqrt(2 * b) * (Double)K/sqrt(PI) << ", " << (Double)1/(2 * PI) << ", 0, " << r << ") returned " << y << endl;
+                cout << r << ": z * G * C11 * C12 = " << z * y * C11 * C12 << endl;
+            }
         }
         S2 = S2 * C12;
+        if(verbose::IC1) {
+            cout << "S2 = " << S2 << endl;
+        }
+        S = S + S2;
+        */
+
+        Complex S2 = 0;
+        for(int l = 0; l <= j; l++) {
+            Complex coeff = 0;
+            for(int r = l; r <= j; r++) {
+                coeff += I_power(r) * binomial_coefficient(j, r) * binomial_coefficient(r, l);
+            }
+            coeff *= minus_I_power(l) * pow(2 * PI * b, -(l + 1)/2.0) * pow(K, -l);
+            Complex y = G((a + 2 * b * K)/sqrt(2 * PI * b) + I * sqrt(2 * b) * (Double)K/sqrt(PI), (Double)1/(2 * PI), 0, l, epsilon/(abs(C12) * (Double)2 * abs(coeff) * (j + 1.0)));
+            S2 = S2 + coeff * y;
+            //cout << l << ": " << y * pow( 2* PI * b, -(l + 1.0)/2.0) << endl;
+        }
+        S2 *= C12;
+        if(verbose::IC1) {
+            cout << "S2 = " << S2 << endl;
+        }
         S = S + S2;
     }
 
     S *= C11;
+
+    if(verbose::IC1)
+        cout << "Returning IC1(" << a << ", " << b << ", " << j << ", " << K << " = " << S << endl;
 
     return S;
 }

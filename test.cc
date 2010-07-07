@@ -254,7 +254,7 @@ int test_theta_algorithm(int number_of_tests, int approx_K, int run_only = -1) {
     return 0;
 }
 
-int test_theta_algorithm_EM_case(int number_of_tests, int approx_K, int run_only = -1) {
+int test_theta_algorithm_EM_case(int number_of_tests, int approx_K, Double epsilon = pow(2, -29), int run_only = -1) {
     const int j_max = 18;
 
     Complex v[j_max + 1];
@@ -274,22 +274,22 @@ int test_theta_algorithm_EM_case(int number_of_tests, int approx_K, int run_only
         }
 
         if(run_only == -1) {
-            Complex S1 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 100, 0);
-            Complex S2 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 0, 1);
+            Complex S1 = compute_exponential_sums(a, b, j, K, v, epsilon, 100, 0);
+            Complex S2 = compute_exponential_sums(a, b, j, K, v, epsilon, 0, 1);
 
             Double error = abs(S1 - S2);
             maxerror = max(error, maxerror);
 
-            cout << "Test " << n << ": a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ": log2(error) = " << log2(error) << endl;
+            cout << "Test " << n << ": a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ": log2(error) = " << log2(error) << "; answer = " << S2 << endl;
         }
         else if(run_only == n) {
-            Complex S1 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 100, 0);
-            Complex S2 = compute_exponential_sums(a, b, j, K, v, pow(2.0, -29), 0, 1);
+            Complex S1 = compute_exponential_sums(a, b, j, K, v, epsilon, 100, 0);
+            Complex S2 = compute_exponential_sums(a, b, j, K, v, epsilon, 0, 1);
 
             Double error = abs(S1 - S2);
             maxerror = max(error, maxerror);
             
-            cout << "Test " << n << ": a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ": log2(error) = " << log2(error) << endl;
+            cout << "Test " << n << ": a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ": log2(error) = " << log2(error) << "; answer = " << S2 << endl;
         }
     }
     cout << "Largest error was " << maxerror << "; log2(maxerror) = " << log2(maxerror) << endl;
@@ -358,8 +358,19 @@ void test3() {
 
 }
 
+void test_specific_inputs(Double a, Double b, int K, int j, Double epsilon, int Kmin = 0) {
+    Complex v[j + 1];
+    for(int l = 0; l <= j; l++) {
+        v[l] = 1.0;
+    }
 
+    Complex S1 = compute_exponential_sums(a, b, j, K, v, epsilon, Kmin, 0);
+    Complex S2 = compute_exponential_sums(a, b, j, K, v, epsilon, 0, 1);
 
+    Double error = abs(S1 - S2);
+    cout << "a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ": log2(error) = " << log2(error) << "; answer = " << S2 << endl;
+
+}
 
 
 double time_theta_algorithm(int j, int K) {
@@ -972,6 +983,7 @@ int main() {
 
     //seed = 1278127602;
     //seed = 1278182770; // this seed makes the first test in test_theta_algorithm(20, 5000)
+    //seed = 1278268854;
     cout << "Seeding rand() and gmp with " << seed << "." << endl;
     srand(seed);
     
@@ -987,10 +999,10 @@ int main() {
     //build_F1_cache(361, 101, 25, exp(-30));
     
     //build_F0_cache(11, 6, 25, 2800, exp(-25));
-    build_F0_cache(11, 6, 25, 10500, exp(-25));
-    build_F1_cache(1801, 501, 30, exp(-30));
-    build_F2_cache(10500, 11, 11, 6, exp(-30));
-    build_IC7_cache(600, 200, 25, exp(-30));
+    //build_F0_cache(11, 6, 25, 10500, exp(-25));
+    //build_F1_cache(1801, 501, 30, exp(-30));
+    //build_F2_cache(10500, 11, 11, 6, exp(-30));
+    //build_IC7_cache(600, 200, 25, exp(-30));
 
     //build_F0_cache(101, 51, 25, 10500, exp(-25));
     //build_F1_cache(1801, 501, 30, exp(-30));
@@ -1002,11 +1014,29 @@ int main() {
 
     //test3();
 
+    //test_specific_inputs(-3.79326471769869, 0.000369601256708863, 1726, 16, exp(-30));
+    //test_specific_inputs(-8.01233758126029, 0.00151760844655872, 339, 15, exp(-36));
+    int K = 30000;
+    Double b = (36 * 36 + 1000)/ (30000.0 * 30000.0);
+    Double a = -2 * b * K;
+    test_specific_inputs(a, b, K, 1, pow(2, -30));
+    
     //test_theta_algorithm(10, 5000);
-    //test_theta_algorithm_EM_case(10, 10000);
-    //test_theta_algorithm_EM_case(10, 1000);
-    //test_theta_algorithm_EM_case(10, 123);
-    time_theta_algorithm_varying_Kmin(10, 20010, 10000, exp(-14));
+    //test_theta_algorithm(10, 3000);
+    //test_theta_algorithm(10, 1000);
+    //test_theta_algorithm(20, 1023);
+    //test_theta_algorithm(5, 10231);
+    //test_theta_algorithm(5, 20231);
+    //test_theta_algorithm(50, 5013);
+    //test_theta_algorithm_EM_case(30, 10000);
+    //test_theta_algorithm_EM_case(30, 10000, pow(2, -40));
+    //test_theta_algorithm_EM_case(30, 1000);
+    //test_theta_algorithm_EM_case(30, 517);
+    //test_theta_algorithm_EM_case(30, 5432, pow(2, -36));
+    //test_theta_algorithm_EM_case(30, 1432);
+    //test_theta_algorithm_EM_case(100, 123, pow(2, -36));
+    
+    //time_theta_algorithm_varying_Kmin(10, 20010, 10000, exp(-14));
     
 
     //int new_seed = 1278263575;

@@ -18,6 +18,8 @@ Complex compute_exponential_sum_via_Euler_Maclaurin(mpfr_t mp_a, mpfr_t mp_b, in
     Double a = mpfr_get_d(mp_a, GMP_RNDN);
     Double b = mpfr_get_d(mp_b, GMP_RNDN);
 
+    //cout << "|a| + 2 * bK = " << abs(a) << " + 2 * " << b << " * " << K << " = " << abs(a) + 2 * b * K << endl;
+
     //check_condition(a >= -.5 && a <= .5, "In compute_exponential_sum_via_Euler_Maclaurin(), a should be between +-.5, but it isn't");
     //check_condition(2 * b * K < .25, "In compute_exponential_sum_via_Euler_Maclaurin(), b should be less than .25, but it isn't");
 
@@ -168,7 +170,6 @@ Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, in
     Complex S = (Complex)0;
     
     int number_of_divisions = ceil(6 * 2 * b * K);
-    //cout << "Number of divisions = " << number_of_divisions << endl;
     //number_of_divisions = 8;
     //cout.flush();
 
@@ -209,6 +210,7 @@ Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, in
             }
             z *= pow((K2/number_of_divisions - 1), l);
             Z[l] = z;
+            //cout << l << ": " << z << endl;
         }
 
 
