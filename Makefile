@@ -1,6 +1,10 @@
 #OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -fno-math-errno -funsafe-math-optimizations -fno-rounding-math -fno-signaling-nans -fcx-limited-range -g
 OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -ffast-math -g
 H_OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -g
+
+#OPTIONS = -msse2 -mfpmath=sse -Wall -g
+#H_OPTIONS = -msse2 -mfpmath=sse -Wall -g
+
 #OPTIONS = -O3 -Wall -ffast-math -g
 LIBS = -lmpfr -lgmp -lprofiler -lgmpxx
 #LIBS = -lmpfr -lgmp -lgmpxx

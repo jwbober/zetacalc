@@ -53,7 +53,7 @@ Complex compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex
     int p = to_int(ceil(a));
 
     if(method == 0) {
-        if(K <= 2 * pow((-LOG(epsilon)/(2 * PI)), 2) || K <= _Kmin || K <= 10 * (j + 1)) {
+        if(K <= 2 * pow((-LOG(epsilon)/(2 * PI)), 2) || K <= _Kmin || K <= 5 * (j + 1)) {
             method = 1;
         }
         //else if(2.0 * b * K < 1 && b > pow((-log(epsilon))/((Double)K/(Double)8), 2)) {

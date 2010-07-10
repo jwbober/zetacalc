@@ -284,6 +284,9 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cach
                                                                                 // this much precision usually. We really should figure
                                                                                 // our how many terms we are going to compute
                                                                                 // and then divide appropriately.
+                                                                                //
+        //cout << "error = " << error << "; z = " << z << endl;
+
         S = S + z;
         b_power *= b;
         r++;
@@ -312,6 +315,19 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
     int L = max(1.0, ceil(-fastlog(epsilon)/(2 * PI * (1 + a))));
     L = max(1.0, L - j * fastlog( (Double)K/(Double)(L + 1))/(2 * PI) );
     L = min(K, L);
+
+    if(verbose::J_Integral_1 > 1) {
+        cout << "J_Integral_1 called with: " << endl;
+        cout << "                           a = " << a << endl;
+        cout << "                           b = " << b << endl;
+        cout << "                           j = " << j << endl;
+        cout << "                           M = " << M << endl;
+        cout << "                           K = " << K << endl;
+        cout << "   computed L = " << L << endl;
+    }
+    else if(verbose::J_Integral_1) {
+        cout << "j, L = " << j << ", " << L << endl;
+    }
 
     if(L <= 1) {
         if(stats::stats)
@@ -420,7 +436,7 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
         
         Complex answer = S * one_over_K_to_the_j;
 
-        if(verbose::J_Integral_1)
+        if(verbose::J_Integral_1 > 1)
             cout << "Computed J_Integral_1( " << a << ", " << b << ", " << j << ", " << M << ", " << K << ", " << epsilon << ") = " << answer << endl;
         
         return answer;
@@ -437,13 +453,16 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
         exp_minus_twopi_n *= exp_minus_twopi;
         int end_point;
         if(M == -1) {
-            end_point = to_int(ceil(-fastlog(epsilon)/(2 * PI * n)));
+            end_point = to_int(ceil(-fastlog(epsilon/(2 * L))/(2 * PI * n) -  j * fastlog((Double)K/(n + 1))/(2 * PI) ));
         }
         else {
-            end_point = min(M, to_int(ceil(-fastlog(epsilon)/(2 * PI * n) ) ));
+            end_point = min(M, to_int(ceil(-fastlog(epsilon/(2 * L))/(2 * PI * n) - j * fastlog((Double)K/(n + 1))/(2 * PI))  )  );
+            //end_point = min(M, to_int(ceil(-log(epsilon/(2 * L))/(2 * PI * n)    )    )      );
         }
 
-        end_point = max(1, (int)ceil(end_point - j * fastlog((Double)K/(n + 1))/(2 * PI)));
+        end_point = max(1, end_point);
+
+        //end_point = max(1, (int)ceil(end_point - j * log((Double)K/(n + 1))/(2 * PI)));
         //end_point = max(1, (int)(end_point - j * fastlog((Double)K/(n + 1))/(2 * PI)));
 
         Complex S1 = 0;
@@ -466,7 +485,7 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
     }
 
 
-    if(verbose::J_Integral_1)
+    if(verbose::J_Integral_1 > 1)
         cout << "Computed J_Integral_1( " << a << ", " << b << ", " << j << ", " << M << ", " << K << ", " << epsilon << ") = " << S << endl;
 
 

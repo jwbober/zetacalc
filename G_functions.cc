@@ -163,21 +163,21 @@ Complex G_R(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
         //if(abs(alpha) < 1.5) {
         if(norm_alpha < 2.25) {
             method = 2;
-            stats::G_method2++;
+            stats::G_R_method2++;
         }
         //else if( (1.5 <= abs(alpha)) && (abs(alpha) <= 2.5) && abs(b) > .024) {
         else if( (2.25 <= norm_alpha) && (norm_alpha <= 6.25) && abs(b) > .024) {
             method = 2;
-            stats::G_method2++;
+            stats::G_R_method2++;
         }
         //else if( (abs(alpha) >= 2.5) && (abs(alpha) - 2.0)/10.0 < abs(b)) {
         else if( (norm_alpha >= 6.25) && (norm_alpha - 4.0) < 100 * norm_b) {
             method = 2;
-            stats::G_method2++;
+            stats::G_R_method2++;
         }
         else {
             method = 1;
-            stats::G_method1++;
+            stats::G_R_method1++;
         }
     }
     if(verbose::G) {
@@ -328,16 +328,16 @@ Complex G_I_over_twopi(Complex alpha, int n, int j, Double epsilon, int method) 
         //if(abs(alpha) < 1.5) {
         if(norm_alpha <= 6.25) {
             method = 2;
-            stats::G_method2++;
+            stats::G_itwopi_method2++;
         }
         //else if( (abs(alpha) >= 2.5) && (abs(alpha) - 2.0)/10.0 < abs(b)) {
         else if(norm_alpha - 4.0 < 25/(PI * PI)) {
             method = 2;
-            stats::G_method2++;
+            stats::G_itwopi_method2++;
         }
         else {
             method = 1;
-            stats::G_method1++;
+            stats::G_itwopi_method1++;
         }
     }
     if(verbose::G) {
@@ -378,7 +378,7 @@ Complex G_method1(Complex alpha, Complex b, int n, int j, Double epsilon) {
     }
 
     //int N = max(1, to_int(ceil( -LOG(epsilon) )));
-    int N = max(1, fastlog(epsilon));
+    int N = max(1, -fastlog(epsilon));
 
     Complex S = (Complex)0;
 
@@ -427,7 +427,7 @@ Complex G_method1_R(Complex alpha, Double b, int n, int j, Double epsilon) {
     }
 
     //int N = max(1, to_int(ceil( -LOG(epsilon) )));
-    int N = max(1, fastlog(epsilon));
+    int N = max(1, -fastlog(epsilon));
 
     Complex S = (Complex)0;
 
@@ -484,7 +484,7 @@ Complex G_method1_I(Complex alpha, Double b, int n, int j, Double epsilon) {
     }
 
     //int N = max(1, to_int(ceil( -LOG(epsilon) )));
-    int N = max(1, fastlog(epsilon));
+    int N = max(1, -fastlog(epsilon));
 
     Complex S = (Complex)0;
 
@@ -743,22 +743,26 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
     }
 
     if(verbose::G >= 2) {
+        cout << "Before computing correction terms, S = " << S << endl;
         cout << "In G(), starting to compute correction terms in Euler-Maclaurin summation." << endl;
     }
 
     if(imag(b) == 0) {
         while(4 * error > epsilon * epsilon) {
             if(r > 1) {
-                g_derivative_polynomial_R(2 * r - 2 + j, p, p_prev, alpha, real(b));
+                g_derivative_polynomial(2 * r - 2 + j, p, p_prev, alpha, real(b));
                 ptmp = p;
                 p = p_prev;
                 p_prev = ptmp;
             }
-            g_derivative_polynomial_R(2 * r - 1 + j, p, p_prev, alpha, real(b));
+            g_derivative_polynomial(2 * r - 1 + j, p, p_prev, alpha, real(b));
 
             Complex derivative_at_1 = (Complex)0;
             for(int k = 0; k <= 2 * r - 1 + j; k++) {
                 derivative_at_1 = derivative_at_1 + p[k];
+                if(verbose::G >= 2) {
+                    cout << k << "th term in computing derivative at 1: " << p[k] << endl;
+                }
             }
             derivative_at_1 *= exp(2 * PI * I * (alpha + real(b)));
             Complex derivative_at_0 = p[0];
@@ -850,7 +854,9 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
     }
 
     if(verbose::G) {
-        cout << "In G(), using Euler-Maclaurin computed G(" << alpha << ", " << b << ") = " << S << endl;
+        Complex z = G_method1(alpha, b, n, j, epsilon);
+        cout << "In G(), using Euler-Maclaurin computed G(" << alpha << ", " << b << ", " << n << ", " << j << ", " << epsilon << ") = " << S << endl;
+        cout << "Using method 1, " << z << endl;
     }
 
     return S;
@@ -1038,12 +1044,14 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
 
     while(4 * error > epsilon * epsilon) {
         if(r > 1) {
-            g_derivative_polynomial_R(2 * r - 2 + j, p, p_prev, alpha, b);
+            //g_derivative_polynomial_R(2 * r - 2 + j, p, p_prev, alpha, b);
+            g_derivative_polynomial(2 * r - 2 + j, p, p_prev, alpha, b);
             ptmp = p;
             p = p_prev;
             p_prev = ptmp;
         }
-        g_derivative_polynomial_R(2 * r - 1 + j, p, p_prev, alpha, b);
+        //g_derivative_polynomial_R(2 * r - 1 + j, p, p_prev, alpha, b);
+        g_derivative_polynomial(2 * r - 1 + j, p, p_prev, alpha, b);
 
         Complex derivative_at_1 = (Complex)0;
         for(int k = 0; k <= 2 * r - 1 + j; k++) {

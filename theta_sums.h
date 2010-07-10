@@ -163,7 +163,7 @@ typedef struct{
 } theta_cache;
 
 namespace verbose {
-    const int IC0 = 1;
+    const int IC0 = 0;
     const int IC1 = 0;
     const int IC1c = 0;
     const int IC6 = 0;
@@ -176,9 +176,13 @@ namespace verbose {
     const int G = 0;
     const int H = 0;
 
+    const int direct_evaluation = 0;
+
     const int J_Integral_0 = 0;
     const int J_Integral_1 = 0;
     const int J_Integral_2 = 0;
+
+    const int JBulk = 0;
 }
 
 namespace stats {
@@ -193,6 +197,12 @@ namespace stats {
 
     extern int G_method1;
     extern int G_method2;
+    
+    extern int G_itwopi_method1;
+    extern int G_itwopi_method2;
+
+    extern int G_R_method1;
+    extern int G_R_method2;
 
     extern int exp;
 
@@ -294,8 +304,14 @@ void free_F1_cache();
 void free_F2_cache();
                                                                                 //
 inline Complex JBulk(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon) {         //                         
-    return J_Integral_0(a, b, j, M, K, cache, epsilon/2)                                          // See H_and_J_integrals.cc
-                                        + J_Integral_1(a, b, j, M, K, cache, epsilon/2);       //
+    Complex A = J_Integral_0(a, b, j, M, K, cache, epsilon/2);
+    Complex B = J_Integral_1(a, b, j, M, K, cache, epsilon/2);
+    if(verbose::JBulk) {
+        cout << "JBulk returning " << A << " + " << B << " = " << A + B << endl;
+    }
+    return A + B;
+    //return J_Integral_0(a, b, j, M, K, cache, epsilon/2)                                          // See H_and_J_integrals.cc
+    //                                    + J_Integral_1(a, b, j, M, K, cache, epsilon/2);       //
 }                                                                                       //
                                                                                         //
 inline Complex JBoundary(Double a1, Double a2, Double b, int j, int K, theta_cache * cache, Double epsilon){ 

@@ -27,11 +27,11 @@ Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t m
             cout << "In ICO(), 'really small b' case:" << endl;
         }
 
-        int N = to_int(ceil(std::max ((Double)1.0, abs(-LOG(epsilon))) ));
+        int N = to_int(ceil(std::max ((Double)2.0, sqrt(2.0) * abs(-LOG(epsilon))) ));
         if(verbose::IC0 >= 2) {
             cout << "N = " << N << endl;
         }
- 
+
         //cout << "K: " << K << endl;
         //cout << "N: " << N << endl;
         //cout << "a: " << a << endl;
@@ -71,9 +71,9 @@ Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t m
         //cout << "a2 mod 1: " << a2_mod1 << endl;
         //cout << "b2 mod 1: " << b2_mod1 << endl;
 
-        mpfr_clear(mp_a2);
-        mpfr_clear(mp_b2);
-        mpfr_clear(tmp);
+        //mpfr_clear(mp_a2);
+        //mpfr_clear(mp_b2);
+        //mpfr_clear(tmp);
 
         Complex S = (Complex)0;
 
@@ -81,11 +81,25 @@ Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t m
 
         Double exp_linear_term = 0;
         Double new_epsilon = epsilon * N_to_the_j * K_power(-1, cache);
+
+        mpfr_t tmp2;
+        mpfr_init2(tmp2, mpfr_get_prec(mp_b2));
         for(int n = 0; n < N; n++) {
             //Complex C = exp((Double)2 * PI * I * (Double)n * (a2_mod1 + b2_mod1 * (Double)n));
-            Double exp_quadratic_term = 2 * PI * b2_mod1 * n * n;
-            Complex C = Complex( cos(exp_linear_term + exp_quadratic_term), sin(exp_linear_term + exp_quadratic_term) );
-            Complex z = G_method1_R(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
+            mpfr_mul_si(tmp, mp_b2, n * n, GMP_RNDN);
+            mpfr_mul_si(tmp2, mp_a2, n, GMP_RNDN);
+            mpfr_add(tmp, tmp, tmp2, GMP_RNDN);
+            mpfr_frac(tmp, tmp, GMP_RNDN);
+            Double x = mpfr_get_d(tmp, GMP_RNDN);
+            //Double x = b2_mod1 * n * n;
+            //Double exp_quadratic_term = 2 * PI * x;
+            //Complex C = Complex( cos(exp_linear_term + exp_quadratic_term), sin(exp_linear_term + exp_quadratic_term) );
+            Complex C = Complex( cos(2 * PI * x), sin(2 * PI * x) );
+            //Complex z = G_method1_R(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
+            Complex z = G(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
+            //Complex z = G_method1(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
+            //Complex z2 = G_via_Euler_MacLaurin(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
+            //Complex z = G_via_Euler_MacLaurin(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
             //Complex z = G_via_Euler_MacLaurin(a2 + (Double) 2 * (Double)n * b2, b2, n, j, epsilon * N_to_the_j/K);
 
             //S = S + C * z;
@@ -93,6 +107,8 @@ Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t m
 //                cout << n << ": " << z << endl;
                 cout << n << ": " << K * pow(N, -(j+1)) * C * z << endl;
                 cout << "   G returned " << z << endl;
+                //cout << "   G_via_EulerMaclaurin returned " << z2 << endl;
+                //cout << "   difference was << " << z - z2 << endl;
             }
             //S = S + C * z * (Double)K * pow(N, -(j+1));
             S = S + C * z;
@@ -485,10 +501,15 @@ Complex IC7_method1(int K, int j, Double a, Double b, theta_cache * cache, Doubl
 
     Complex S = (Complex)0;
 
+
     Double K_to_the_j;
     if(K == -1) {
         //Double two_pi_b_power = pow(2 * PI * b, ((Double)j + 1.0)/2);
         Double two_pi_b_power = root_2pi_b_power(j + 1, cache);
+        if(verbose::IC7 >= 2) {
+            cout << "Computing IC7() = " << C9 << " * " << root_2pi_b_power(-(j + 1), cache) << " S " << endl;
+            cout << "S == 0" << endl;
+        }
         {
             Double one_over_L = 1.0/L;
             Complex alpha = C10 * a * root_2pi_b_power(-1, cache);
@@ -510,14 +531,29 @@ Complex IC7_method1(int K, int j, Double a, Double b, theta_cache * cache, Doubl
                 S = S + z;
                 alpha = alpha + I/PI;
                 y = y * y1;
+                
+                if(verbose::IC7 >= 2) {
+
+                    cout << "S += " << z << "; (S == " << S << ")" << endl;
+                }
+
+
             }
         }
+
         S = S * C9 * root_2pi_b_power(-(j + 1), cache);
 
     }
     else {
         K_to_the_j = K_power(j, cache);
         //Double two_pi_b_power = pow(2 * PI * b, ((Double)j + 1.0)/2);
+
+        if(verbose::IC7 >= 2) {
+            cout << "Computing IC7() = " << C9 << " * " << root_2pi_b_power(-(j + 1), cache) << " S " << endl;
+            cout << "S == 0" << endl;
+        }
+
+
         Double two_pi_b_power = root_2pi_b_power(j + 1, cache);
         {
             Double one_over_L = 1.0/L;
@@ -544,8 +580,14 @@ Complex IC7_method1(int K, int j, Double a, Double b, theta_cache * cache, Doubl
                 S = S + z;
                 alpha = alpha + I/PI;
                 y = y * y1;
+                if(verbose::IC7 >= 2) {
+                    cout << "S += " << z << "; (S == " << S << ")" << endl;
+                }
+
             }
         }
+
+
         S = S * C9 * K_power(-j, cache) * root_2pi_b_power(-(j + 1), cache);
     }
     if(verbose::IC7)

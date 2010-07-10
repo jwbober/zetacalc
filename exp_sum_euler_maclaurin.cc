@@ -57,7 +57,9 @@ Complex compute_exponential_sum_via_Euler_Maclaurin(mpfr_t mp_a, mpfr_t mp_b, in
 
     Complex S2 = 0.0;
 
+
     while(error > epsilon/2) {
+    //while(r < 75) {
         /*
         if(r >= 12) {
             cout << "Warning: not enough derivatives.  Error is" << error << endl;
@@ -79,11 +81,26 @@ Complex compute_exponential_sum_via_Euler_Maclaurin(mpfr_t mp_a, mpfr_t mp_b, in
 
         Complex derivative_at_K = (Complex)0;
         Double _K_power = K_power(-j, cache);
-        for(int k = 0; k <= 2 * r - 1 + j; k++) {
-            derivative_at_K = derivative_at_K + _K_power * p[k];
-            //cout << k << ": " << _K_power << " * " << p[k] << " = " << _K_power * p[k] << endl;
-            _K_power *= (Double)K;
+        Double derivative_estimate = 0.0;
+        
+        derivative_at_K = p[2 * r - 1 + j];
+        derivative_estimate = abs(p[2 * r - 1 + j]);
+
+        for(int k = 2 * r - 1 + j - 1; k >= 0; k--) {
+            derivative_at_K = derivative_at_K * (Double)K + p[k];
+            derivative_estimate += derivative_estimate * K + abs(p[k]);
         }
+
+        derivative_at_K *= _K_power;
+        derivative_estimate *= _K_power;
+
+        //for(int k = 0; k <= 2 * r - 1 + j; k++) {
+        //    derivative_at_K = derivative_at_K + _K_power * p[k];
+        //    derivative_estimate += _K_power * abs(p[k]);
+        //    //cout << k << ": " << _K_power << " * " << p[k] << " = " << _K_power * p[k] << endl;
+        //    _K_power *= (Double)K;
+        //}
+
 
         //derivative_at_K *= (Complex)1.0/(ExpA(mp_a, K) * ExpB(mp_b, K)); //exp(2 * PI * I * (alpha + b));
         //derivative_at_K *= (Complex)1.0/(ExpA(mp_a, K) * ExpB(mp_b, K));
@@ -98,8 +115,11 @@ Complex compute_exponential_sum_via_Euler_Maclaurin(mpfr_t mp_a, mpfr_t mp_b, in
         //Complex z2 = bernoulli_over_factorial(2*r) * (derivative_at_K - derivative_at_0) * pow(K, -j);
         Complex z2 = bernoulli_over_factorial(2*r) * (derivative_at_K - derivative_at_0);
         //cout << bernoulli_over_factorial(2 * r) << " * (" << derivative_at_K << " - " << derivative_at_0 << ") = " << z2 << endl;
+        //cout << z2 << " = " << bernoulli_over_factorial(2 * r) << " * " << (derivative_at_K - derivative_at_0) << ". deriv estimate: " << pow((j + (Double)r)/K + 2 * PI * (abs(a) + abs(2 * b * K)), r)<< endl;
+        //cout << r << ": estimate = " << bernoulli_over_factorial(2 * r) * pow((j + (Double)(2 * r))/K + 2 * PI * (abs(a) + abs(2 * b * K)), (2*r))<< endl;
+        //cout << r << ": estimate2 = " << bernoulli_over_factorial(2 * r) * derivative_estimate << endl;
         S2 = S2 + z2;
-        error = abs(z2);
+        error = abs(bernoulli_over_factorial(2 * r)) * derivative_estimate;
         //cout << error/K_power(j, cache) << endl;
         r = r + 1;
     }
@@ -128,6 +148,8 @@ Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, in
     //
     //
     
+    cout << "--Using Euler-Maclaurin summation." << endl;
+
     // First we compute the last few terms so that we may assume in the following that K is
     // a multiple of 8
 

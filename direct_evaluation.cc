@@ -11,29 +11,70 @@ Complex compute_exponential_sums_directly(mpfr_t mp_a, mpfr_t mp_b, int j, int K
     Double a = mpfr_get_d(mp_a, GMP_RNDN);
     Double b = mpfr_get_d(mp_b, GMP_RNDN);
 
-    if (K > 2000) {
+    if (K > 0) {
+        if(verbose::direct_evaluation) {
+            cout << "Directly evalutating using mpfr. Computing S = " << endl;
+        }
         for(int l = 0; l <= j; l++) {
+            Complex x = 0.0;
             if(v[l] != 0.0) {
-                S = S + v[l] * direct_exponential_sum_evaluation2(mp_a, mp_b, l, 0, K);
+                x = v[l] * direct_exponential_sum_evaluation2(mp_a, mp_b, l, 0, K);
+            }
+            S = S + x;
+            if(verbose::direct_evaluation) {
+                cout << "        " << x;
+                if(l < j) {
+                    cout << " + " << endl;
+                }
+                else
+                    cout << endl;
             }
         }
     }
     else {
+        if(verbose::direct_evaluation >= 2) {
+            cout << "Directly evalutating using doubles. Coefficients are " << endl;
+            for(int l = 0; l <= j; l++) {
+                cout << "v[" << l << "] = " << v[l] << endl;
+            }
+        }
+
         Complex two_pi_i = 2. * PI * I;
         Double one_over_K = 1. / (Double)K;
         for(int n = 0; n <= K; n++) {
-           Double n_over_K_powers = 1.;
-           //Complex common_exp = EXP( two_pi_i * (Double)n * (a + b * (Double)n) );
-           Double z = 2 * PI * n * ( a + b * n);
-           Complex common_exp = Complex( cos(z), sin(z) );
-           Complex S2 = 0.0;
-           for(int l = 0; l <= j; l++) {
+            Complex x = 0;
+            Double n_over_K_powers = 1.;
+            //Complex common_exp = EXP( two_pi_i * (Double)n * (a + b * (Double)n) );
+            Double z = 2 * PI * n * ( a + b * n);
+            Complex common_exp = Complex( cos(z), sin(z) );
+            Complex S2 = 0.0;
+            if(verbose::direct_evaluation >= 3) {
+                cout << "   S2 = " << endl;
+            }
+            for(int l = 0; l <= j; l++) {
+                Complex y = 0.0;
                 if(v[l] != 0.) {
-                    S2 = S2 + v[l] * n_over_K_powers;
+                    y = v[l] * n_over_K_powers;
                 }
+                S2 = S2 + y;
+ 
+                if(verbose::direct_evaluation >= 3) {
+                    cout << "            " << y;
+                    if(l < j) {
+                        cout << " + " << endl;
+                    }
+                    else
+                        cout << endl << endl;
+                }
+
                 n_over_K_powers *= (Double)n * one_over_K;
-           }
-           S += S2 * common_exp;
+            }
+            x = S2 * common_exp;
+            S += x;
+            if(verbose::direct_evaluation >= 2) {
+                cout << "S += " << x << "; S = " << S << endl;
+            }
+
         }
     }
  

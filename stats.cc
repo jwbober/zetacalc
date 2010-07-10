@@ -14,6 +14,12 @@ namespace stats {
     int G_method1 = 0;
     int G_method2 = 0;
 
+    int G_itwopi_method1 = 0;
+    int G_itwopi_method2 = 0;
+
+    int G_R_method1 = 0;
+    int G_R_method2 = 0;
+
     int exp = 0;
 
     int exponential_sum_called = 0;
@@ -58,6 +64,14 @@ void print_stats() {
     std::cout << "In function G():" << std::endl;
     std::cout << "    Method 1 used " << stats::G_method1 << " times." << std::endl;
     std::cout << "    Method 2 used " << stats::G_method2 << " times." << std::endl;
+
+    std::cout << "In function G_I_over_twopi():" << std::endl;
+    std::cout << "    Method 1 used " << stats::G_itwopi_method1 << " times." << std::endl;
+    std::cout << "    Method 2 used " << stats::G_itwopi_method2 << " times." << std::endl;
+
+    std::cout << "In function G_R():" << std::endl;
+    std::cout << "    Method 1 used " << stats::G_R_method1 << " times." << std::endl;
+    std::cout << "    Method 2 used " << stats::G_R_method2 << " times." << std::endl;
 
     std::cout << "EXP() called " << stats::exp << " times." << std::endl;
 
