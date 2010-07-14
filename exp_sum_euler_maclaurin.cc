@@ -148,7 +148,7 @@ Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, in
     //
     //
     
-    cout << "--Using Euler-Maclaurin summation." << endl;
+    //cout << "--Using Euler-Maclaurin summation." << endl;
 
     // First we compute the last few terms so that we may assume in the following that K is
     // a multiple of 8

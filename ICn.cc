@@ -10,7 +10,7 @@
 using namespace std;
 
 Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mpfr_t mp_b, theta_cache * cache, Double epsilon) {
-    if(verbose::IC0 >= 2) {
+    if(verbose::IC0 >= 1) {
         cout << "IC0 called with:   " << endl;
         cout << "               a = " << a << endl;
         cout << "               b = " << b << endl;
@@ -605,6 +605,7 @@ static struct {
     int number_of_a;
     int max_j;
     Complex ** values;
+    double a_spacing;
 } IC7_cache;
 
 static bool IC7_cache_initialized = false;
@@ -615,6 +616,16 @@ void build_IC7_cache(int a_per_unit_interval, Double max_a, int max_j, Double ep
     IC7_cache.number_of_a = number_of_a;
     IC7_cache.a_per_unit_interval = a_per_unit_interval;
     IC7_cache.max_j = max_j;
+    IC7_cache.a_spacing = 1.0/a_per_unit_interval;
+
+
+    Double memory_used = number_of_a * (max_j + 1) * 16;
+
+
+    clock_t start_time = clock();
+
+    cout << "Building IC7 cache." << endl;
+    cout << "    Total memory used for this cache will be " << memory_used/1000000.0 << " million bytes." << endl;
 
     if(FAKE_PRECOMPUTATION) {
         IC7_cache_initialized = true;
@@ -628,15 +639,30 @@ void build_IC7_cache(int a_per_unit_interval, Double max_a, int max_j, Double ep
     IC7_cache.values = new Complex * [number_of_a];
     Double a = 0;
     Double a_increment = 1.0/a_per_unit_interval;
+
+
+    Double percent_done = 0.0;
+    Double old_percent_done = 0.0;
+
     for(int n = 0; n < number_of_a; n++) {
+        percent_done = (Double)n/(number_of_a);
+        if(old_percent_done + .005 < percent_done) {
+            cout <<  "    " << percent_done * 100 << " percent done with IC7." << endl;
+            old_percent_done = percent_done;
+        }
+
         IC7_cache.values[n] = new Complex[max_j + 1];
         for(int j = 0; j <= max_j; j++) {
             IC7_cache.values[n][j] = IC7star(a, j, epsilon, false);
         }
         a += a_increment;
-        if(n % 100 == 0)
-            cout << "Building IC7 cache: " << n + 1 << " of " << number_of_a << " points computed." << endl;
     }
+
+    clock_t end_time = clock();
+
+    double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
+    cout << "Total time to build IC7 cache: " << elapsed_time << " seconds." << endl;
+
 
     IC7_cache_initialized = true;
 }
@@ -648,7 +674,7 @@ void free_IC7_cache() {
 inline Complex get_cached_IC7star_value(int a_index, int j) {
     if(a_index < IC7_cache.number_of_a && j <= IC7_cache.max_j) {
         if(FAKE_PRECOMPUTATION) {
-            return 1.0;
+            return 0.0;
         }
         else {
             return IC7_cache.values[a_index][j];
@@ -765,7 +791,7 @@ Complex IC7star(Double a, int j, Double epsilon, bool use_cache) {
 }
 
 
-
+/*
 Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b, theta_cache * cache) {
     Double a = mpfr_get_d(mp_a, GMP_RNDN);
     Double b = mpfr_get_d(mp_b, GMP_RNDN);
@@ -792,6 +818,8 @@ Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b, theta_cache * cache) {
 
     return S;
 }
+*/
+
 
 Complex IC9E(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon) {
     //

@@ -11,7 +11,7 @@ Complex compute_exponential_sums_directly(mpfr_t mp_a, mpfr_t mp_b, int j, int K
     Double a = mpfr_get_d(mp_a, GMP_RNDN);
     Double b = mpfr_get_d(mp_b, GMP_RNDN);
 
-    if (K > 0) {
+    if (K > 2000) {
         if(verbose::direct_evaluation) {
             cout << "Directly evalutating using mpfr. Computing S = " << endl;
         }

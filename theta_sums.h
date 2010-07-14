@@ -13,6 +13,7 @@
 #include "misc.h"
 
 const bool FAKE_PRECOMPUTATION = true;
+//const bool FAKE_PRECOMPUTATION = false;
 
 
 inline Complex I_power(int n) {

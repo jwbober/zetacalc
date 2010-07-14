@@ -12,6 +12,10 @@ static struct{
     long number_of_b;
     long max_j;
     long max_M;
+    double a_spacing;
+    double b_spacing;
+    long a_per_unit_interval;
+    long b_per_unit_interval;
     Complex **** values;
 } F0_cache;
 
@@ -26,29 +30,41 @@ inline Complex get_cached_F0_value(int a_index, int b_index, int j, int M) {
             }
         }
         else {
-            cout << "Warning: F0 called for a value out of range." << endl;
-            return 0.0/0.0;
-            Double a = 1.0/(F0_cache.number_of_a - 1.0) * a_index;
-            Double b = .25/(F0_cache.number_of_b - 1.0) * b_index;
-            return J_Integral_0(a, b, j, M, 1, NULL, exp(-20), false);
+            cout << "F0 called for a value out of range. Exiting." << endl;
+            cout << "F0 called with: ";
+            cout << "    a_index = " << a_index << endl;
+            cout << "    b_index = " << b_index << endl;
+            cout << "          j = " << j << endl;
+            cout << "          M = " << M << endl;
+            exit(1);
+            //return 0.0/0.0;
+            //Double a = 1.0/(F0_cache.number_of_a - 1.0) * a_index;
+            //Double b = .25/(F0_cache.number_of_b - 1.0) * b_index;
+            //return J_Integral_0(a, b, j, M, 1, NULL, exp(-20), false);
         }
     }
 
     if(a_index < F0_cache.number_of_a && b_index < F0_cache.number_of_b && j <= F0_cache.max_j && M <= F0_cache.max_M) {
         if(FAKE_PRECOMPUTATION) {
-            return 1.0;
+            return 0.0;
         }
         else {
             return F0_cache.values[M][a_index][b_index][j];
         }
     }
     else {
-        cout << "Warning: F0 called for a value out of range." << endl;
-        return 0.0/0.0;
-        Double a = 1.0/(F0_cache.number_of_a - 1.0) * a_index;
-        Double b = .25/(F0_cache.number_of_b - 1.0) * b_index;
+        cout << "F0 called for a value out of range. Exiting." << endl;
+        cout << "F0 called with: ";
+        cout << "    a_index = " << a_index << endl;
+        cout << "    b_index = " << b_index << endl;
+        cout << "          j = " << j << endl;
+        cout << "          M = " << M << endl;
+        exit(1);
+        //return 0.0/0.0;
+        //Double a = 1.0/(F0_cache.number_of_a - 1.0) * a_index;
+        //Double b = .25/(F0_cache.number_of_b - 1.0) * b_index;
 //        cout << "a = " << a << "  b = " << b << endl;
-        return J_Integral_0(a, b, j, M, 1, NULL, exp(-20), false);
+        //return J_Integral_0(a, b, j, M, 1, NULL, exp(-20), false);
     }
 }
 
@@ -58,6 +74,10 @@ static struct{
     long number_of_a;
     long number_of_b;
     long max_j;
+    double a_spacing;
+    double b_spacing;
+    long a_per_unit_interval;
+    long b_per_unit_interval;
     Complex *** values;
 } F1_cache;
 
@@ -70,6 +90,12 @@ static struct{
     long number_of_a2;
     long number_of_b;
     long max_j;
+    double a1_spacing;
+    double a2_spacing;
+    double b_spacing;
+    long a1_per_unit_interval;
+    long a2_per_unit_interval;
+    long b_per_unit_interval;
     Complex *** values;
 } F2_cache;
 
@@ -80,7 +106,7 @@ static bool F2_cache_initialized = false;
 inline Complex get_cached_F1_value(int a_index, int b_index, int j) {
     if(a_index < F1_cache.number_of_a && b_index < F1_cache.number_of_b && j <= F1_cache.max_j) {
         if(FAKE_PRECOMPUTATION) {
-            return 1.0;
+            return 0.0;
         }
         else {
             return F1_cache.values[a_index][b_index][j];
@@ -99,7 +125,7 @@ inline Complex get_cached_F1_value(int a_index, int b_index, int j) {
 inline Complex get_cached_F2_value(int a1_index, int a2_index, int b_index, int j) {
     if(a1_index < (F2_cache.number_of_a1 - 1) * F2_cache.max_a1 + 1 && a2_index < F2_cache.number_of_a2 && b_index < F2_cache.number_of_b) {
         if(FAKE_PRECOMPUTATION) {
-            return 1.0;
+            return 0.0;
         }
         else {
             if(j == 0) {
@@ -523,7 +549,7 @@ Complex J_Integral_1_precomputation(Double a, Double b, int j, Double epsilon) {
 
     Complex S = (Complex)0;
 
-    if( 5 + j * fastlog2(L) + - 2 * PI * (a + 1) * log2(E) < fastlog2(epsilon)) {
+    if( 5 + j * fastlog2(L) - 2 * PI * (a + 1) * log2(E) < fastlog2(epsilon)) {
         return 0.0;
     }
 
@@ -532,6 +558,14 @@ Complex J_Integral_1_precomputation(Double a, Double b, int j, Double epsilon) {
 
     //Double a_factor = exp(-2.0 * PI * (1 + a));
     //Double a_multiplier = a_factor;
+
+    //bool a_is_small;
+    //if(2 * PI * (1 + a) * E > j) {
+    //    a_is_small = false;
+    //}
+    //else {
+    //    a_is_small = true;
+    //}
 
     for(Double n = (Double)1; n <= L - 1; n = n + 1) {
         exp_minus_twopi_n *= exp_minus_twopi;
@@ -559,6 +593,15 @@ Complex J_Integral_1_precomputation(Double a, Double b, int j, Double epsilon) {
         }
         S = S + S1;
         //a_factor *= a_multiplier;
+        
+        //if(a_is_small) {
+        //    if( j * fastlog2(j * n) - 2 * PI * (1 + a) * L * log2(E) < fastlog2(epsilon) )
+        //        break;
+        //}
+        //else {
+        //    if( j * fastlog2(n) - 2 * PI * (1 + a) * L * log2(E) < fastlog2(epsilon) )
+        //        break;
+        //}
     }
 
     return S;
@@ -809,13 +852,28 @@ void build_F0_cache(long number_of_a, long number_of_b, long max_j, long max_M, 
 }
 */
 
-void build_F0_cache(long number_of_a, long number_of_b, long max_j, long max_M, Double epsilon) {
-
+//void build_F0_cache(long number_of_a, long number_of_b, long max_j, long max_M, Double epsilon) {
+void build_F0_cache(long a_per_unit_interval, long b_per_unit_interval, long max_j, long max_M, Double epsilon) {
+    
+    long number_of_a = a_per_unit_interval + 1;
+    long number_of_b = b_per_unit_interval/4 + 1;
 
     F0_cache.number_of_a = number_of_a;
     F0_cache.number_of_b = number_of_b;
+    F0_cache.a_spacing = 1.0/a_per_unit_interval;
+    F0_cache.b_spacing = 1.0/b_per_unit_interval;
+    F0_cache.a_per_unit_interval = a_per_unit_interval;
+    F0_cache.b_per_unit_interval = b_per_unit_interval;
     F0_cache.max_j = max_j;
     F0_cache.max_M = max_M;
+
+    Double stage_1_memory = (((Double)max_j + 1) * (Double)(b_per_unit_interval/4 + 1) * (Double)a_per_unit_interval * max_M + 1.0) * 16.0;
+    Double stage_2_memory = (((Double)max_j + 1) * (Double)(b_per_unit_interval/4 + 1) * (Double)(a_per_unit_interval + 1) * max_M ) * 16.0;
+
+    clock_t start_time = clock();
+
+    cout << "Building F0 cache." << endl;
+    cout << "    Total used memory for this will be " << (stage_1_memory + stage_2_memory) / 1000000.0 << " million bytes." << endl;
 
     if(FAKE_PRECOMPUTATION) {
         F0_cache_initialized = true;
@@ -829,10 +887,20 @@ void build_F0_cache(long number_of_a, long number_of_b, long max_j, long max_M, 
     Double b = 0;
     Double b_increment = .25/(number_of_b - 1);
 
+    cout << "Building F0 cache stage 1 (for M == 0)" << endl;
+
+    Double percent_done = 0.0;
+    Double old_percent_done = 0.0;
+
     {
         // M == 0 case
         F0_cache.values[0] = new Complex ** [(number_of_a - 1) * max_M + 2];
         for(int k = 0; k < (number_of_a - 1) * max_M + 2; k++) {
+            percent_done = (Double)k/( (number_of_a - 1) * max_M + 1);
+            if(old_percent_done + .005 < percent_done) {
+                cout <<  "    " << percent_done * 100 << " percent done with F0 stage 1." << endl;
+                old_percent_done = percent_done;
+            }
             //if(k % 100 == 0)
             //    cout << "a index = " << k << ", a = " << a << endl;
             F0_cache.values[0][k] = new Complex * [number_of_b];
@@ -853,7 +921,17 @@ void build_F0_cache(long number_of_a, long number_of_b, long max_j, long max_M, 
     a = 0;
     b = 0;
 
+    cout << "Building F0 cache stage 2." << endl;
+
+
+    percent_done = 0.0;
+    old_percent_done = 0.0;
     for(int M = 1; M <= max_M; M++) {
+        percent_done = (Double)M/(Double)max_M;
+        if(old_percent_done + .005 < percent_done) {
+            cout <<  "    " << percent_done * 100 << " percent done with F0 stage 2." << endl;
+            old_percent_done = percent_done;
+        }
         F0_cache.values[M] = new Complex ** [number_of_a];
         //cout << "M = " << M << endl;
         for(int k = 0; k < number_of_a; k++) {
@@ -873,15 +951,35 @@ void build_F0_cache(long number_of_a, long number_of_b, long max_j, long max_M, 
         a = 0;
     }
 
+    clock_t end_time = clock();
+
+    double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
+    cout << "Total time to build F0 cache: " << elapsed_time << " seconds." << endl;
+
     F0_cache_initialized = true;
 }
 
 
-void build_F1_cache(long number_of_a, long number_of_b, long max_j, Double epsilon) {
+void build_F1_cache(long a_per_unit_interval, long b_per_unit_interval, long max_j, Double epsilon) {
+
+
+    clock_t start_time = clock();
+
+    int number_of_a = a_per_unit_interval * 6 + 1;
+    int number_of_b = b_per_unit_interval/4 + 1;
 
     F1_cache.number_of_a = number_of_a;
     F1_cache.number_of_b = number_of_b;
+    F1_cache.a_spacing = 1.0/a_per_unit_interval;
+    F1_cache.b_spacing = 1.0/b_per_unit_interval;
     F1_cache.max_j = max_j;
+    F1_cache.a_per_unit_interval = a_per_unit_interval;
+    F1_cache.b_per_unit_interval = b_per_unit_interval;
+
+    Double memory_used = (Double)(a_per_unit_interval + 1) * (Double)(b_per_unit_interval/4 + 1) * (Double)(max_j + 1) * 16;
+
+    cout << "Building F1 cache." << endl;
+    cout << "    Total memory used for this cache will be " << memory_used/1000000.0 << " million bytes." << endl;
 
     if(FAKE_PRECOMPUTATION) {
         F1_cache_initialized = true;
@@ -897,7 +995,17 @@ void build_F1_cache(long number_of_a, long number_of_b, long max_j, Double epsil
     Double b = 0;
     Double b_increment = .25/(number_of_b - 1);
 
+
+    Double percent_done = 0.0;
+    Double old_percent_done = 0.0;
+
     for(long k = 0; k < number_of_a; k++) {
+        percent_done = (Double)k/(Double)number_of_a;
+        if(old_percent_done + .005 < percent_done) {
+            cout <<  "    " << percent_done * 100 << " percent done with F1." << endl;
+            old_percent_done = percent_done;
+        }
+
         //cout << "a index = " << k << ", a = " << a << endl;
         F1_cache.values[k] = new Complex * [number_of_b];
         for(long l = 0; l < number_of_b; l++) {
@@ -914,15 +1022,39 @@ void build_F1_cache(long number_of_a, long number_of_b, long max_j, Double epsil
         b = 0.0;
     }
 
+
+    clock_t end_time = clock();
+
+    double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
+    cout << "Total time to build F1 cache: " << elapsed_time << " seconds." << endl;
+
     F1_cache_initialized = true;
 }
 
-void build_F2_cache(long max_a1, long number_of_a1, long number_of_a2, long number_of_b, Double epsilon) {
+void build_F2_cache(long max_a1, long a1_per_unit_interval, long a2_per_unit_interval, long b_per_unit_interval, Double epsilon) {
+    int number_of_a1 = a1_per_unit_interval + 1;
+    int number_of_a2 = a2_per_unit_interval + 1;
+    int number_of_b = b_per_unit_interval/4 + 1;
+
+
     F2_cache.max_a1 = max_a1;
     F2_cache.number_of_a1 = number_of_a1;
     F2_cache.number_of_a2 = number_of_a2;
+    F2_cache.a1_spacing = 1.0/a1_per_unit_interval;
+    F2_cache.a2_spacing = 1.0/a2_per_unit_interval;
+    F2_cache.b_spacing = 1.0/b_per_unit_interval;
     F2_cache.number_of_b = number_of_b;
+    F2_cache.a1_per_unit_interval = a1_per_unit_interval;
+    F2_cache.a2_per_unit_interval = a2_per_unit_interval;
+    F2_cache.b_per_unit_interval = b_per_unit_interval;
 
+    Double memory_used = (Double)(a1_per_unit_interval * max_a1 + 1) * (Double)(a2_per_unit_interval + 1) * (Double)(b_per_unit_interval/4 + 1) * 16;
+
+
+    clock_t start_time = clock();
+
+    cout << "Building F2 cache." << endl;
+    cout << "    Total memory used for this cache will be " << memory_used/1000000.0 << " million bytes." << endl;
 
     if(FAKE_PRECOMPUTATION) {
         F2_cache_initialized = true;
@@ -938,8 +1070,20 @@ void build_F2_cache(long max_a1, long number_of_a1, long number_of_a2, long numb
     Double a2 = 0;
     Double b = 0;
 
+
+    Double percent_done = 0.0;
+    Double old_percent_done = 0.0;
+
     F2_cache.values = new Complex ** [(number_of_a1 - 1) * max_a1 + 2];
-    for(long k = 0; k < (number_of_a1 - 1) * max_a1 + 2; k++) {
+    for(long k = 0; k <= a1_per_unit_interval * max_a1 + 1; k++) {
+
+        percent_done = (Double)k/(  a1_per_unit_interval * max_a1 + 1 );
+        if(old_percent_done + .005 < percent_done) {
+            cout <<  "    " << percent_done * 100 << " percent done with F2." << endl;
+            old_percent_done = percent_done;
+        }
+
+
         F2_cache.values[k] = new Complex * [number_of_a2];
         for(long j = 0; j < number_of_a2; j++) {
             F2_cache.values[k][j] = new Complex[number_of_b];
@@ -954,6 +1098,12 @@ void build_F2_cache(long max_a1, long number_of_a1, long number_of_a2, long numb
         a1 += a1_increment;
         a2 = 0.0;
     }
+
+
+    clock_t end_time = clock();
+
+    double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
+    cout << "Total time to build F2 cache: " << elapsed_time << " seconds." << endl;
 
     F2_cache_initialized = true;
 }

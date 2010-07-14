@@ -7,13 +7,14 @@ ranges['bernoulli'] = 200
 ranges['two_pi_powers'] = 200
 ranges['two_pi_power_over_factorial'] = 200
 ranges['bernoulli_over_factorial'] = 200
-ranges['exp_t_over_N_squared'] = 22
+ranges['exp_t_over_N_squared'] = 30
 ranges['gamma_s_over_2'] = 330
 
 def write_all_tables():
     outfile = open("precomputed_tables.h", 'w')
 
     outfile.write("#include <iostream>\n")
+    outfile.write("#include <cstdlib>\n")
 
     write_factorial_table(outfile)
     write_bernoulli_table(outfile)
@@ -44,12 +45,13 @@ inline Double factorial(int n) {
         return factorial_table[n];
     }
     else {
-        std::cout << "Warning: the factorial table wasn't large enough. factorial(n) called with n=" << n << std::endl;
-        Double S = factorial_table[factorial_table_range - 1];
-        for(int i = factorial_table_range; i <= n; i++) {
-            S = S * i;
-        }
-        return S;
+        std::cout << "Warning: the factorial table wasn't large enough. factorial(n) called with n=" << n << ". Exiting. " << std::endl;
+        std::exit(1);
+        //Double S = factorial_table[factorial_table_range - 1];
+        //for(int i = factorial_table_range; i <= n; i++) {
+        //    S = S * i;
+        //}
+        //return S;
     }
 }
 
@@ -78,8 +80,8 @@ inline Double bernoulli(int n) {
         return bernoulli_table[n];
     }
     else {
-        std::cout << "Warning: the bernoulli table wasn't large enough. bernoulli(n) called with n=" << n << std::endl;
-        return 0.0/0.0;
+        std::cout << "Warning: the bernoulli table wasn't large enough. bernoulli(n) called with n=" << n << ". Exiting" << std::endl;
+        std::exit(1);
     }
 }
 """)
@@ -105,11 +107,12 @@ inline Double two_pi_power(int n) {
     }
     else {
         std::cout << "Warning: the table of powers of 2pi wasn't large enough." << std::endl;
-        Double S = two_pi_powers[two_pi_power_table_range - 1];
-        for(int i = two_pi_power_table_range; i <= n; i++) {
-            S = S * (2.0 * PI);
-        }
-        return S;
+        std::exit(1);
+        //Double S = two_pi_powers[two_pi_power_table_range - 1];
+        //for(int i = two_pi_power_table_range; i <= n; i++) {
+        //    S = S * (2.0 * PI);
+        //}
+        //return S;
     }
 }
 """)
@@ -136,7 +139,8 @@ inline Double two_pi_over_factorial_power(int n) {
     }
     else {
         std::cout << "Warning: the table of (2pi)^n / n! wasn't large enough." << std::endl;
-        return two_pi_power(n)/factorial(n);
+        std::exit(1);
+        //return two_pi_power(n)/factorial(n);
     }
 }
 """)
@@ -157,11 +161,13 @@ def write_bernoulli_over_factorial_table(outfile):
     
     outfile.write("""
 inline Double bernoulli_over_factorial(int n) {
-    // return B_n / n! using table lookup for n < 100
+    // return B_n / n! using table lookup;
     if(n < bernoulli_over_factorial_table_range) {
         return bernoulli_over_factorial_table[n];
     }
     else {
+        std::cout << "bernoulli_over_factorial called out of range." << std::endl;
+        std::exit(1);
         return 0.0/0.0;
     }
 }
@@ -193,8 +199,11 @@ inline Double exp_t_over_N_squared(int t, int N) {
     if(N < exp_t_over_N_squared_range) {
         return exp_t_over_N_squared_table[N][t];
     }
-    else
+    else {
+        //std::cout << "exp_t_over_N_squared called out of range." << std::endl;
+        //std::exit(1);
         return exp(-(t/(double)N)*(t/(double)N));
+    }
 }
 """)
 
@@ -220,8 +229,9 @@ inline Double gamma_s_over_2(int s) {
         return gamma_s_over_2_table[s];
     }
     else {
-        cout << "Warning. gamma_s_over_2() called with s out of range." << endl;
-        return 0.0/0.0;
+        std::cout << "Warning. gamma_s_over_2() called with s out of range." << std::endl;
+        std::exit(1);
+        //return 0.0/0.0;
     }
 }
 """)

@@ -3,7 +3,7 @@
 #include <complex>
 #include "mpfr.h"
 
-#include "misc.h"
+#include "theta_sums.h"
 #include "precomputed_tables.h"
 #include "w_coefficient.h"
 
@@ -77,6 +77,31 @@ Complex w_coefficient(Double * a_powers, Double * b_powers, Double * q_powers, D
 
     return S;
 }
+
+Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b, theta_cache * cache) {
+    Double a = mpfr_get_d(mp_a, GMP_RNDN);
+    Double b = mpfr_get_d(mp_b, GMP_RNDN);
+
+    Complex z = ExpAB(mp_a, mp_b);
+
+    //z = z * pow(2.0, -3.0 * j/2.0 - 1) * pow(b * PI, -(j + 1)/2.0) *
+    //            K_power(-j, cache) * factorial(j) * sqrt(2 * PI) * exp(PI * I / 4.0 + j * 3.0 * PI * I / 4.0);
+
+    z = z * pow(b, -(j + 1)/2.0) * K_power(-j, cache) * A[0][j];
+
+    Complex S = 0;
+    for(int l = 0; l <= j; l++) {
+        if( (j - l) % 2 == 0 ) {
+            //S = S + sign * (  pow(a, l) * exp(-3.0 * PI * I * (Double)l/4.0) * pow(2.0 * PI / b, l/2.0)/(factorial(l) * factorial( (j - l)/2 ) ) );
+            S = S + pow(a, l) * pow(b, -l/2.0) * B[0][j][l];
+        }
+    }
+
+    S = S * z;
+
+    return S;
+}
+
 
 
 Complex w_coefficient_slow(mpfr_t mp_a, mpfr_t mp_b, int K, int s, int j, Complex CF) {

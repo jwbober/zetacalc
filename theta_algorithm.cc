@@ -65,6 +65,9 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 
     if(verbose::S1) {
         cout << "Inside S1(): q = " << q << endl;
+        cout << "             a = " << a << endl;
+        cout << "             b = " << b << endl;
+        cout << "             K = " << K << endl;
         cout << "             w = " << w << endl;
         cout << "       a + 2bK = " << a + (Double) 2 * b * K << endl;
         cout << "            w1 = " << w1 << endl;

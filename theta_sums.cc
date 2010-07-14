@@ -37,10 +37,16 @@ Complex compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex
     Double b = mpfr_get_d(mp_b, GMP_RNDN);
     if(verbose::compute_exponential_sum) {
         cout << "compute_exponential_sums() called with a = " << a << ", b = " << b << ", K = " << K << ", j = " << j << ", epsilon = " << epsilon << endl;
-        cout << "   v = ";
+        Complex v_sum = 0.0;
+        Double abs_v_sum = 0.0;
+        cout << "   v is ";
         for(int l = 0; l <= j; l++) {
-            cout << v[l] << " " << endl;
+            v_sum += v[l];
+            abs_v_sum += abs(v[l]);
+            cout << "v[" << l << "] = " << v[l] << " " << endl;
         }
+        cout << "Sum of v[l] is " << v_sum << endl;
+        cout << "Sum of |v[l]| is " << abs_v_sum << endl;
     }
     int conjugate = normalize(mp_a, mp_b);
     a = mpfr_get_d(mp_a, GMP_RNDN);

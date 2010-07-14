@@ -221,7 +221,8 @@ int test_theta_algorithm(int number_of_tests, int approx_K, Double epsilon = pow
     cout << endl;
     cout << endl;
     cout << "Testing theta algorithm with various random parameters " << number_of_tests << " times, with log2(epsilon) = " << log2(epsilon) << endl;
-    Double maxerror = 0.0;
+    Complex maxerror = 0.0;
+    int bad_test_number = -1;
     for(int n = 0; n < number_of_tests; n++) {
         Double a = (double)rand()/(double)RAND_MAX * 20.0 - 10.0;
         Double b = (double)rand()/(double)RAND_MAX * 20.0 - 10.0;
@@ -230,7 +231,8 @@ int test_theta_algorithm(int number_of_tests, int approx_K, Double epsilon = pow
         int j = (int)((double)rand()/(double)RAND_MAX * j_max);
     
         for(int k = 0; k <= j; k++) {
-            v[k] = random_complex() * 2.0 - complex<double>(1.0, 1.0);
+            //v[k] = random_complex() * 2.0 - complex<double>(1.0, 1.0);
+            v[k] = (random_complex() * 2.0 - complex<double>(1.0, 1.0))/(k * k * k * k + 1.0);
         }
 
         if(run_only == -1) {
@@ -238,21 +240,26 @@ int test_theta_algorithm(int number_of_tests, int approx_K, Double epsilon = pow
             Complex S2 = compute_exponential_sums(a, b, j, K, v, epsilon, 0, 1);
 
             Complex error = S1 - S2;
-            maxerror = max(abs(error), maxerror);
 
-            cout << "Test " << n << ": a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ": log2(error) = " << log2(abs(error)) << "; error = " << error << ", answer = " << S2 << endl;
+            if(abs(error) > abs(maxerror)) {
+                bad_test_number = n;
+                maxerror = error;
+            }
+
+            cout << "Test " << n << ": a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ":                     log2(error) = " << log2(abs(error)) 
+                << endl << "          error = " << error << endl << "          answer = " << S2 << endl;
         }
         else if(run_only == n) {
             Complex S1 = compute_exponential_sums(a, b, j, K, v, epsilon, 100, 0);
             Complex S2 = compute_exponential_sums(a, b, j, K, v, epsilon, 0, 1);
 
             Complex error = S1 - S2;
-            maxerror = max(abs(error), maxerror);
             
             cout << "Test " << n << ": a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ": log2(error) = " << log2(abs(error)) << "; error = " << error << ", answer = " << S2 << endl;
         }
     }
-    cout << "Largest error was " << maxerror << "; log2(maxerror) = " << log2(maxerror) << " when requested was " << log2(epsilon) << endl;
+    cout << "Largest error was " << maxerror << "; log2(maxerror) = " << log2(abs(maxerror)) << " when requested was " << log2(epsilon) << endl;
+    cout << "This happened on test number " << bad_test_number << endl;
 
     return 0;
 }
@@ -268,6 +275,7 @@ int test_theta_algorithm_EM_case(int number_of_tests, int approx_K, Double epsil
     cout << "Testing theta algorithm with various random parameters in the (mostly) Euler-Maclaurin case, with K ~= " << approx_K << " and log2(epsilon) = " << log2(epsilon) << endl;
     cout << "       Running " << number_of_tests << " tests." << endl;
     Double maxerror = 0.0;
+    int bad_test_number = -1;
     for(int n = 0; n < number_of_tests; n++) {
         Double a = (double)rand()/(double)RAND_MAX;
 
@@ -277,7 +285,7 @@ int test_theta_algorithm_EM_case(int number_of_tests, int approx_K, Double epsil
         Double b = ((double)rand()/(double)RAND_MAX) / (2.0 * K);
 
         for(int k = 0; k <= j; k++) {
-            v[k] = random_complex() * 2.0 - complex<double>(1.0, 1.0);
+            v[k] = (random_complex() * 2.0 - complex<double>(1.0, 1.0))/(k * k * k * k + 1.0);
         }
 
         if(run_only == -1) {
@@ -285,8 +293,15 @@ int test_theta_algorithm_EM_case(int number_of_tests, int approx_K, Double epsil
             Complex S2 = compute_exponential_sums(a, b, j, K, v, epsilon, 0, 1);
 
             Double error = abs(S1 - S2);
-            maxerror = max(error, maxerror);
-            cout << "Test " << n << ": a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ": log2(error) = " << log2(error) << "; error = " << error << ", answer = " << S2 << endl;
+            if(error > maxerror) {
+                bad_test_number = n;
+                maxerror = error;
+            }
+            //cout << "Test " << n << ": a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ": log2(error) = " << log2(error) << "; error = " << error << ", answer = " << S2 << endl;
+
+            cout << "Test " << n << ": a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ":                     log2(error) = " << log2(abs(error)) 
+                << endl << "          error = " << error << endl << "          answer = " << S2 << endl;
+
         }
         else if(run_only == n) {
             Complex S1 = compute_exponential_sums(a, b, j, K, v, epsilon, 100, 0);
@@ -299,6 +314,7 @@ int test_theta_algorithm_EM_case(int number_of_tests, int approx_K, Double epsil
         }
     }
     cout << "Largest error was " << maxerror << "; log2(maxerror) = " << log2(maxerror) << " when requested was " << log2(epsilon) << endl;
+    cout << "This happened on test number " << bad_test_number << endl;
 
     return 0;
 }
@@ -367,7 +383,7 @@ void test3() {
 void test_specific_inputs(Double a, Double b, int K, int j, Double epsilon, int Kmin = 0) {
     Complex v[j + 1];
     for(int l = 0; l <= j; l++) {
-        v[l] = 1.0;
+        v[l] = 1.0/(l * l * l * l + 1);
     }
 
     Complex S1 = compute_exponential_sums(a, b, j, K, v, epsilon, Kmin, 0);
@@ -417,16 +433,17 @@ double time_theta_algorithm(int j, int K) {
     
 }
 
-double time_theta_algorithm_varying_Kmin(int j, int K, int number_of_tests, Double epsilon) {
+double time_theta_algorithm_varying_Kmin(int j, int approx_K, int number_of_tests, Double epsilon) {
     Complex v[j + 1];
     for(int k = 0; k <= j; k++) {
-        v[k] = 1.0/(k*k + 1);
+        v[k] = 1.0/(k*k*k*k*k*k*k*k + 1);
     }
 
 
     Complex z1 = 0.0;
 
-    cout << "Timing theta_algorithm with K = " << K << " and j = " << j << endl;
+    cout << "Timing theta_algorithm with K ~= " << approx_K << " and j = " << j << endl;
+
     int Kmin_start = 100;
     int Kmin_end = 1500;
     int Kmin_increment = 100;
@@ -435,6 +452,7 @@ double time_theta_algorithm_varying_Kmin(int j, int K, int number_of_tests, Doub
         clock_t start_time = clock();
         z1 = 0;
         for(int k = 0; k < number_of_tests; k++) {
+            int K = rand()/(Double)RAND_MAX * 2500.0 + approx_K;
             Double a = rand()/(Double)RAND_MAX;
             Double b = rand()/(Double)RAND_MAX;
             //z1 += compute_exponential_sums(a, b, j, K, v, epsilon, Kmin, 0);
@@ -990,7 +1008,7 @@ int main() {
     //seed = 1278127602;
     //seed = 1278182770; // this seed makes the first test in test_theta_algorithm(20, 5000)
     //seed = 1278268854;
-    seed = 1278723182;
+    //seed = 1278723182;
     cout << "Seeding rand() and gmp with " << seed << "." << endl;
     srand(seed);
     
@@ -998,7 +1016,7 @@ int main() {
     gmp_randinit_default(rand_state);
     gmp_randseed_ui(rand_state, seed);
 
-    cout << setprecision(15);
+    cout << setprecision(17);
 
     //build_F0_cache(11, 6, 25, 11000, exp(-20));
     //build_F1_cache(181, 51, 25, exp(-30));
@@ -1011,11 +1029,17 @@ int main() {
     //build_F2_cache(10500, 11, 11, 6, exp(-30));
     //build_IC7_cache(600, 200, 25, exp(-30));
 
-    //build_F0_cache(101, 51, 25, 10500, exp(-25));
-    //build_F1_cache(1801, 501, 30, exp(-30));
-    //build_F2_cache(10500, 101, 101, 51, exp(-30));
+    //build_F0_cache(11, 6, 25, 3100, exp(-25));
+    //build_F1_cache(181, 51, 30, exp(-30));
+    //build_F2_cache(3100, 11, 11, 6, exp(-30));
     //build_IC7_cache(600, 200, 25, exp(-30));
 
+    //build_F0_cache(5, 4, 25, 50, exp(-30));
+    //build_F0_cache(10, 20, 25, 20000, exp(-30));
+    build_F0_cache(10, 100, 25, 25000, exp(-30));
+    build_F1_cache(30, 2000, 30, exp(-30));
+    build_F2_cache(25000, 10, 10, 100, exp(-30));
+    build_IC7_cache(600, 200, 25, exp(-30));
 
     //time_zeta_sum_stage3(rand_state);
 
@@ -1051,8 +1075,32 @@ int main() {
     K = 10300;
     j = 13;
 
-    //test_specific_inputs(a, b, K, j, pow(2, -50));
+
+    a = 0.896067520089479;
+    b = 0.00054575118798739;
+    j = 15;
+    K = 489;
+
+    a = 0.81720095212441;
+    b = 1.61006127354104e-05; j = 9; K = 10094;
+
+    a = 6.4375082293699997; b = -6.9832637240100954; j = 16; K = 8383;
+
+    a = 2.8761590052750705; b = 9.0024296282801899; j = 19; K = 234; // in this example the coefficients of the subsum get really big, and we
+                                                                     // lose some precision if the coefficients of the original sum
+                                                                     // were all the same size.
     
+    b = .00245;
+
+    a = -7.7368794371080023, b = -3.1673489944857307, j = 2, K = 474;
+    //cout << H_method1(50, 1000.0 * I) << endl;
+    //cout << H(50, 1000.0 * I, exp(-30)) << endl;
+
+    //test_specific_inputs(a, b, K, j, pow(2, -40));
+    
+    time_theta_algorithm_varying_Kmin(15, 40000, 30000, pow(2, -22));
+
+
     //test_specific_inputs(0.809496893458765, 9.61035310379055e-06, 10311, 0, pow(2, -50));
 
     //test_theta_algorithm(10, 5000);
@@ -1063,46 +1111,51 @@ int main() {
     //test_theta_algorithm(5, 20231);
     //test_theta_algorithm(50, 5013);
     
-    /*
 
-    test_theta_algorithm(10, 123, pow(2, -30), 200);
-    test_theta_algorithm(10, 123, pow(2, -50), 200);
-    test_theta_algorithm(30, 10000, pow(2, -30), 200);
-    test_theta_algorithm(30, 10000, pow(2, -50), 200);
-    test_theta_algorithm(30, 8000, pow(2, -30), 200);
-    test_theta_algorithm(30, 8000, pow(2, -50), 200);
-    test_theta_algorithm(15, 20000, pow(2, -30), 200);
-    test_theta_algorithm(15, 20000, pow(2, -50), 200);
-    test_theta_algorithm(5, 40000, pow(2, -30), 200);
-    test_theta_algorithm(5, 40000, pow(2, -50), 200);
-    test_theta_algorithm(2, 100000, pow(2, -30), 200);
-    test_theta_algorithm(2, 100000, pow(2, -50), 200);
-    test_theta_algorithm(30, 1000, pow(2, -30), 200);
-    test_theta_algorithm(30, 1000, pow(2, -50), 200);
-    test_theta_algorithm(30, 517, pow(2, -30), 200);
-    test_theta_algorithm(30, 517, pow(2, -50), 200);;
-    test_theta_algorithm(30, 5432, pow(2, -30), 200);
-    test_theta_algorithm(30, 5432, pow(2, -50), 200);
-    test_theta_algorithm(30, 1432, pow(2, -30), 200);
-    test_theta_algorithm(30, 1432, pow(2, -50), 200);
-    test_theta_algorithm(100, 123, pow(2, -30), 200);
-    test_theta_algorithm(100, 123, pow(2, -50), 200);
+    //test_theta_algorithm(1, 1000000, pow(2, -30));
+    //test_theta_algorithm(1, 1000000, pow(2, -50));
+
+    //test_theta_algorithm(100, 517, pow(2, -30));
+    //test_theta_algorithm(100, 517, pow(2, -40));;
+    //test_theta_algorithm(50, 5432, pow(2, -30));
+    //test_theta_algorithm(50, 5432, pow(2, -40));
+    //test_theta_algorithm(50, 1432, pow(2, -30));
+    //test_theta_algorithm(50, 1432, pow(2, -40));
+    //test_theta_algorithm(500, 123, pow(2, -30));
+    //test_theta_algorithm(500, 123, pow(2, -40));
+    //test_theta_algorithm(10, 10000, pow(2, -40));
+    
+    /*
+    test_theta_algorithm(10, 10000, pow(2, -30));
+    test_theta_algorithm(10, 10000, pow(2, -50));
+    test_theta_algorithm(10, 8000, pow(2, -30));
+    test_theta_algorithm(10, 8000, pow(2, -50));
+    test_theta_algorithm(15, 20000, pow(2, -30));
+    test_theta_algorithm(15, 20000, pow(2, -50));
+    test_theta_algorithm(5, 40000, pow(2, -30));
+    test_theta_algorithm(5, 40000, pow(2, -50));
+    test_theta_algorithm(2, 100000, pow(2, -30));
+    test_theta_algorithm(2, 100000, pow(2, -50));
+    test_theta_algorithm(100, 1000, pow(2, -30));
+    test_theta_algorithm(100, 1000, pow(2, -50));
+ 
+    test_theta_algorithm_EM_case(10, 10000, pow(2, -30));
+    test_theta_algorithm_EM_case(10, 10000, pow(2, -50));
+    
+    test_theta_algorithm_EM_case(3, 100000, pow(2, -30));
+    test_theta_algorithm_EM_case(3, 100000, pow(2, -50));
+    
+    test_theta_algorithm_EM_case(20, 1000, pow(2, -30));
+    test_theta_algorithm_EM_case(20, 1000, pow(2, -50));
+    test_theta_algorithm_EM_case(100, 517, pow(2, -30));
+    test_theta_algorithm_EM_case(100, 517, pow(2, -50));;
+    test_theta_algorithm_EM_case(20, 5432, pow(2, -30));
+    test_theta_algorithm_EM_case(20, 5432, pow(2, -50));
+    test_theta_algorithm_EM_case(50, 1432, pow(2, -30));
+    test_theta_algorithm_EM_case(50, 1432, pow(2, -50));
+    test_theta_algorithm_EM_case(500, 123, pow(2, -30));
+    test_theta_algorithm_EM_case(500, 123, pow(2, -50));
     */
-    test_theta_algorithm_EM_case(30, 10000, pow(2, -30));
-    test_theta_algorithm_EM_case(30, 10000, pow(2, -50));
-    
-    
-    test_theta_algorithm_EM_case(30, 1000, pow(2, -30));
-    test_theta_algorithm_EM_case(30, 1000, pow(2, -50));
-    test_theta_algorithm_EM_case(30, 517, pow(2, -30));
-    test_theta_algorithm_EM_case(30, 517, pow(2, -50));;
-    test_theta_algorithm_EM_case(30, 5432, pow(2, -30));
-    test_theta_algorithm_EM_case(30, 5432, pow(2, -50));
-    test_theta_algorithm_EM_case(30, 1432, pow(2, -30));
-    test_theta_algorithm_EM_case(30, 1432, pow(2, -50));
-    test_theta_algorithm_EM_case(100, 123, pow(2, -30));
-    test_theta_algorithm_EM_case(100, 123, pow(2, -50));
-    
 
 
 
@@ -1132,7 +1185,6 @@ int main() {
     //test_zeta_sum_stage3(rand_state);
     //test_zeta_sum();
     //time_theta_algorithm_varying_Kmin(10, 10010, 10000);
-    //time_theta_algorithm_varying_Kmin(10, 2010, 10000);
     //time_theta_algorithm_varying_Kmin(18, 10010, 10000);
     //time_theta_algorithm_varying_Kmin(18, 2010, 10000);
     //time_zeta_sum_stage3(rand_state);

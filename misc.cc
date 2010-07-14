@@ -85,7 +85,7 @@ Double sum_of_offset_inverse_powers(Double a, int m, int M, int j, Double epsilo
     Double S = 0;
 
 
-    /* The following code does not seem good to put it. 
+    /* It doesn't seem good to put in the following code. 
      * It has just about no effect, but might slow things down
      * just a little bit. Probably in the cases where we
      * could return zero immediately we end up computing
@@ -127,15 +127,23 @@ Double sum_of_offset_inverse_powers(Double a, int m, int M, int j, Double epsilo
     int p = (int)ceil( (-fastlog2(epsilon) + .61 + j * log(2 * PI) - j * (fastlog(j) + 1))/2.0 );
     int new_m = max(m + 1, (int)ceil((j + 2 * p - 1)/(2 * PI)) + 1);
 
-    //int new_m = max(m + 1, to_int(ceil(-fastlog(epsilon) + 1)));
+    //new_m = max(m + 1, to_int(ceil(-fastlog(epsilon) + 1)));
     new_m = max(new_m, 3);
     if(M != -1) {
         new_m = min(M + 1, new_m);
     }
 
+    //cout << "M = " << M << endl;
+    //cout << "new_m = " << new_m << endl;
+    //cout << "epsilon = " << epsilon << endl;
+
     //int new_m = min(M + 1, max(m + 1, to_int(ceil(-LOG(epsilon)) + 1)));
     for(int k = m; k < new_m; k++) {
         S += pow( k + a, -j );
+    }
+
+    if(new_m == M + 1) {
+        return S;
     }
 
     m = new_m;
@@ -192,7 +200,6 @@ Double sum_of_offset_inverse_powers(Double a, int m, int M, int j, Double epsilo
             M_plus_a_power *= one_over_M_plus_a_squared;
 
             error = abs(z);
-        //cout << error << endl;
             S = S + z;
             r++;
         }
@@ -263,6 +270,8 @@ Complex ExpAB(mpfr_t A, mpfr_t B) {
     mpfr_mul(tmp, A, A, GMP_RNDN);
     mpfr_mul_d(tmp, tmp, .25, GMP_RNDN);
     mpfr_div(tmp, tmp, B, GMP_RNDN);
+
+    mpfr_frac(tmp, tmp, GMP_RNDN);
     
     Complex S = exp(-2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
     mpfr_clear(tmp);

@@ -23,7 +23,7 @@ def write_w_coefficient_file(limit):
 def print_A(limit, outfile):
     write = outfile.write
     R1 = ComplexField(100)
-    R2 = RealField(53)
+    R2 = RealField(100)
     write("const int A_range = %s;\n" % limit.str());
     write("Complex A[%s][%s] = {" % (limit.str(), limit.str()))
     for s in srange(limit):
@@ -44,7 +44,7 @@ def print_A(limit, outfile):
 def print_B(limit, outfile):
     write = outfile.write
     R1 = ComplexField(100)
-    R2 = RealField(53)
+    R2 = RealField(100)
     write("const int B_range = %s;\n" % limit.str());
     write("Complex B[%s][%s][%s] = {" % (limit.str(), limit.str(), limit.str()))
     for s in srange(limit):
