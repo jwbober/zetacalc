@@ -1084,6 +1084,7 @@ int main() {
     //seed = 1278182770; // this seed makes the first test in test_theta_algorithm(20, 5000)
     //seed = 1278268854;
     //seed = 1278723182;
+    seed = 1279180855;
     cout << "Seeding rand() and gmp with " << seed << "." << endl;
     srand(seed);
     
@@ -1168,6 +1169,14 @@ int main() {
     b = .00245;
 
     a = -7.7368794371080023, b = -3.1673489944857307, j = 2, K = 474;
+
+
+    //test_theta_algorithm_EM_case(20, 10000, pow(2, -30));
+    //test_theta_algorithm_EM_case(100, 1000, pow(2, -50));
+    //test_theta_algorithm_EM_case(100, 1000, pow(2, -30));
+    //test_theta_algorithm_EM_case(20, 100000, pow(2, -50));
+    //test_theta_algorithm_EM_case(100, 517, pow(2, -30));
+
     //cout << H_method1(50, 1000.0 * I) << endl;
     //cout << H(50, 1000.0 * I, exp(-30)) << endl;
 

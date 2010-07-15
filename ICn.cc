@@ -9,181 +9,209 @@
 
 using namespace std;
 
-Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mpfr_t mp_b, theta_cache * cache, Double epsilon) {
+inline Complex IC0_method1(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, Double epsilon) {
+    MPFR_DECL_INIT(mp_a2, mpfr_get_prec(mp_a));
+    MPFR_DECL_INIT(mp_b2, mpfr_get_prec(mp_a));
+    MPFR_DECL_INIT(tmp, mpfr_get_prec(mp_a));
+    MPFR_DECL_INIT(tmp2, mpfr_get_prec(mp_a));
+
+    if(verbose::IC0) {
+        cout << "IC0() using method 1. " << endl;
+    }
+
+    if(verbose::IC0 >= 2) {
+        cout << "In ICO(), 'really small b' case:" << endl;
+    }
+
+    int N = to_int(ceil(std::max ((Double)2.0, sqrt(2.0) * abs(fastlog(epsilon)) ) ));
+    if(verbose::IC0 >= 2) {
+        cout << "N = " << N << endl;
+    }
+
+    //cout << "K: " << K << endl;
+    //cout << "N: " << N << endl;
+    //cout << "a: " << a << endl;
+    //cout << "b: " << b << endl;
+    //cout << "j: " << j << endl;
+    //cout << "epsilon: " << epsilon << endl;
+
+    int K = cache->K;
+
+    mpfr_mul_si(mp_a2, mp_a, K, GMP_RNDN);      //mp_a2 = aK
+    mpfr_div_si(mp_a2, mp_a2, N, GMP_RNDN);     //now mp_a2 = aK/N
+
+    Double a2 = mpfr_get_d(mp_a2, GMP_RNDN);    // a2 = aK/N
+    
+    //cout << "a2: " << a2 << endl;
+
+    mpfr_floor(tmp, mp_a2);                     // tmp = floor(aK/N) 
+    mpfr_sub(mp_a2, mp_a2, tmp, GMP_RNDN);      // mp_a2 = {aK/N}
+
+    mpfr_mul_si(mp_b2, mp_b, K, GMP_RNDN);      // mp_b2 = bK
+    mpfr_mul_si(mp_b2, mp_b2, K, GMP_RNDN);     // mp_b2 = bK^2
+    mpfr_div_si(mp_b2, mp_b2, N * N, GMP_RNDN); // mp_b2 = bK^2/N^2
+
+    Double b2 = mpfr_get_d(mp_b2, GMP_RNDN);    // b2 = bK^2/N^2
+
+    //cout << "b2: " << b2 << endl;
+
+    mpfr_floor(tmp, mp_b2);                     // tmp = floor(bK^2/N^2)
+    mpfr_sub(mp_b2, mp_b2, tmp, GMP_RNDN);      // mp_b2 = {bK^2/N^2}
+
+    Double a2_mod1 = mpfr_get_d(mp_a2, GMP_RNDN);
+    Double b2_mod1 = mpfr_get_d(mp_b2, GMP_RNDN);
+
+    //cout << "a2 mod 1: " << a2_mod1 << endl;
+    //cout << "b2 mod 1: " << b2_mod1 << endl;
+
+    //mpfr_clear(mp_a2);
+    //mpfr_clear(mp_b2);
+    //mpfr_clear(tmp);
+
+    Complex S = (Complex)0;
+
+    Double N_to_the_j = pow(N, j);
+
+    Double exp_linear_term = 0;
+    Double new_epsilon = epsilon * N_to_the_j * K_power(-1, cache);
+
+    for(int n = 0; n < N; n++) {
+        //Complex C = exp((Double)2 * PI * I * (Double)n * (a2_mod1 + b2_mod1 * (Double)n));
+        mpfr_mul_si(tmp, mp_b2, n * n, GMP_RNDN);
+        mpfr_mul_si(tmp2, mp_a2, n, GMP_RNDN);
+        mpfr_add(tmp, tmp, tmp2, GMP_RNDN);
+        mpfr_frac(tmp, tmp, GMP_RNDN);
+        Double x = mpfr_get_d(tmp, GMP_RNDN);
+        //Double x = b2_mod1 * n * n;
+        //Double exp_quadratic_term = 2 * PI * x;
+        //Complex C = Complex( cos(exp_linear_term + exp_quadratic_term), sin(exp_linear_term + exp_quadratic_term) );
+        Complex C = Complex( cos(2 * PI * x), sin(2 * PI * x) );
+        //Complex z = G_method1_R(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
+        Complex z = G_R(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
+        //Complex z = G_method1(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
+        //Complex z2 = G_via_Euler_MacLaurin(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
+        //Complex z = G_via_Euler_MacLaurin(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
+        //Complex z = G_via_Euler_MacLaurin(a2 + (Double) 2 * (Double)n * b2, b2, n, j, epsilon * N_to_the_j/K);
+
+        //S = S + C * z;
+        if(verbose::IC0 >= 2) {
+//                cout << n << ": " << z << endl;
+            cout << n << ": " << K * pow(N, -(j+1)) * C * z << endl;
+            cout << "   G returned " << z << endl;
+            //cout << "   G_via_EulerMaclaurin returned " << z2 << endl;
+            //cout << "   difference was << " << z - z2 << endl;
+        }
+        //S = S + C * z * (Double)K * pow(N, -(j+1));
+        S = S + C * z;
+        exp_linear_term += 2 * PI * a2_mod1;
+    }
+    S *= K * pow(N, -(j + 1));
+    if(verbose::IC0 >= 2) {
+        cout << "IC0 returning S = " << S << endl;
+    }
+
+    return S;
+}
+
+inline Complex IC0_method2(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, Double epsilon) {
+    if(verbose::IC0) {
+        cout << "IC0() using method 2. " << endl;
+    }
+
+    Double a = cache->a;
+    Double b = cache->b;
+    int K = cache->K;
+
+    Complex A = IC8(K, j, mp_a, mp_b, cache);
+    Complex B = IC6(K, j, a, b, mp_a, cache, epsilon/4);
+    Complex C = IC5(K, j, a, b, cache, epsilon/4);
+    Complex D = IC1(K, j, a, b, cache, epsilon/4);
+    if(verbose::IC0) {
+        std::cout << "   IC1:" << D << std::endl;
+        std::cout << "   IC5:" << C << std::endl;
+        std::cout << "   IC6:" << B << std::endl;
+        std::cout << "   IC8:" << A << std::endl;
+    }
+    if(verbose::IC0 >= 2) {
+        cout << "IC0 returning S = " << A - B - C - D << endl;
+    }
+    // Really here we are computing IC2 - IC1...
+    return A - B - C - D;
+}
+
+inline Complex IC0_method3(int j, const theta_cache * cache, Double epsilon) {
+    if(verbose::IC0) {
+        cout << "IC0() using method 3. " << endl;
+    }
+
+    int K = cache->K;
+    Double a = cache->a;
+    Double b = cache->b;
+    
+    Complex A = IC3(K, j, a, b, cache, epsilon/2);
+    Complex B = IC4(K, j, a, b, I * cache->ExpABK, cache, epsilon/2);
+    if(verbose::IC0) {
+        std::cout << "   IC3:" << A << std::endl;
+        std::cout << "   IC4:" << B << std::endl;
+    }
+    if(verbose::IC0 >= 2) {
+        cout << "IC0 returning S = " << A - B << endl;
+    }
+    return A - B;
+}
+
+Complex IC0_method4(int j, const theta_cache * cache, Double epsilon) {
+    if(verbose::IC0) {
+        cout << "IC0() using method 4. " << endl;
+    }
+
+    int K = cache->K;
+    Double a = cache->a;
+    Double b = cache->b;
+
+    Complex A = IC3c(K, j, a, b, cache, epsilon/2);
+    Complex B = IC4c(K, j, a, b, I*cache->ExpABK, cache, epsilon/2);
+    if(verbose::IC0) {
+        std::cout << "   IC3c:" << A << std::endl;
+        std::cout << "   IC4c:" << B << std::endl;
+    }
+    if(verbose::IC0 >= 2) {
+        cout << "IC0 returning S = " << A - B << endl;
+    }
+    return A - B;
+}
+
+Complex IC0(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, Double epsilon) {
+    Double a = cache->a;
+    Double b = cache->b;
+    int K = cache->K;
+
     if(verbose::IC0 >= 1) {
         cout << "IC0 called with:   " << endl;
-        cout << "               a = " << a << endl;
-        cout << "               b = " << b << endl;
+        cout << "               a = " << cache->a << endl;
+        cout << "               b = " << cache->b << endl;
         cout << "               j = " << j << endl;
-        cout << "               K = " << K << endl;
+        cout << "               K = " << cache->K << endl;
         cout << "         epsilon = " << epsilon << endl;
     }
-    if(b <= (-LOG(epsilon)) * (-LOG(epsilon))/((Double)K * (Double)K)) {
-        if(verbose::IC0) {
-            cout << "IC0() using method 1. " << endl;
-        }
-
-        if(verbose::IC0 >= 2) {
-            cout << "In ICO(), 'really small b' case:" << endl;
-        }
-
-        int N = to_int(ceil(std::max ((Double)2.0, sqrt(2.0) * abs(-LOG(epsilon))) ));
-        if(verbose::IC0 >= 2) {
-            cout << "N = " << N << endl;
-        }
-
-        //cout << "K: " << K << endl;
-        //cout << "N: " << N << endl;
-        //cout << "a: " << a << endl;
-        //cout << "b: " << b << endl;
-        //cout << "j: " << j << endl;
-        //cout << "epsilon: " << epsilon << endl;
-
-        mpfr_t mp_a2, mp_b2, tmp;
-        mpfr_init2(mp_a2, mpfr_get_prec(mp_a));
-        mpfr_init2(mp_b2, mpfr_get_prec(mp_b));
-        mpfr_init2(tmp, mpfr_get_prec(mp_a));
-
-        mpfr_mul_si(mp_a2, mp_a, K, GMP_RNDN);      //mp_a2 = aK
-        mpfr_div_si(mp_a2, mp_a2, N, GMP_RNDN);     //now mp_a2 = aK/N
-
-        Double a2 = mpfr_get_d(mp_a2, GMP_RNDN);    // a2 = aK/N
-        
-        //cout << "a2: " << a2 << endl;
-
-        mpfr_floor(tmp, mp_a2);                     // tmp = floor(aK/N) 
-        mpfr_sub(mp_a2, mp_a2, tmp, GMP_RNDN);      // mp_a2 = {aK/N}
-
-        mpfr_mul_si(mp_b2, mp_b, K, GMP_RNDN);      // mp_b2 = bK
-        mpfr_mul_si(mp_b2, mp_b2, K, GMP_RNDN);     // mp_b2 = bK^2
-        mpfr_div_si(mp_b2, mp_b2, N * N, GMP_RNDN); // mp_b2 = bK^2/N^2
-
-        Double b2 = mpfr_get_d(mp_b2, GMP_RNDN);    // b2 = bK^2/N^2
-
-        //cout << "b2: " << b2 << endl;
-
-        mpfr_floor(tmp, mp_b2);                     // tmp = floor(bK^2/N^2)
-        mpfr_sub(mp_b2, mp_b2, tmp, GMP_RNDN);      // mp_b2 = {bK^2/N^2}
-
-        Double a2_mod1 = mpfr_get_d(mp_a2, GMP_RNDN);
-        Double b2_mod1 = mpfr_get_d(mp_b2, GMP_RNDN);
-
-        //cout << "a2 mod 1: " << a2_mod1 << endl;
-        //cout << "b2 mod 1: " << b2_mod1 << endl;
-
-        //mpfr_clear(mp_a2);
-        //mpfr_clear(mp_b2);
-        //mpfr_clear(tmp);
-
-        Complex S = (Complex)0;
-
-        Double N_to_the_j = pow(N, j);
-
-        Double exp_linear_term = 0;
-        Double new_epsilon = epsilon * N_to_the_j * K_power(-1, cache);
-
-        mpfr_t tmp2;
-        mpfr_init2(tmp2, mpfr_get_prec(mp_b2));
-        for(int n = 0; n < N; n++) {
-            //Complex C = exp((Double)2 * PI * I * (Double)n * (a2_mod1 + b2_mod1 * (Double)n));
-            mpfr_mul_si(tmp, mp_b2, n * n, GMP_RNDN);
-            mpfr_mul_si(tmp2, mp_a2, n, GMP_RNDN);
-            mpfr_add(tmp, tmp, tmp2, GMP_RNDN);
-            mpfr_frac(tmp, tmp, GMP_RNDN);
-            Double x = mpfr_get_d(tmp, GMP_RNDN);
-            //Double x = b2_mod1 * n * n;
-            //Double exp_quadratic_term = 2 * PI * x;
-            //Complex C = Complex( cos(exp_linear_term + exp_quadratic_term), sin(exp_linear_term + exp_quadratic_term) );
-            Complex C = Complex( cos(2 * PI * x), sin(2 * PI * x) );
-            //Complex z = G_method1_R(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
-            Complex z = G(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
-            //Complex z = G_method1(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
-            //Complex z2 = G_via_Euler_MacLaurin(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
-            //Complex z = G_via_Euler_MacLaurin(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
-            //Complex z = G_via_Euler_MacLaurin(a2 + (Double) 2 * (Double)n * b2, b2, n, j, epsilon * N_to_the_j/K);
-
-            //S = S + C * z;
-            if(verbose::IC0 >= 2) {
-//                cout << n << ": " << z << endl;
-                cout << n << ": " << K * pow(N, -(j+1)) * C * z << endl;
-                cout << "   G returned " << z << endl;
-                //cout << "   G_via_EulerMaclaurin returned " << z2 << endl;
-                //cout << "   difference was << " << z - z2 << endl;
-            }
-            //S = S + C * z * (Double)K * pow(N, -(j+1));
-            S = S + C * z;
-            exp_linear_term += 2 * PI * a2_mod1;
-        }
-        S *= K * pow(N, -(j + 1));
-        if(verbose::IC0 >= 2) {
-            cout << "IC0 returning S = " << S << endl;
-        }
-//        S = S * (Double)K;
-//        S = S / (Double)(N);
-//        S = S / N_to_the_j;
-
-        return S;
+    Double logepsilon = abs(fastlog(epsilon));
+    if(b <= logepsilon * logepsilon * K_power(-2, cache)) {
+        return IC0_method1(j, mp_a, mp_b, cache, epsilon);
     }
     if(-a/(2 * b) >= 0 && -a/(2 * b) <= K) {
-
-        if(verbose::IC0) {
-            cout << "IC0() using method 2. " << endl;
-        }
-
-        Complex A = IC8(K, j, mp_a, mp_b, cache);
-        Complex B = IC6(K, j, a, b, mp_a, cache, epsilon/4);
-        Complex C = IC5(K, j, a, b, cache, epsilon/4);
-        //Complex D = IC1(K, j, a, b, C11, C12, cache, epsilon/4);
-        Complex D = IC1(K, j, a, b, C11, C12, cache, epsilon);
-        if(verbose::IC0) {
-            std::cout << "   IC1:" << D << std::endl;
-            std::cout << "   IC5:" << C << std::endl;
-            std::cout << "   IC6:" << B << std::endl;
-            std::cout << "   IC8:" << A << std::endl;
-        }
-        if(verbose::IC0 >= 2) {
-            cout << "IC0 returning S = " << A - B - C - D << endl;
-        }
-        // Really here we are computing IC2 - IC1...
-        return A - B - C - D;
+        return IC0_method2(j, mp_a, mp_b, cache, epsilon);
     }
     else {
         if(-a/(2 * b) > K) {
-            if(verbose::IC0) {
-                cout << "IC0() using method 3. " << endl;
-            }
-            
-            Complex A = IC3(K, j, a, b, cache, epsilon/2);
-            Complex B = IC4(K, j, a, b, C11, cache, epsilon/2);
-            if(verbose::IC0) {
-                std::cout << "   IC3:" << A << std::endl;
-                std::cout << "   IC4:" << B << std::endl;
-            }
-            if(verbose::IC0 >= 2) {
-                cout << "IC0 returning S = " << A - B << endl;
-            }
-            return A - B;
+            return IC0_method3(j, cache, epsilon);
         }
         else {// -a/(2b) < 0
-            if(verbose::IC0) {
-                cout << "IC0() using method 4. " << endl;
-            }
-
-            Complex A = IC3c(K, j, a, b, cache, epsilon/2);
-            Complex B = IC4c(K, j, a, b, C11, cache, epsilon/2);
-            if(verbose::IC0) {
-                std::cout << "   IC3c:" << A << std::endl;
-                std::cout << "   IC4c:" << B << std::endl;
-            }
-            if(verbose::IC0 >= 2) {
-                cout << "IC0 returning S = " << A - B << endl;
-            }
-            return A - B;
+            return IC0_method4(j, cache, epsilon);
         }
     }
 }
 
-Complex IC1(int K, int j, Double a, Double b, Complex C11, Complex C12, theta_cache * cache, Double epsilon) {
+Complex IC1(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon) {
     //
     // C11 should be passed as I * exp(2 pi I a K + 2 PI i b K^2)
     // C12 should be passed as I * exp(-2 pi(a + 2bK)K - 2 pi i b K^2)/sqrt(2 * PI * b)
@@ -191,11 +219,11 @@ Complex IC1(int K, int j, Double a, Double b, Complex C11, Complex C12, theta_ca
     // (NEED (-log(epsilon)^2/(K^2 * 2 pi)) < b <= 1/8K )
     //
 
-    if(b < (LOG(epsilon) * LOG(epsilon)/(K * K))) {
-        cout << "************Warning: b is too small in IC1" << endl;
-    }
+    //if(b < (LOG(epsilon) * LOG(epsilon)/(K * K))) {
+    //    cout << "************Warning: b is too small in IC1" << endl;
+    //}
 
-    C11 = I * cache->ExpABK;
+    Complex C11 = I * cache->ExpABK;
     //cout  << "C11 = " << C11 << endl;
 
     Complex S = 0;
@@ -256,7 +284,7 @@ Complex IC1(int K, int j, Double a, Double b, Complex C11, Complex C12, theta_ca
     return S;
 }
 
-Complex IC1c(int K, int j, Double a, Double b, Complex C8, theta_cache * cache, Double epsilon) {
+Complex IC1c(int K, int j, Double a, Double b, Complex C8, const theta_cache * cache, Double epsilon) {
     //
     // Compute C8 * exp(-2 pi a K) int_0^K t^j exp(2 pi i a t - 4 pi b K t + 2 pi i b t^2),
     //
@@ -323,7 +351,7 @@ Complex IC1c(int K, int j, Double a, Double b, Complex C8, theta_cache * cache, 
 // IC3c defined inline in theta_sums.h
 
 
-Complex IC4(int K, int j, Double a, Double b, Complex C11, theta_cache * cache, Double epsilon) {
+Complex IC4(int K, int j, Double a, Double b, Complex C11, const theta_cache * cache, Double epsilon) {
     // needs a + 2bK <= 0
     // b is always positive, so this will be satisfied if 
     
@@ -338,7 +366,7 @@ Complex IC4(int K, int j, Double a, Double b, Complex C11, theta_cache * cache, 
 
 
 
-Complex IC4c(int K, int j, Double a, Double b, Complex C11, theta_cache * cache, Double epsilon) {
+Complex IC4c(int K, int j, Double a, Double b, Complex C11, const theta_cache * cache, Double epsilon) {
     // called when a > 0 and b is small but not too small.
     
     Complex S = 0;
@@ -349,7 +377,7 @@ Complex IC4c(int K, int j, Double a, Double b, Complex C11, theta_cache * cache,
     return S * C11;
 }
 
-Complex IC5(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon) {
+Complex IC5(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon) {
     //
     // Compute the integral int_0^\infty exp(-2 pi i exp(i pi /4) a - 2 pi b t^2) dt 
     // assuming that a is negative (??)
@@ -358,7 +386,7 @@ Complex IC5(int K, int j, Double a, Double b, theta_cache * cache, Double epsilo
     return (Double)minus_one_power(j) * I_power(j + 1) * IC7(-1, j, -a, b, cache, epsilon * K_power(j, cache)) * K_power(-j, cache);
 }
 
-Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, theta_cache * cache, Double epsilon) {
+Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, const theta_cache * cache, Double epsilon) {
     //
     // Compute the integral of exp(2 pi i a t + 2 pi i b t^2) over the
     // contour C_6 = {t exp(i pi/4) | sqrt{2} K < t < infinity}.
@@ -418,7 +446,7 @@ Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, theta_cache * cache, 
     return S;
 }
 
-Complex IC7(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon) {
+Complex IC7(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon) {
     //
     // We compute C9 * K^(-j) int_0^{sqrt(2) K} t^j exp(-sqrt(2) PI a t + sqrt(2) PI i a t - 2 PI b t^2) dt
     // where C9 = exp(-I pi (j + 1)/4)
@@ -436,7 +464,8 @@ Complex IC7(int K, int j, Double a, Double b, theta_cache * cache, Double epsilo
 
     stats::IC7++;
 
-    return 0.0;
+    if(FAKE_IC7)
+        return 0.0;
 
     if(verbose::IC7) {
         cout << "Entering IC7() with " << endl;
@@ -484,7 +513,7 @@ Complex IC7(int K, int j, Double a, Double b, theta_cache * cache, Double epsilo
 
 }
 
-Complex IC7_method1(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon, int L) {
+Complex IC7_method1(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon, int L) {
     Complex C9;
     C9 = exp_minus_i_pi4(j + 1);
 
@@ -823,7 +852,7 @@ Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b, theta_cache * cache) {
 */
 
 
-Complex IC9E(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon) {
+Complex IC9E(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon) {
     //
     // Compute the integral int_0^\infty exp(-2 pi(a - ia + 2bK + 2ibK)t - 4 pi b t^2) dt
     // for a and b positive, and 2bK >= 1

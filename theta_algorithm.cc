@@ -60,7 +60,8 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     Complex C7 = -C5;
     Complex C8 = -I * C_BK_inverse;
 
-    int q = to_int(a + 2 * b * K); // note that a and b are both positive, so this will do the right thing.
+    //int q = to_int(a + 2 * b * K); // note that a and b are both positive, so this will do the right thing.
+    int q = cache->q;
     Double w = a + 2 * b * K - (Double)q;
     
     int p = to_int(ceil(a));
@@ -269,7 +270,8 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     mpfr_t a1, b1;
     mpfr_init2(a1, mpfr_get_prec(mp_a));
     mpfr_init2(b1, mpfr_get_prec(mp_b));
-    mpfr_d_div(b1, .5, mp_b, GMP_RNDN);
+    mpfr_ui_div(b1, 1, mp_b, GMP_RNDN);
+    mpfr_div_2ui(b1, b1, 1, GMP_RNDN);
     mpfr_mul(a1, mp_a, b1, GMP_RNDN);
 
     //mpfr_mul_d(b1, b1, -.5, GMP_RNDN);

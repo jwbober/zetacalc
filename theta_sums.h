@@ -15,6 +15,13 @@
 const bool FAKE_PRECOMPUTATION = true;
 //const bool FAKE_PRECOMPUTATION = false;
 
+const bool FAKE_J_INTEGRALS = false;
+const bool FAKE_IC7 = false;
+const bool FAKE_EULER_MACLAURIN = false;
+
+const int Kmin = 50;
+const int mpfr_Kmin = 2000;
+
 
 inline Complex I_power(int n) {
     Complex S = 0;
@@ -139,12 +146,6 @@ inline Complex exp_minus_i_pi4(int n) {
 }
 
 
-
-
-
-
-const int Kmin = 50;
-
 typedef struct{
     Double a;
     Double b;
@@ -162,6 +163,19 @@ typedef struct{
     Complex C7;
     Complex C8;
 } theta_cache;
+
+
+
+inline Double K_power(int l, const theta_cache * cache) {
+    return * ( (Double *)((intptr_t)(cache) + sizeof(theta_cache) + (cache->j + l) * sizeof(Double) ));
+}
+
+inline Double root_2pi_b_power(int l, const theta_cache * cache) {
+    return * ( (Double *)((intptr_t)(cache) + sizeof(theta_cache) + (3 * cache->j + 2 + l) * sizeof(Double) ));
+}
+
+theta_cache * build_theta_cache(mpfr_t mp_a, mpfr_t mp_b, int j, int K);
+void free_theta_cache(theta_cache * cache);
 
 namespace verbose {
     const int IC0 = 0;
@@ -305,8 +319,9 @@ void free_F1_cache();
 void free_F2_cache();
                                                                                 //
 inline Complex JBulk(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon) {         //                         
-    Complex A = J_Integral_0(a, b, j, M, K, cache, epsilon/2);
-    Complex B = J_Integral_1(a, b, j, M, K, cache, epsilon/2);
+    Double x = epsilon/2;
+    Complex A = J_Integral_0(a, b, j, M, K, cache, x);
+    Complex B = J_Integral_1(a, b, j, M, K, cache, x);
     if(verbose::JBulk) {
         cout << "JBulk returning " << A << " + " << B << " = " << A + B << endl;
     }
@@ -317,13 +332,15 @@ inline Complex JBulk(Double a, Double b, int j, int M, int K, theta_cache * cach
                                                                                         //
 inline Complex JBoundary(Double a1, Double a2, Double b, int j, int K, theta_cache * cache, Double epsilon){ 
     if(j == 0) {
-        return J_Integral_2(a1, a2, b, cache, epsilon/3)                                    
-                                        + J_Integral_1(a1, b, j, -1, K, cache, epsilon/3)     
-                                        - J_Integral_1(a2, b, j, -1, K, cache, epsilon/3);
+        Double x = epsilon * .33333333333333333333;
+        return J_Integral_2(a1, a2, b, cache, x)                                    
+                                        + J_Integral_1(a1, b, j, -1, K, cache, x)     
+                                        - J_Integral_1(a2, b, j, -1, K, cache, x);
     }
     else {
-        return J_Integral_0(a1, b, j, -1, K, cache, epsilon/4) + J_Integral_1(a1, b, j, -1, K, cache, epsilon/4)
-                + (Double)minus_one_power(j + 1) * (  J_Integral_0(a2, b, j, -1, K, cache, epsilon/4) + J_Integral_1(a2, b, j, -1, K, cache, epsilon/4) );
+        Double x = epsilon * .25;
+        return J_Integral_0(a1, b, j, -1, K, cache, x) + J_Integral_1(a1, b, j, -1, K, cache, x)
+                + (Double)minus_one_power(j + 1) * (  J_Integral_0(a2, b, j, -1, K, cache, x) + J_Integral_1(a2, b, j, -1, K, cache, x) );
     }
 }                                                                                     
 
@@ -331,40 +348,42 @@ inline Complex JBoundary(Double a1, Double a2, Double b, int j, int K, theta_cac
 
 
 
-Complex IC0(int K, int j, Double a, Double b, Complex C11, Complex C12, mpfr_t mp_a, mpfr_t mp_b, theta_cache * cache, Double epsilon);
-Complex IC1(int K, int j, Double a, Double b, Complex C11, Complex C12, theta_cache * cache, Double epsilon);//----------------------------------------------
-Complex IC1c(int K, int j, Double a, Double b, Complex C8, theta_cache * cache, Double epsilon);     //
-inline Complex IC3(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon);           //
-inline Complex IC3c(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon);          //
-Complex IC4(int K, int j, Double a, Double b, Complex C11, theta_cache * cache, Double epsilon);     //
-Complex IC4c(int K, int j, Double a, Double b, Complex C11, theta_cache * cache, Double epsilon);    //
-Complex IC5(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon);                  //
-Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, theta_cache * cache, Double epsilon);     //      
-Complex IC7(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon);                  //
-Complex IC7_method1(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon, int L);                  //
+Complex IC0(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, Double epsilon);
+Complex IC1(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon);//----------------------------------------------
+Complex IC1c(int K, int j, Double a, Double b, Complex C8, const theta_cache * cache, Double epsilon);     //
+inline Complex IC3(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon);           //
+inline Complex IC3c(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon);          //
+Complex IC4(int K, int j, Double a, Double b, Complex C11, const theta_cache * cache, Double epsilon);     //
+Complex IC4c(int K, int j, Double a, Double b, Complex C11, const theta_cache * cache, Double epsilon);    //
+Complex IC5(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon);                  //
+Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, const theta_cache * cache, Double epsilon);     //      
+Complex IC7(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon);                  //
+Complex IC7_method1(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon, int L);                  //
 Complex IC7star(Double a, int j, Double epsilon, bool use_cache = true);                  //
-Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b, theta_cache * cache);                            //
-Complex IC9E(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon);                 //
-inline Complex IC9H(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon);          //
+Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache);                            //
+Complex IC9E(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon);                 //
+inline Complex IC9H(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon);          //
                                                                                 //  (Defined in ICn.cc, unless defined inline below)
                                                                                 //
                                                                                 //
 
 void build_IC7_cache(int a_per_unit_interval, Double max_a, int max_j, Double epsilon); //max_a should be passed as about sqrt(K) to compute sums of length K
 
-inline Complex IC3(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon) {
+inline Complex IC3(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon) {
     // needs a <= 0
     //       b >= 0
-    return pow(-I, j+1) * IC9H(K, j, -a, b, cache, epsilon);
+    //return pow(-I, j+1) * IC9H(K, j, -a, b, cache, epsilon);
+    return minus_I_power(j+1) * IC9H(K, j, -a, b, cache, epsilon);
 }
 
-inline Complex IC3c(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon) {
+inline Complex IC3c(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon) {
     // needs a >= 0
     //       b >= 0
-    return pow(I, j+1) * IC9H(K, j, a, b, cache, epsilon);
+    //return pow(I, j+1) * IC9H(K, j, a, b, cache, epsilon);
+    return I_power(j+1) * IC9H(K, j, a, b, cache, epsilon);
 }
 
-inline Complex IC9H(int K, int j, Double a, Double b, theta_cache * cache, Double epsilon) {
+inline Complex IC9H(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon) {
     //
     // Compute the integral (1/K^j)int_0^\infty t^j exp(-2 pi a t - 2 pi i b t^2)
     //
@@ -373,9 +392,9 @@ inline Complex IC9H(int K, int j, Double a, Double b, theta_cache * cache, Doubl
 
     //int endpoint = to_int(10 * ceil( max(-LOG(epsilon * sqrt(b)), 1.0)/sqrt(b) ));
     //Double z = pow((Double)endpoint/(Double)K, j);
-    Double z = pow(K, j);
-    Complex S = IC7(-1, j, a, b, cache, epsilon * z);
-    S = S / z;
+    //Double z = pow(K, j);
+    Complex S = IC7(-1, j, a, b, cache, epsilon * K_power(j, cache));
+    S = S * K_power(-j, cache);
     return S;
 }
 
@@ -469,17 +488,8 @@ Complex compute_exponential_sums_directly(mpfr_t mp_a, mpfr_t mp_b, int j, int K
 Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon);
 Complex compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon, int _Kmin = 0, int method=0);
 Complex compute_exponential_sums(Double a, Double b, int j, int K, Complex * v, Double epsilon, int _Kmin = 0, int method=0);
-inline Double K_power(int l, theta_cache * cache) {
-    return * ( (Double *)((intptr_t)(cache) + sizeof(theta_cache) + (cache->j + l) * sizeof(Double) ));
-}
 
-inline Double root_2pi_b_power(int l, theta_cache * cache) {
-    return * ( (Double *)((intptr_t)(cache) + sizeof(theta_cache) + (3 * cache->j + 2 + l) * sizeof(Double) ));
-}
-
-theta_cache * build_theta_cache(mpfr_t mp_a, mpfr_t mp_b, int j, int K);
-void free_theta_cache(theta_cache * cache);
 
 
 //Complex w_coefficient(Double * a_powers, Double * b_powers, Double * q_powers, int s, int j, theta_cache * cache, Complex * inner_sums);
-void compute_subsum_coefficients(Complex * v2, Complex * v, theta_cache * cache);
+void compute_subsum_coefficients(Complex * v2, Complex * v, const theta_cache * cache);

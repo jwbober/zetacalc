@@ -10,13 +10,13 @@ using namespace std;
 Complex compute_exponential_sum_via_Euler_Maclaurin(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Double epsilon) {
     Complex S = (Complex)0;
  
-    theta_cache * cache = build_theta_cache(mp_a, mp_b, j + 1, K);
+    theta_cache * cache = build_theta_cache(mp_a, mp_b, j + 2, K);
 
     //cout << "Warning: Euler Maclaurin case not implemented yet. Evaluating directly." << endl;
     //return direct_exponential_sum_evaluation2(mp_a, mp_b, j, 0, K);
 
-    Double a = mpfr_get_d(mp_a, GMP_RNDN);
-    Double b = mpfr_get_d(mp_b, GMP_RNDN);
+    Double a = cache->a;
+    Double b = cache->b;
 
     //cout << "|a| + 2 * bK = " << abs(a) << " + 2 * " << b << " * " << K << " = " << abs(a) + 2 * b * K << endl;
 
@@ -28,7 +28,7 @@ Complex compute_exponential_sum_via_Euler_Maclaurin(mpfr_t mp_a, mpfr_t mp_b, in
     Complex C12 = compute_C12(mp_a, mp_b, K);
     Complex C11 = I * cache->ExpABK;
 
-    S = S + IC0(K, j, a, b, C11, C12, mp_a, mp_b, cache, epsilon/2);
+    S = S + IC0(j, mp_a, mp_b, cache, epsilon/2);
 
     //cout << "IC0: " << S << endl;
 
@@ -156,7 +156,8 @@ Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, in
     //cout << "Warning: Euler-Maclauring case not implemented yet. Using direct evaluation." << endl;
     //return compute_exponential_sums_directly(mp_a, mp_b, j, K, v, epsilon);
 
-    return 0.0;
+    if(FAKE_EULER_MACLAURIN)
+        return 0.0;
 
     Double a = mpfr_get_d(mp_a, GMP_RNDN);
     Double b = mpfr_get_d(mp_b, GMP_RNDN);

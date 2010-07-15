@@ -22,7 +22,7 @@ void print_w_coefficient_stats() {
     cout << "       Number of times z wasn't 0: " << wstats::z_wasnt_zero << endl;
 }
 
-Complex w_coefficient(Double * b_powers, Double * q_powers, int s, int j, theta_cache * cache, Complex * inner_sums) {
+Complex w_coefficient(Double * b_powers, Double * q_powers, int s, int j, const theta_cache * cache, Complex * inner_sums) {
     //
     // a_powers should be an array of length at least j - s + 1, filled with 1, a, a^2, ..., a^{j - s}
     // b_powers should be an array of length at least j + 2, filled with 1, b^{-1/2}, 1/b, b^{-3/2}, b^{-2}, ..., b^{-j - 1)/2
@@ -61,7 +61,7 @@ Complex w_coefficient(Double * b_powers, Double * q_powers, int s, int j, theta_
     //return S;
 }
 
-void compute_subsum_coefficients(Complex * v2, Complex * v, theta_cache * cache) {
+void compute_subsum_coefficients(Complex * v2, Complex * v, const theta_cache * cache) {
  
     int j = cache->j;
     Double a = cache->a;
@@ -125,7 +125,7 @@ void compute_subsum_coefficients(Complex * v2, Complex * v, theta_cache * cache)
 
 }
 
-Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b, theta_cache * cache) {
+Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache) {
     Double a = mpfr_get_d(mp_a, GMP_RNDN);
     Double b = mpfr_get_d(mp_b, GMP_RNDN);
 

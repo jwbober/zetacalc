@@ -2,6 +2,9 @@ import sys
 
 ranges = {}
 
+range_check = True  # in a quick test, turning off range checking in these functions made no noticable difference
+                    # in running time, so it seems best to leave it on. (of course, it could be worth trying to
+                    # turn of the range check in the futute to see if it makes a difference.)
 ranges['factorial'] = 170
 ranges['bernoulli'] = 200
 ranges['two_pi_powers'] = 200
@@ -16,6 +19,11 @@ def write_all_tables():
 
     outfile.write("#include <iostream>\n")
     outfile.write("#include <cstdlib>\n")
+
+    if range_check:
+        outfile.write('const bool SKIP_RANGE_CHECK = false;\n')
+    else:
+        outfile.write('const bool SKIP_RANGE_CHECK = true;\n')
 
     write_factorial_table(outfile)
     write_bernoulli_table(outfile)
@@ -43,7 +51,7 @@ def write_factorial_table(outfile):
     
     outfile.write("""
 inline Double factorial(int n) {
-    if(n < factorial_table_range) {
+    if(SKIP_RANGE_CHECK || n < factorial_table_range) {
         return factorial_table[n];
     }
     else {
@@ -79,7 +87,7 @@ def write_bernoulli_table(outfile):
     
     outfile.write("""
 inline Double bernoulli(int n) {
-    if(n < bernoulli_range) {
+    if(SKIP_RANGE_CHECK || n < bernoulli_range) {
         return bernoulli_table[n];
     }
     else {
@@ -105,7 +113,7 @@ def write_twopi_power_table(outfile):
     
     outfile.write("""
 inline Double two_pi_power(int n) {
-    if(n < two_pi_power_table_range) {
+    if(SKIP_RANGE_CHECK || n < two_pi_power_table_range) {
         return two_pi_powers[n];
     }
     else {
@@ -137,7 +145,7 @@ def write_twopi_over_factorial_table(outfile):
     outfile.write("""
 inline Double two_pi_over_factorial_power(int n) {
     // return (2 pi)^n / n! using table lookup for n < 100
-    if(n < two_pi_over_factorial_table_range) {
+    if(SKIP_RANGE_CHECK || n < two_pi_over_factorial_table_range) {
         return two_pi_over_factorial_table[n];
     }
     else {
@@ -165,7 +173,7 @@ def write_bernoulli_over_factorial_table(outfile):
     outfile.write("""
 inline Double bernoulli_over_factorial(int n) {
     // return B_n / n! using table lookup;
-    if(n < bernoulli_over_factorial_table_range) {
+    if(SKIP_RANGE_CHECK || n < bernoulli_over_factorial_table_range) {
         return bernoulli_over_factorial_table[n];
     }
     else {
@@ -199,7 +207,7 @@ def write_exp_table(outfile):
     
     outfile.write("""
 inline Double exp_t_over_N_squared(int t, int N) {
-    if(N < exp_t_over_N_squared_range) {
+    if(SKIP_RANGE_CHECK || N < exp_t_over_N_squared_range) {
         return exp_t_over_N_squared_table[N][t];
     }
     else {
@@ -234,7 +242,7 @@ def write_binomial_table(outfile):
     
     outfile.write("""
 inline Double binomial_coefficient(int n, int m) {
-    if(n < binomial_range && m <= n) {
+    if(SKIP_RANGE_CHECK || (n < binomial_range && m <= n)) {
         return binomial_table[n][m];
     }
     else {
@@ -267,7 +275,7 @@ def write_gamma_s_over_2_table(outfile):
     
     outfile.write("""
 inline Double gamma_s_over_2(int s) {
-    if(s < gamma_s_over_2_range) {
+    if(SKIP_RANGE_CHECK || s < gamma_s_over_2_range) {
         return gamma_s_over_2_table[s];
     }
     else {

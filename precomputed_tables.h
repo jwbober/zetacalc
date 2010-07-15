@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdlib>
+const bool SKIP_RANGE_CHECK = false;
 const int factorial_table_range = 170;
 const Double factorial_table[factorial_table_range] = {
 1.0000000000000000000000000000000,
@@ -175,7 +176,7 @@ const Double factorial_table[factorial_table_range] = {
 
 
 inline Double factorial(int n) {
-    if(n < factorial_table_range) {
+    if(SKIP_RANGE_CHECK || n < factorial_table_range) {
         return factorial_table[n];
     }
     else {
@@ -397,7 +398,7 @@ const Double bernoulli_table[bernoulli_range] = {
 
 
 inline Double bernoulli(int n) {
-    if(n < bernoulli_range) {
+    if(SKIP_RANGE_CHECK || n < bernoulli_range) {
         return bernoulli_table[n];
     }
     else {
@@ -610,7 +611,7 @@ const Double two_pi_powers[two_pi_power_table_range] = {
 
 
 inline Double two_pi_power(int n) {
-    if(n < two_pi_power_table_range) {
+    if(SKIP_RANGE_CHECK || n < two_pi_power_table_range) {
         return two_pi_powers[n];
     }
     else {
@@ -829,7 +830,7 @@ const Double two_pi_over_factorial_table[two_pi_over_factorial_table_range] = {
 
 inline Double two_pi_over_factorial_power(int n) {
     // return (2 pi)^n / n! using table lookup for n < 100
-    if(n < two_pi_over_factorial_table_range) {
+    if(SKIP_RANGE_CHECK || n < two_pi_over_factorial_table_range) {
         return two_pi_over_factorial_table[n];
     }
     else {
@@ -1044,7 +1045,7 @@ const Double bernoulli_over_factorial_table[bernoulli_over_factorial_table_range
 
 inline Double bernoulli_over_factorial(int n) {
     // return B_n / n! using table lookup;
-    if(n < bernoulli_over_factorial_table_range) {
+    if(SKIP_RANGE_CHECK || n < bernoulli_over_factorial_table_range) {
         return bernoulli_over_factorial_table[n];
     }
     else {
@@ -1958,7 +1959,7 @@ const Double exp_t_over_N_squared_table[exp_t_over_N_squared_range][exp_t_over_N
 
 
 inline Double exp_t_over_N_squared(int t, int N) {
-    if(N < exp_t_over_N_squared_range) {
+    if(SKIP_RANGE_CHECK || N < exp_t_over_N_squared_range) {
         return exp_t_over_N_squared_table[N][t];
     }
     else {
@@ -2302,7 +2303,7 @@ const Double gamma_s_over_2_table[gamma_s_over_2_range] = {
 
 
 inline Double gamma_s_over_2(int s) {
-    if(s < gamma_s_over_2_range) {
+    if(SKIP_RANGE_CHECK || s < gamma_s_over_2_range) {
         return gamma_s_over_2_table[s];
     }
     else {
@@ -3216,7 +3217,7 @@ const Double binomial_table[binomial_range][binomial_range] = {
 
 
 inline Double binomial_coefficient(int n, int m) {
-    if(n < binomial_range && m <= n) {
+    if(SKIP_RANGE_CHECK || (n < binomial_range && m <= n)) {
         return binomial_table[n][m];
     }
     else {
