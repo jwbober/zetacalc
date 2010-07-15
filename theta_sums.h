@@ -479,3 +479,7 @@ inline Double root_2pi_b_power(int l, theta_cache * cache) {
 
 theta_cache * build_theta_cache(mpfr_t mp_a, mpfr_t mp_b, int j, int K);
 void free_theta_cache(theta_cache * cache);
+
+
+//Complex w_coefficient(Double * a_powers, Double * b_powers, Double * q_powers, int s, int j, theta_cache * cache, Complex * inner_sums);
+void compute_subsum_coefficients(Complex * v2, Complex * v, theta_cache * cache);

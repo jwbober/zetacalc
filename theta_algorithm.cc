@@ -1,5 +1,6 @@
 #include "theta_sums.h"
 #include "precomputed_tables.h"
+#include "log.h"
 
 #include <cmath>
 #include <iostream>
@@ -24,31 +25,40 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     // First we compute some constants for later use, trying to keep notation consistant
     // which Hiary's paper.
 
-    Double a = mpfr_get_d(mp_a, GMP_RNDN);
-    Double b = mpfr_get_d(mp_b, GMP_RNDN);
+    //Double a = mpfr_get_d(mp_a, GMP_RNDN);
+    //Double b = mpfr_get_d(mp_b, GMP_RNDN);
 
-    Complex C_AK_inverse = ExpA(mp_a, K);
-    Complex C_BK_inverse = ExpB(mp_b, K);
-    Complex C_AK = 1.0/C_AK_inverse;
-    Complex C_BK = 1.0/C_BK_inverse;
-    
-    Complex C_ABK = C_AK * C_BK;
+    //Complex C_AK_inverse = ExpA(mp_a, K);
+    //Complex C_BK_inverse = ExpB(mp_b, K);
+    //Complex C_AK = 1.0/C_AK_inverse;
+    //Complex C_BK = 1.0/C_BK_inverse;
+    //
+    //Complex C_ABK = C_AK * C_BK;
+    //
+    //Complex C1 = I * C_ABK;
+    //Complex C5 = -C1;
+    //Complex C7 = -C5;
+    //Complex C8 = -I * C_BK_inverse;
+    //Complex CF;
+    //if(53 + 2 + log2(epsilon * b) < 0)
+    //    CF = ExpAB(mp_a, mp_b);
+    //else
+    //    CF = exp(-I * PI * a * a * .5/b);
 
-    //Complex C1 = I/(ExpA(mp_a, K) * ExpB(mp_b, K));
+    Double a = cache->a;
+    Double b = cache->b;
+
+    Complex C_AK_inverse = cache->ExpAK_inverse;
+    Complex C_BK_inverse = cache->ExpBK_inverse;
+    Complex C_AK = cache->ExpAK;
+    Complex C_BK = cache->ExpBK;
+
+    Complex C_ABK = cache->ExpABK;
+
     Complex C1 = I * C_ABK;
-    //Complex C2 = I * pow(-I, j);
-    //Complex C3 = exp((j + 1.0) * I * PI/4.0)/ExpA(mp_a, K);
-    //Complex C4 = pow(-I, j + 1);
     Complex C5 = -C1;
-    //Complex C6 = pow(I, j + 1);
     Complex C7 = -C5;
-    //Complex C8 = -I * ExpB(mp_b, K);
     Complex C8 = -I * C_BK_inverse;
-    Complex CF;
-    if(53 + 2 + log2(epsilon * b) < 0)
-        CF = ExpAB(mp_a, mp_b);
-    else
-        CF = exp(-I * PI * a * a * .5/b);
 
     int q = to_int(a + 2 * b * K); // note that a and b are both positive, so this will do the right thing.
     Double w = a + 2 * b * K - (Double)q;
@@ -112,11 +122,13 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 
     Double Z_epsilon[j + 1];
     Double V_epsilon[j + 1];
-    for(int l = 0; l <= j; l++) {
-        Z_epsilon[l] = epsilon/(12.0 * abs(Z[l]) * (j + 1.0));
-        V_epsilon[l] = epsilon/(12.0 * abs(v[l]) * (j + 1.0));
+    {
+        Double x = 1.0/(12 * (j + 1.0));
+        for(int l = 0; l <= j; l++) {
+            Z_epsilon[l] = x * epsilon/abs(Z[l]);
+            V_epsilon[l] = x * epsilon/abs(v[l]);
+        }
     }
-
     Complex JBulk_term1 = 0;
     if(verbose::S1 >= 2) {
         cout << "JBulk_term1 = -" << C1 << " * (" << endl;
@@ -124,7 +136,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     for(int l = 0; l <= j; l++) {
         Complex x = 0;
         if(Z[l] != 0.0) 
-            x = JBulk(w, b, l, p1, K, cache, Z_epsilon[l] );        //----------
+            x = JBulk(w, b, l, p1, K, cache, Z_epsilon[l]) + IC7(K, l, w, b, cache, Z_epsilon[l]);        //----------
         JBulk_term1 += Z[l] * x;
         if(verbose::S1 >= 2) {
             cout << "   l == " << l << "   " << Z[l] * x << " ( == " << Z[l] << " * " << x << ")";
@@ -139,31 +151,11 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     S1 = S1 + JBulk_term1;
 
     Complex IC7_term1 = 0;
-    if(verbose::S1 >= 2) {
-        cout << "IC7_term1 = -" << C1 << " * (" << endl;
-    }
-
-    for(int l = 0; l <= j; l++) {
-        Complex x = 0.0;
-        if(Z[l] != 0.0)
-            x = IC7(K, l, w, b, cache, Z_epsilon[l]);                    //---------
-        IC7_term1 += Z[l] * x;
-        if(verbose::S1 >= 2) {
-            cout << "    " << Z[l] * x << " ( == " << Z[l] << " * " << x << ")";
-            if(l < j)
-                cout << " + " << endl;
-            else
-                cout << ")" << endl;
-        }
-    }
-
-    IC7_term1 *= -C1;
-    S1 = S1 + IC7_term1;
 
     Complex IC1c_term = 0;
     Complex IC9E_term = 0;
     
-    if(2.0 * PI * w * K <= -log(epsilon) + (j + 1) * log(2.0)) {
+    if(2.0 * PI * w * K <= -fastlog(epsilon) + (j + 1) * log(2.0)) {
         if(verbose::S1 >= 2) {
             cout << "IC1c_term = " << C1 << " * (" << endl;
         }
@@ -189,7 +181,8 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
         for(int l = 0; l <= j; l++) {
             Complex z = 0;
             for(int s = l; s <= j; s++) {
-                z = z + v[s] * binomial_coefficient(s, l) * pow(2, (s + 1.0)/2.0)  * exp(I * PI * (s + 1.0)/4.0);
+                //z = z + v[s] * binomial_coefficient(s, l) * pow(2, (s + 1.0)/2.0)  * exp(I * PI * (s + 1.0)/4.0);
+                z = z + v[s] * binomial_coefficient(s, l) * pow(2, (s + 1.0)/2.0) * exp_i_pi4(s + 1);       // TODO get rid of this pow
             }
             if( (j + 1) * abs(z) * K * 12 < epsilon) {
                 Z2[l] = 0;
@@ -221,13 +214,15 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
         }
         //IC9E_term = -IC9E_term * exp(-2.0 * PI * w * K) / ExpA(mp_a, K);
         IC9E_term = -IC9E_term * exp(-2.0 * PI * w * K) * C_AK;
+
+        S1 = S1 + IC9E_term;
+        S1 = S1 + IC1c_term;
+
     }
     else if(verbose::S1) {
         cout << "Not computing IC9E or IC1c terms because they are going to be 0." << endl;
     }
 
-    S1 = S1 + IC9E_term;
-    S1 = S1 + IC1c_term;
 
     Complex JBulk_term2 = 0;
 
@@ -238,7 +233,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     for(int l = 0; l <= j; l++) {
         Complex x = 0;
         if(v[l] != 0.0)
-            x = (Double)minus_one_power(l) * I_power(l+1) * v[l] * JBulk(w1, b, l, p1, K, cache, V_epsilon[l]);  //-----------
+            x = (Double)minus_one_power(l) * I_power(l+1) * v[l] * (JBulk(w1, b, l, p1, K, cache, V_epsilon[l]) + IC7(K, l, w1, b, cache, V_epsilon[l] )) ;  //-----------
 
         JBulk_term2 += x;
 
@@ -253,32 +248,8 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     JBulk_term2 *= -1;
 
     S1 = S1 + JBulk_term2;
-
-
-
     Complex IC7_term2 = 0;
- 
-    if(verbose::S1 >= 2) {
-        cout << "IC7_term2 = -(" << endl;
-    }
- 
-    for(int l = 0; l <= j; l++) {
-        Complex x = 0.0;
-        if(v[l] != 0.0)
-            x = (Double)minus_one_power(l) * I_power(l+1) * v[l] * IC7(K, l, w1, b, cache, V_epsilon[l] );          //-----------
-        
-        IC7_term2 += x;
-        if(verbose::S1 >= 2) {
-            cout << "    " << x;
-            if(l < j)
-                cout << " + " << endl;
-            else
-                cout << ")" << endl;
-        }
-    }
-    IC7_term2 *= -1;
 
-    S1 = S1 + IC7_term2;
 
     if(verbose::S1) {
         cout << "JBulk_term1 = " << JBulk_term1 << endl;
@@ -298,49 +269,17 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     mpfr_t a1, b1;
     mpfr_init2(a1, mpfr_get_prec(mp_a));
     mpfr_init2(b1, mpfr_get_prec(mp_b));
-    mpfr_div(a1, mp_a, mp_b, GMP_RNDN);
-    mpfr_div_ui(a1, a1, 2, GMP_RNDN);  // a = a/(2b);
+    mpfr_d_div(b1, .5, mp_b, GMP_RNDN);
+    mpfr_mul(a1, mp_a, b1, GMP_RNDN);
 
-    mpfr_set_d(b1, -.25, GMP_RNDN);
-    mpfr_div(b1, b1, mp_b, GMP_RNDN);
+    //mpfr_mul_d(b1, b1, -.5, GMP_RNDN);
+    mpfr_div_2ui(b1, b1, 1, GMP_RNDN);
+    mpfr_neg(b1, b1, GMP_RNDN);
 
     Complex v2[j+1];
+    compute_subsum_coefficients(v2, v, cache);
 
-    int N = j;
-    if(N == 0) {
-        N = N + 1;
-    }
 
-    Double a_powers[N+1];
-    Double sqrt_b_powers[N+2];
-    Double q_powers[N+1];
-    Double K_powers[N + 1];
-
-    a_powers[0] = 1;
-    sqrt_b_powers[0] = 1;
-    Double sqrt_b_inverse = 1.0/sqrt(b);
-    q_powers[0] = 1;
-    K_powers[0] = 1;
-    Double K_inverse = 1.0/K;
-    for(int k = 1; k <= N; k++) {
-        a_powers[k] = a * a_powers[k-1];
-        sqrt_b_powers[k] = sqrt_b_inverse * sqrt_b_powers[k-1];
-        q_powers[k] = q * q_powers[k-1];
-        K_powers[k] = K_inverse * K_powers[k-1];
-    }
-    sqrt_b_powers[N + 1] = sqrt_b_powers[N] * sqrt_b_inverse;
-
-    for(int l = 0; l <= j; l++) {
-        v2[l] = 0;
-        for(int s = l; s <= j; s++) {
-            if(v[s] != 0.0) {
-                //Complex z = w_coefficient(a_powers, sqrt_b_powers, q_powers, K_powers, l, s, CF);
-                //cout << "w_coefficient(" << a << ", " << b << ", " << l << ", " << s << ",) = " << z << endl;
-                v2[l] += v[s] * w_coefficient(a_powers, sqrt_b_powers, q_powers, K_powers, l, s, CF);
-                //v2[l] += v[s] * w_coefficient_slow(mp_a, mp_b, K, l, s, CF);
-            }
-        }
-    }
 
     //s1 = s1 + z * compute_exponential_sum(a1, b1, q, (epsilon/12) * sqrt((Double)2 * b));
     Complex subsum = compute_exponential_sums(a1, b1, j, q, v2, epsilon, _Kmin);
@@ -379,7 +318,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     for(int l = 0; l <= j; l++) {
         Complex x = 0.0;
         if(Z[l] != 0.0)
-            x = (Double)minus_one_power(l) * Z[l] * IC9H(K, l, 1 - w, b, cache, Z_epsilon[l] );                           //-----------------
+            x = Z[l] * ((Double)minus_one_power(l) * IC9H(K, l, 1 - w, b, cache, Z_epsilon[l] ) - JBoundary(2 * b * K - w1, 1 - w, b, l, K, cache, Z_epsilon[l] )); 
 
         IC9H_term1 += x;
         if(verbose::S2 >= 2) {
@@ -394,54 +333,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     S2 = S2 + IC9H_term1;
 
     Complex IC9H_term2 = 0;
-
-    if(verbose::S2 >= 2) {
-        cout << "IC9H_term2 = ( " << endl;
-    }
-
-    for(int l = 0; l <= j; l++) {
-        Complex x = 0.0;
-        if(v[l] != 0.0)
-            x = I_power(l + 1) * v[l] * IC9H(K, l, 1 - w1, b, cache, V_epsilon[l] );                       //------------------
-
-        IC9H_term2 += x;
-
-        if(verbose::S2 >= 2) {
-            cout << "    " << x;
-            if(l < j)
-                cout << " + " << endl;
-            else
-                cout << ")" << endl;
-        }
-
-    }
-    //IC9H_term2 *= C6;
-    S2 = S2 + IC9H_term2;
-
     Complex JBoundary_term1 = 0;
-
-    if(verbose::S2 >= 2) {
-        cout << "JBoundary_term1 = " << C5 << " * ( " << endl;
-    }
-
-    for(int l = 0; l <= j; l++) {
-        Complex x = 0.0;
-        if(Z[l] != 0.0)
-            x = Z[l] * JBoundary(2 * b * K - w1, 1 - w, b, l, K, cache, Z_epsilon[l] );     //---------------
-
-        JBoundary_term1 += x;
-
-        if(verbose::S2 >= 2) {
-            cout << "    " << x;
-            if(l < j)
-                cout << " + " << endl;
-            else
-                cout << ")" << endl;
-        }
-
-    }
-    JBoundary_term1 *= C5;
-    S2 = S2 + JBoundary_term1;
 
     Complex JBoundary_term2 = 0;
 
@@ -452,7 +344,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     for(int l = 0; l <= j; l++) {
         Complex x = 0.0;
         if(v[l] != 0.0)
-            x = minus_I_power(l + 1) * v[l] * JBoundary(2 * b * K - w, 1 - w1, b, l, K, cache, V_epsilon[l] );     //-----------
+            x = I_power(l + 1) * v[l] * ((Double)minus_one_power(l + 1) * JBoundary(2 * b * K - w, 1 - w1, b, l, K, cache, V_epsilon[l] ) + IC9H(K, l, 1 - w1, b, cache, V_epsilon[l] )) ;     //-----------
 
         JBoundary_term2 += x;
 
@@ -488,8 +380,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     for(int l = 0; l <= j; l++) {
         boundary_terms += v[l];
     }
-    boundary_terms = boundary_terms * .5 * C_ABK;
-    boundary_terms += .5 * v[0];
+    boundary_terms = .5 * (boundary_terms * C_ABK + v[0]);
 
     //cout << "Boundary terms = " << boundary_terms << endl;
 
@@ -530,16 +421,18 @@ int normalize(mpfr_t a, mpfr_t b) {
     // otherwise return 0
 
     // A return of -1 would indicate some strange (impossible) error.
+    MPFR_DECL_INIT(t, mpfr_get_prec(a));
 
-    mpfr_t t;
-    mpfr_init2(t, mpfr_get_prec(a));
+
+    //mpfr_t t;
+    //mpfr_init2(t, mpfr_get_prec(a));
     mpfr_floor(t, a);
     mpfr_sub(a, a, t, GMP_RNDN);
 
     mpfr_floor(t, b);
     mpfr_sub(b, b, t, GMP_RNDN);
 
-    mpfr_clear(t);
+    //mpfr_clear(t);
     //a = a - floor(a);
     //b = b - floor(b);
 
@@ -561,8 +454,10 @@ int normalize(mpfr_t a, mpfr_t b) {
             return 0;                                           //
         }                                                       // }
         else {
-            mpfr_mul_si(a, a, -1, GMP_RNDN);                    // a = -a
-            mpfr_mul_si(b, b, -1, GMP_RNDN);                    // b = -b
+            mpfr_neg(a, a, GMP_RNDN);
+            mpfr_neg(b, b, GMP_RNDN);
+            //mpfr_mul_si(a, a, -1, GMP_RNDN);                    // a = -a
+            //mpfr_mul_si(b, b, -1, GMP_RNDN);                    // b = -b
             if(mpfr_cmp_ui(a, 0) < 0) {                         // if(a < 0) {
                 mpfr_add_ui(a, a, 1, GMP_RNDN);                 //      a = a + 1
             }                                                   // }
@@ -571,9 +466,10 @@ int normalize(mpfr_t a, mpfr_t b) {
         return 0;
     }
     else {
-        mpfr_sub_ui(b, b, 1, GMP_RNDN);                         // b -= 1
-        mpfr_mul_si(a, a, -1, GMP_RNDN);                        // a = -a
-        mpfr_mul_si(b, b, -1, GMP_RNDN);                        // b = -b
+        mpfr_ui_sub(b, 1, b, GMP_RNDN);                         // b -= 1
+        mpfr_neg(a, a, GMP_RNDN);
+        //mpfr_mul_si(a, a, -1, GMP_RNDN);                        // a = -a
+        //mpfr_mul_si(b, b, -1, GMP_RNDN);                        // b = -b
         if(mpfr_cmp_ui(a, 0) < 0) {                             // if(a < 0) {
             mpfr_add_ui(a, a, 1, GMP_RNDN);                     //      a++
         }                                                       // }

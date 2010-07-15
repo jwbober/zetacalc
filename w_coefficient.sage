@@ -46,25 +46,20 @@ def print_B(limit, outfile):
     R1 = ComplexField(100)
     R2 = RealField(100)
     write("const int B_range = %s;\n" % limit.str());
-    write("Complex B[%s][%s][%s] = {" % (limit.str(), limit.str(), limit.str()))
-    for s in srange(limit):
+    write("Complex B[%s][%s] = {" % (limit.str(), limit.str()))
+    for k in srange(limit):
         write("{")
-        for j in srange(limit):
-            write("{")
-            for l in srange(limit):
-                z = R1(B(s, j, l))
-                if(z == 0):
-                    write("Complex(0.0,0.0)")
-                else:
-                    write("Complex(%s,%s)" % (R2(real(z)).str(truncate=False), R2(imag(z)).str(truncate=False)))
-                if l < limit - 1:
-                    write(",\n")
-            write("}")
-            if j < limit - 1:
+        for l in srange(limit):
+            z = R1(B(k, l))
+            if(z == 0):
+                write("Complex(0.0,0.0)")
+            else:
+                write("Complex(%s,%s)" % (R2(real(z)).str(truncate=False), R2(imag(z)).str(truncate=False)))
+            if l < limit - 1:
                 write(",\n")
 
         write("}")
-        if s < limit - 1:
+        if k < limit - 1:
             write(",\n")
     write("};\n")
 
@@ -80,17 +75,32 @@ def A(s, j):
        / factorial(s)
 
 
-def B(s, j, l):
-    if(l > j - s):
+#def B(s, j, l):
+#    if(l > j - s):
+#        return 0
+#    if is_even(j - s - l):
+#        if is_even( (j + l - s)/2 ):
+#            sign = 1
+#        else:
+#            sign = -1
+#        return  sign *                  \
+#            pow(2 * pi, l/2) *          \
+#            exp(-3 * pi * i * l/4) /    \
+#            ( factorial(l) * factorial( (j - s - l)/2 ) );
+#    else:
+#        return 0
+
+def B(k, l):
+    if(l > k):
         return 0
-    if is_even(j - s - l):
-        if is_even( (j + l - s)/2 ):
+    if is_even(k - l):
+        if is_even( (k + l)/2 ):
             sign = 1
         else:
             sign = -1
         return  sign *                  \
             pow(2 * pi, l/2) *          \
             exp(-3 * pi * i * l/4) /    \
-            ( factorial(l) * factorial( (j - s - l)/2 ) );
+            ( factorial(l) * factorial( (k - l)/2 ) );
     else:
         return 0

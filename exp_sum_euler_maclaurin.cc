@@ -156,6 +156,7 @@ Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, in
     //cout << "Warning: Euler-Maclauring case not implemented yet. Using direct evaluation." << endl;
     //return compute_exponential_sums_directly(mp_a, mp_b, j, K, v, epsilon);
 
+    return 0.0;
 
     Double a = mpfr_get_d(mp_a, GMP_RNDN);
     Double b = mpfr_get_d(mp_b, GMP_RNDN);

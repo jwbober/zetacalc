@@ -51,8 +51,8 @@ theta_cache * build_theta_cache(mpfr_t mp_a, mpfr_t mp_b, int j, int K) {
     cache->q = to_int(cache->a + 2 * cache->b * K);
     cache->ExpAK = ExpAK(mp_a, K);
     cache->ExpBK = ExpBK(mp_b, K);
-    cache->ExpAK_inverse = 1.0/cache->ExpAK;
-    cache->ExpBK_inverse = 1.0/cache->ExpBK;
+    cache->ExpAK_inverse = conj(cache->ExpAK);
+    cache->ExpBK_inverse = conj(cache->ExpBK);
     cache->ExpAB = ExpAB(mp_a, mp_b);
     cache->ExpABK = cache->ExpAK * cache->ExpBK;
 

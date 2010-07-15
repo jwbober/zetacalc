@@ -5,6 +5,7 @@
 #include <ctime>
 #include <iostream>
 #include <iomanip>
+#include "precomputed_tables.h"
 
 using namespace std;
 
@@ -469,6 +470,80 @@ double time_theta_algorithm_varying_Kmin(int j, int approx_K, int number_of_test
     return 1.0;
     
 }
+
+
+double time_theta_algorithm_zeta_case_varying_Kmin(int j, int approx_K, int number_of_tests, Double epsilon) {
+    Complex v[j + 1];
+    for(int k = 0; k <= j; k++) {
+        v[k] = pow(2 * PI/3.0, k/3) * pow(2, -k)/factorial(k/3);
+    }
+
+
+    Complex z1 = 0.0;
+
+    cout << "Timing theta_algorithm with K ~= " << approx_K << " and j = " << j << endl;
+
+    int Kmin_start = 100;
+    int Kmin_end = 1500;
+    int Kmin_increment = 100;
+    cout << "   Running " << number_of_tests << " iterations total for various Kmin from " << Kmin_start << " to " << Kmin_end << "." << endl;
+    for(int Kmin = Kmin_start; Kmin <= Kmin_end; Kmin+=Kmin_increment) {
+        clock_t start_time = clock();
+        z1 = 0;
+        for(int k = 0; k < number_of_tests; k++) {
+            int K = rand()/(Double)RAND_MAX * 2500.0 + approx_K;
+            Double a = rand()/(Double)RAND_MAX;
+            Double b = rand()/(Double)RAND_MAX;
+            //z1 += compute_exponential_sums(a, b, j, K, v, epsilon, Kmin, 0);
+            z1 = compute_exponential_sums(a, b, j, K, v, epsilon, Kmin, 0);
+
+
+        }
+        cout << "Sum was " << z1 << endl;
+        clock_t end_time = clock();
+        double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
+        cout << "Number of seconds with Kmin = " << Kmin << " was " << elapsed_time << endl;
+    }
+
+    return 1.0;
+    
+}
+
+double time_theta_algorithm_zeta_case_fixed_Kmin(int j, int approx_K, int number_of_tests, int Kmin, Double epsilon) {
+    Complex v[j + 1];
+    for(int k = 0; k <= j; k++) {
+        v[k] = pow(2 * PI/3.0, k/3) * pow(2, -k)/factorial(k/3);
+    }
+
+
+    Complex z1 = 0.0;
+
+    cout << "Timing theta_algorithm with K ~= " << approx_K << " and j = " << j << endl;
+
+    cout << "   Running " << number_of_tests << " iterations total with Kmin = " << Kmin << endl;
+    clock_t start_time = clock();
+    z1 = 0;
+    for(int k = 0; k < number_of_tests; k++) {
+        int K = rand()/(Double)RAND_MAX * 2500.0 + approx_K;
+        Double a = rand()/(Double)RAND_MAX;
+        Double b = rand()/(Double)RAND_MAX;
+        //z1 += compute_exponential_sums(a, b, j, K, v, epsilon, Kmin, 0);
+        z1 = compute_exponential_sums(a, b, j, K, v, epsilon, Kmin, 0);
+
+
+    }
+    cout << "Sum was " << z1 << endl;
+    clock_t end_time = clock();
+    double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
+    cout << "Number of seconds with Kmin = " << Kmin << " was " << elapsed_time << endl;
+
+    return 1.0;
+    
+}
+
+
+
+
 
 
 double time_theta_algorithm_EM_case(int j, int K, int number_of_tests, Double epsilon) {
@@ -1036,9 +1111,9 @@ int main() {
 
     //build_F0_cache(5, 4, 25, 50, exp(-30));
     //build_F0_cache(10, 20, 25, 20000, exp(-30));
-    build_F0_cache(10, 100, 25, 25000, exp(-30));
+    build_F0_cache(10, 100, 25, 30000, exp(-30));
     build_F1_cache(30, 2000, 30, exp(-30));
-    build_F2_cache(25000, 10, 10, 100, exp(-30));
+    build_F2_cache(30000, 10, 10, 100, exp(-30));
     build_IC7_cache(600, 200, 25, exp(-30));
 
     //time_zeta_sum_stage3(rand_state);
@@ -1098,7 +1173,9 @@ int main() {
 
     //test_specific_inputs(a, b, K, j, pow(2, -40));
     
-    time_theta_algorithm_varying_Kmin(15, 40000, 30000, pow(2, -22));
+    //time_theta_algorithm_varying_Kmin(15, 40000, 30000, pow(2, -22));
+    //time_theta_algorithm_zeta_case_varying_Kmin(15, 50000, 30000, pow(2, -20));
+    time_theta_algorithm_zeta_case_fixed_Kmin(15, 50000, 40000, 900, pow(2, -20));
 
 
     //test_specific_inputs(0.809496893458765, 9.61035310379055e-06, 10311, 0, pow(2, -50));

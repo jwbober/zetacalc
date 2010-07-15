@@ -9,6 +9,7 @@ ranges['two_pi_power_over_factorial'] = 200
 ranges['bernoulli_over_factorial'] = 200
 ranges['exp_t_over_N_squared'] = 30
 ranges['gamma_s_over_2'] = 330
+ranges['binomial'] = 30
 
 def write_all_tables():
     outfile = open("precomputed_tables.h", 'w')
@@ -23,6 +24,7 @@ def write_all_tables():
     write_bernoulli_over_factorial_table(outfile)
     write_exp_table(outfile)
     write_gamma_s_over_2_table(outfile)
+    write_binomial_table(outfile)
 
     outfile.close()
 
@@ -55,10 +57,11 @@ inline Double factorial(int n) {
     }
 }
 
-inline Double binomial_coefficient(int n, int k) {
-    return factorial(n)/(factorial(k) * factorial(n - k) );
-}
+//inline Double binomial_coefficient(int n, int k) {
+//    return factorial(n)/(factorial(k) * factorial(n - k) );
+//}
 """)
+
 
 
 def write_bernoulli_table(outfile):
@@ -206,6 +209,45 @@ inline Double exp_t_over_N_squared(int t, int N) {
     }
 }
 """)
+
+
+def write_binomial_table(outfile):
+    M = ranges['binomial']
+    R = RealField(100)
+    outfile.write("const int binomial_range = %s;\n" % (M,))
+
+    outfile.write("const Double binomial_table[binomial_range][binomial_range] = {\n")
+    for n in srange(M):
+        outfile.write("{")
+        for m in srange(M):
+            if m <= n:
+                outfile.write( R(binomial(n,m)).str(truncate=False) )
+            else:
+                outfile.write("-1.0")
+            if(m < M - 1):
+                outfile.write(",\n")
+        outfile.write("}")
+        if(n < M - 1):
+            outfile.write(",\n")
+
+    outfile.write("};\n\n")
+    
+    outfile.write("""
+inline Double binomial_coefficient(int n, int m) {
+    if(n < binomial_range && m <= n) {
+        return binomial_table[n][m];
+    }
+    else {
+        std::cout << "binomial_coefficient() called out of range." << std::endl;
+        std::cout << "called with n = " << n << std::endl;
+        std::cout << "called with m = " << m << std::endl;
+        std::exit(1);
+    }
+}
+""")
+
+
+
 
 def write_gamma_s_over_2_table(outfile):
     M = ranges['gamma_s_over_2']

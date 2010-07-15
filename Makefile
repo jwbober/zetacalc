@@ -35,7 +35,7 @@ direct_evaluation.o: direct_evaluation.cc theta_sums.h
 exp_sum_euler_maclaurin.o: exp_sum_euler_maclaurin.cc theta_sums.h precomputed_tables.h
 	g++ -c exp_sum_euler_maclaurin.cc $(OPTIONS) $(INCLUDEDIR)
 
-theta_algorithm.o: theta_algorithm.cc theta_sums.h
+theta_algorithm.o: theta_algorithm.cc theta_sums.h precomputed_tables.h
 	g++ -c theta_algorithm.cc $(OPTIONS) $(INCLUDEDIR)
 
 G_functions.o: G_functions.cc theta_sums.h precomputed_tables.h
@@ -62,7 +62,7 @@ zeta.o: zeta.cc zeta.h
 misc.o: misc.cc precomputed_tables.h misc.h log.h
 	g++ -c misc.cc $(OPTIONS) $(INCLUDEDIR)
 
-w_coefficient.o: w_coefficient.cc w_coefficient.h misc.h
+w_coefficient.o: w_coefficient.cc w_coefficient.h misc.h theta_sums.h
 	g++ -c w_coefficient.cc $(OPTIONS) $(INCLUDEDIR)
 
 log.o: log.cc log.h

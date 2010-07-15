@@ -436,6 +436,8 @@ Complex IC7(int K, int j, Double a, Double b, theta_cache * cache, Double epsilo
 
     stats::IC7++;
 
+    return 0.0;
+
     if(verbose::IC7) {
         cout << "Entering IC7() with " << endl;
         cout << "         K = " << K << endl;

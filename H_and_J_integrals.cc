@@ -205,6 +205,8 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cach
     //
     // -1 corresponds to infinity
     stats::J_Integral_0++;
+    
+    return 0.0;
 
     Double K_pow_j;
     Double K_pow_minus_j;
@@ -217,6 +219,7 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cach
         K_pow_minus_j = 1.0/K_pow_j;
     }
 
+    
 
     //if(2 * pow(K, -j) * log(abs((Double)M) + 10) < epsilon) {
     if( 3 + fastlog2(K_pow_minus_j) + fastlog2(fastlog(abs(M) + 10.0)) < fastlog2(epsilon)) {
@@ -335,6 +338,8 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
     
     // We truncate the integral at L, where L is given by
     stats::J_Integral_1++;
+
+    return 0.0;
 
     //int L = min(K, max(1, to_int(ceil(-LOG(epsilon)/(2 * PI * (1 + a))))));
 
@@ -640,6 +645,8 @@ Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double
     // lim_{M --> oo} J_Integral_0(a1, b, M) - J_Integral_0(a2, b, M)
     //
     stats::J_Integral_2++;
+
+    return 0.0;
 
     if(a2 > a1) {
         //if (2.0 * ( (a2 - a1)/a2 * log(1 + a2) ) < epsilon) {
