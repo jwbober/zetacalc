@@ -12,15 +12,15 @@
 
 #include "misc.h"
 
-const bool FAKE_PRECOMPUTATION = true;
-//const bool FAKE_PRECOMPUTATION = false;
+//const bool FAKE_PRECOMPUTATION = true;
+const bool FAKE_PRECOMPUTATION = false;
 
 const bool FAKE_J_INTEGRALS = false;
 const bool FAKE_IC7 = false;
 const bool FAKE_EULER_MACLAURIN = false;
 
 const int Kmin = 50;
-const int mpfr_Kmin = 0;
+const int mpfr_Kmin = 2000;
 //const int mpfr_Kmin = 2000;
 
 

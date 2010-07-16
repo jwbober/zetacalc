@@ -12,7 +12,7 @@ ranges['two_pi_power_over_factorial'] = 200
 ranges['bernoulli_over_factorial'] = 200
 ranges['exp_t_over_N_squared'] = 30
 ranges['gamma_s_over_2'] = 330
-ranges['binomial'] = 30
+ranges['binomial'] = 100;
 
 def write_all_tables():
     outfile = open("precomputed_tables.h", 'w')

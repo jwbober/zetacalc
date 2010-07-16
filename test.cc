@@ -757,11 +757,11 @@ int test_zeta_sum_stage1(gmp_randstate_t rand_state) {
         mpfr_mul_ui(t, t, 1000000000, GMP_RNDN);
         mpfr_add(t, t, big_number, GMP_RNDN);
 
-        S1 = zeta_block_mpfr(one, K, t);
-        S2 = zeta_sum_stage1(n, t);
+        S1 = zeta_block_mpfr(one, K - 1, t);
+        zeta_sum_stage1(n, t, 1, 1, &S2);
         //S2 = zeta_block_stage1(one, K, t);
 
-        cout << S1 - S2 << endl;
+        cout << S1 << " " << S1 - S2 << endl;
     }
 
     mpz_clear(n);
@@ -802,7 +802,7 @@ int test_zeta_sum_stage2(gmp_randstate_t rand_state) {
         create_exp_itlogn_table(t);
 
         S1 = zeta_block_mpfr(v, length, t);
-        S2 = zeta_sum_stage2(v, mp_length, t);
+        zeta_sum_stage2(v, mp_length, t, 1, 1, &S2);
 
         cout << S1 << "   " << S2 << "   " << S1 - S2 << endl;
     }
@@ -823,7 +823,7 @@ int test_zeta_sum_stage2(gmp_randstate_t rand_state) {
         create_exp_itlogn_table(t);
 
         S1 = zeta_block_mpfr(v, length, t);
-        S2 = zeta_sum_stage2(v, mp_length, t);
+        zeta_sum_stage2(v, mp_length, t, 1, 1, &S2);
 
         cout << S1 << "   " << S2 << "   " << S1 - S2 << endl;
     }
@@ -845,7 +845,7 @@ int test_zeta_sum_stage2(gmp_randstate_t rand_state) {
     create_exp_itlogn_table(t);
 
     S1 = zeta_block_mpfr(v, length, t);
-    S2 = zeta_sum_stage2(v, mp_length, t);
+    zeta_sum_stage2(v, mp_length, t, 1, 1, &S2);
 
     cout << S1 << "   " << S2 << "   " << S1 - S2 << endl;
 
@@ -886,7 +886,7 @@ int test_zeta_sum_stage3(gmp_randstate_t rand_state) {
         create_exp_itlogn_table(t);
 
         S1 = zeta_block_mpfr(v, length, t);
-        S2 = zeta_sum_stage3(v, mp_length, t);
+        zeta_sum_stage3(v, mp_length, t, 1, 1, &S2);
 
         cout << S1 << "   " << S2 << "   " << S1 - S2 << endl;
     }
@@ -907,7 +907,7 @@ int test_zeta_sum_stage3(gmp_randstate_t rand_state) {
         create_exp_itlogn_table(t);
 
         S1 = zeta_block_mpfr(v, length, t);
-        S2 = zeta_sum_stage3(v, mp_length, t);
+        zeta_sum_stage3(v, mp_length, t, 1, 1, &S2);
 
         cout << S1 << "   " << S2 << "   " << S1 - S2 << endl;
     }
@@ -932,7 +932,7 @@ int test_zeta_sum_stage3(gmp_randstate_t rand_state) {
     create_exp_itlogn_table(t);
 
     S1 = zeta_block_mpfr(v, length, t);
-    S2 = zeta_sum_stage3(v, mp_length, t);
+    zeta_sum_stage3(v, mp_length, t, 1, 1, &S2);
 
     cout << S1 << "   " << S2 << "   " << S1 - S2 << endl;
 
@@ -975,7 +975,8 @@ double time_zeta_sum_stage1() {
 
     clock_t start_time = clock();
 
-    Complex S1 = zeta_sum_stage1(n, t);
+    Complex S1;
+    zeta_sum_stage1(n, t, 1, 1, &S1);
 
     clock_t end_time = clock();
     double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
@@ -1037,7 +1038,8 @@ int time_zeta_sum_stage3(gmp_randstate_t rand_state) {
             create_exp_itlogn_table(t);
 
             for(int n = 0; n < number_of_gridpoints; n++) {
-                S2 += zeta_block_stage3(v, 200000, t, Z, Kmin);
+                Complex z;
+                S2 += zeta_block_stage3(v, 200000, t, Z, 1, 1, &z, Kmin);
                 //S2 += zeta_block_stage2(v, 200000, t);
                 mpz_add(v, v, v_increment);
             }
@@ -1183,10 +1185,10 @@ int main() {
     //test_specific_inputs(.0000001, .0000000001, 10000, 0, pow(2, -30));
 
 
-    test_theta_algorithm_EM_case(20, 10000, pow(2, -30));
-    test_theta_algorithm_EM_case(100, 1000, pow(2, -50));
-    test_theta_algorithm_EM_case(100, 1000, pow(2, -30));
-    test_theta_algorithm_EM_case(20, 100000, pow(2, -50));
+    //test_theta_algorithm_EM_case(20, 10000, pow(2, -30));
+    //test_theta_algorithm_EM_case(100, 1000, pow(2, -50));
+    //test_theta_algorithm_EM_case(100, 1000, pow(2, -30));
+    //test_theta_algorithm_EM_case(20, 100000, pow(2, -50));
     //test_theta_algorithm_EM_case(100, 517, pow(2, -30));
 
     //cout << H_method1(50, 1000.0 * I) << endl;
@@ -1212,12 +1214,12 @@ int main() {
     //test_theta_algorithm(1, 1000000, pow(2, -30));
     //test_theta_algorithm(1, 1000000, pow(2, -50));
 
-    test_theta_algorithm(100, 517, pow(2, -30));
-    test_theta_algorithm(100, 517, pow(2, -40));;
-    test_theta_algorithm(50, 5432, pow(2, -30));
-    test_theta_algorithm(50, 5432, pow(2, -40));
-    test_theta_algorithm(50, 1432, pow(2, -30));
-    test_theta_algorithm(50, 1432, pow(2, -40));
+    //test_theta_algorithm(100, 517, pow(2, -30));
+    //test_theta_algorithm(100, 517, pow(2, -40));;
+    //test_theta_algorithm(50, 5432, pow(2, -30));
+    //test_theta_algorithm(50, 5432, pow(2, -40));
+    //test_theta_algorithm(50, 1432, pow(2, -30));
+    //test_theta_algorithm(50, 1432, pow(2, -40));
     //test_theta_algorithm(500, 123, pow(2, -30));
     //test_theta_algorithm(500, 123, pow(2, -40));
     //test_theta_algorithm(10, 10000, pow(2, -40));
@@ -1279,7 +1281,7 @@ int main() {
     //test_zeta_sum_stage1(rand_state);
     //time_zeta_sum_stage1();
     //test_zeta_sum_stage2(rand_state);
-    //test_zeta_sum_stage3(rand_state);
+    test_zeta_sum_stage3(rand_state);
     //test_zeta_sum();
     //time_theta_algorithm_varying_Kmin(10, 10010, 10000);
     //time_theta_algorithm_varying_Kmin(18, 10010, 10000);

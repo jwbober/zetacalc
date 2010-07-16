@@ -20,19 +20,23 @@ Complex initial_zeta_sum_mpfr(mpz_t M, mpfr_t t);
 
 void print_zeta_stats();
 
-Complex zeta_sum(mpfr_t);
+Complex zeta_sum(mpfr_t, Double delta, int N, Complex * S);
 Complex zeta_sum_mpfr(mpfr_t);
 Complex zeta_sum_basic(mpfr_t);
 
 Complex zeta(mpfr_t t);
 Complex hardy_Z(mpfr_t, Complex &R);
+Complex hardy_Z(mpfr_t t0, Double delta, int N, Complex * S);
 
-Complex zeta_sum_stage1(mpz_t N, mpfr_t t);
-Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t);
-Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, int Kmin = 0);
-Complex zeta_block_stage1(mpz_t v, unsigned int K, mpfr_t t);
-Complex zeta_block_stage2(mpz_t n, unsigned int N, mpfr_t t);
-Complex zeta_block_stage3(mpz_t n, unsigned int N, mpfr_t t, Complex Z[30], int Kmin = 0);
+Complex zeta_sum_stage1(mpz_t N, mpfr_t t, Double delta, int M, Complex * S);
+Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex * S);
+Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex * S, int Kmin = 0);
+Complex zeta_block_stage1(mpz_t v, unsigned int K, mpfr_t t, Double delta, int M, Complex * S);
+Complex zeta_block_stage2(mpz_t n, unsigned int N, mpfr_t t, Double delta, int M, Complex * S);
+Complex zeta_block_stage3(mpz_t n, unsigned int N, mpfr_t t, Complex Z[30], Double delta, int M, Complex * S, int Kmin = 0);
 
 void stage_1_bound(mpz_t v, mpfr_t t);
 void stage_2_bound(mpz_t v, mpfr_t t);
+
+Complex rs_rotation(mpfr_t t);
+Double rs_remainder(mpfr_t t);

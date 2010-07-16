@@ -51,7 +51,8 @@ void stage_2_bound(mpz_t v, mpfr_t t) {
     mpfr_init2(x, mpfr_get_prec(t));
 
     mpfr_cbrt(x, t, GMP_RNDN);
-    mpfr_mul_ui(x, x, 1120u, GMP_RNDN);
+    //mpfr_mul_ui(x, x, 1120u, GMP_RNDN);
+    mpfr_mul_ui(x, x, 26u, GMP_RNDN);
 
     mpfr_get_z(v, x, GMP_RNDN);
 
@@ -70,7 +71,8 @@ void stage_3_bound(mpz_t v, mpfr_t t) {
     mpfr_init2(x, mpfr_get_prec(t));
    
     mpfr_const_pi(twopi, GMP_RNDN);
-    mpfr_mul_ui(twopi, twopi, 2u, GMP_RNDN);
+    //mpfr_mul_ui(twopi, twopi, 2u, GMP_RNDN);
+    mpfr_mul_ui(twopi, twopi, 1120u, GMP_RNDN);
     
     mpfr_div(x, t, twopi, GMP_RNDN);
     mpfr_sqrt(x, x, GMP_RNDN);
@@ -91,7 +93,7 @@ inline unsigned int stage_2_block_size(Double v, Double t) {
     
     // For now we set the block size to be v/t^{1/4}
 
-    unsigned int block_size = (unsigned int)( v * pow(t, -.25) );
+    unsigned int block_size = min((unsigned int)( v * pow(t, -.25) ), (unsigned int)(pow(t, 1.0/12.0)));
 
     return block_size;
 }
@@ -102,11 +104,16 @@ inline unsigned int stage_3_block_size(Double v, Double t) {
     //
     // So if we want to start stage 3 with a block size of 100, then we should
     // set stage_2_bound to 112 * t^(1/3)
-    unsigned int block_size = (unsigned int)(.9 * v * pow(t, -.3333333333333333333333));
+    //unsigned int block_size = (unsigned int)(.9 * v * pow(t, -.3333333333333333333333));
+    unsigned int block_size = (unsigned int)(2 * v * pow(t, -.3333333333333333333333));
     return block_size;
 }
 
-Complex zeta_block_stage1(mpz_t v, unsigned int K, mpfr_t t) {
+Complex zeta_block_stage1(mpz_t v, unsigned int K, mpfr_t t, Double delta, int M, Complex * S) {
+    for(int l = 0; l < M; l++) {
+        S[l] = 0;
+    }
+    
     if(K == 0) {
         return 0.0;
     }
@@ -120,19 +127,24 @@ Complex zeta_block_stage1(mpz_t v, unsigned int K, mpfr_t t) {
         cout << v << " " << n << endl;
     }
 
-    Complex S = 0.0;
 
     mpz_set(n, v);
 
-
     for(unsigned int k = 0; k < K; k++) {
-        S = S + exp_itlogn4(n)/sqrt(mpz_get_d(n));
+        Complex current_term = exp_itlogn4(n)/sqrt(mpz_get_d(n));
+        Complex multiplier = exp(I * delta * log(mpz_get_d(n)));
+        
+        for(int l = 0; l < M; l++) {
+            S[l] += current_term;
+            current_term *= multiplier;
+        }
+
         mpz_add_ui(n, n, 1u);
     }
 
     mpz_clear(n);
 
-    return S;
+    return S[0];
 }
 
 Complex zeta_block_stage2_basic(mpz_t v, unsigned int *K, mpfr_t t, Double epsilon) {
@@ -367,7 +379,7 @@ Complex zeta_block_stage3_basic(mpz_t v, unsigned int *K, mpfr_t t, Complex ZZ[3
         w_power *= w;
     }
 
-    int j = 18;
+    int j = 15;
 
     // Compute Z[l]
  
@@ -414,12 +426,15 @@ Complex zeta_block_stage3_basic(mpz_t v, unsigned int *K, mpfr_t t, Complex ZZ[3
 }
 
 
-Complex zeta_block_stage2(mpz_t n, unsigned int N, mpfr_t t) {
+Complex zeta_block_stage2(mpz_t n, unsigned int N, mpfr_t t, Double delta, int M, Complex * S) {
+    for(int l = 0; l < M; l++) {
+        S[l] = 0.0;
+    }
+    
     if(N == 0) {
         return 0;
     }
 
-    Complex S = 0;
 
     mpz_t v;
     mpz_init(v);
@@ -427,7 +442,13 @@ Complex zeta_block_stage2(mpz_t n, unsigned int N, mpfr_t t) {
     mpz_set(v, n);
     unsigned int K = N;
     while(N > 0) {
-        S = S + zeta_block_stage2_basic(v, &K, t, exp(-20));
+        Complex current_term = zeta_block_stage2_basic(v, &K, t, exp(-20));
+        Complex multiplier = exp(I * delta * log(mpz_get_d(v)));
+        for(int l = 0; l < M; l++) {
+            S[l] += current_term;
+            current_term *= multiplier;
+        }
+        //cout << v << "  " << K << endl;
         N = N - K;
         mpz_add_ui(v, v, K);
         K = N;
@@ -435,17 +456,18 @@ Complex zeta_block_stage2(mpz_t n, unsigned int N, mpfr_t t) {
 
     mpz_clear(v);
 
-    return S;
+    return S[0];
 }
 
-Complex zeta_block_stage3(mpz_t n, unsigned int N, mpfr_t t, Complex Z[30], int Kmin) {
-
+Complex zeta_block_stage3(mpz_t n, unsigned int N, mpfr_t t, Complex Z[30], Double delta, int M, Complex * S, int Kmin) {
+    for(int l = 0; l < M; l++) {
+        S[l] = 0.0;
+    }
 
     if(N == 0) {
         return 0;
     }
 
-    Complex S = 0;
 
     mpz_t v;
     mpz_init(v);
@@ -453,7 +475,12 @@ Complex zeta_block_stage3(mpz_t n, unsigned int N, mpfr_t t, Complex Z[30], int 
     mpz_set(v, n);
     unsigned int K = N;
     while(N > 0) {
-        S = S + zeta_block_stage3_basic(v, &K, t, Z, exp(-13), Kmin);
+        Complex current_term = zeta_block_stage3_basic(v, &K, t, Z, exp(-13), Kmin);
+        Complex multiplier = exp(I * delta * log(mpz_get_d(v)));
+        for(int l = 0; l < M; l++) {
+            S[l] += current_term;
+            current_term *= multiplier;
+        }
         N = N - K;
         mpz_add_ui(v, v, K);
         K = N;
@@ -461,13 +488,13 @@ Complex zeta_block_stage3(mpz_t n, unsigned int N, mpfr_t t, Complex Z[30], int 
 
     mpz_clear(v);
 
-    return S;
+    return S[0];
 }
 
 
 
 
-Complex zeta_sum_stage1(mpz_t N, mpfr_t t) {
+Complex zeta_sum_stage1(mpz_t N, mpfr_t t, Double delta, int M, Complex * S) {
     //
     // Compute and return the sum
     //
@@ -485,7 +512,11 @@ Complex zeta_sum_stage1(mpz_t N, mpfr_t t) {
 
     create_exp_itlogn_table(t);
 
-    Complex S = 0;
+    for(int l = 0; l < M; l++) {
+        S[l] = 0;
+    }
+
+    Complex S2[M];
 
     const unsigned int block_size = 10000;
 
@@ -504,22 +535,28 @@ Complex zeta_sum_stage1(mpz_t N, mpfr_t t) {
     mpz_set_si(v, 1 - block_size);
     for(mpz_set_ui(k, 0u); mpz_cmp(k, number_of_blocks) < 0; mpz_add_ui(k, k, 1u)) {
         mpz_add_ui(v, v, block_size);
-        S = S + zeta_block_stage1(v, block_size, t);
+        zeta_block_stage1(v, block_size, t, delta, M, S2);
+        for(int l = 0; l < M; l++) {
+            S[l] += S2[l];
+        }
         //S = S + zeta_block_mpfr(v, block_size, t);
     }
     mpz_add_ui(v, v, block_size);
 
-    S = S + zeta_block_stage1(v, remainder, t);
+    zeta_block_stage1(v, remainder, t, delta, M, S2);
+    for(int l = 0; l < M; l++) {
+        S[l] += S2[l];
+    }
 
     mpz_clear(v);
     mpz_clear(k);
     mpz_clear(number_of_blocks);
     mpz_clear(number_of_terms);
 
-    return S;
+    return S[0];
 }
 
-Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t) {
+Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex * S) {
     //
     // Compute and return the sum
     //
@@ -529,7 +566,11 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t) {
     // and add up all the terms. We could just call it directly, but we anticipate
     // shortly changing this routine to use multiple threads.
     //
-    Complex S = 0;
+    for(int l = 0; l < M; l++) {
+        S[l] = 0.0;
+    }
+
+    Complex S2[M];
 
     const unsigned int block_size = 1000000;
 
@@ -545,7 +586,10 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t) {
     mpz_sub_ui(v, v, block_size);
     for(mpz_set_ui(k, 0u); mpz_cmp(k, number_of_blocks) < 0; mpz_add_ui(k, k, 1u)) {
         mpz_add_ui(v, v, block_size);
-        S = S + zeta_block_stage2(v, block_size, t);
+        zeta_block_stage2(v, block_size, t, delta, M, S2);
+        for(int l = 0; l < M; l++) {
+            S[l] += S2[l];
+        }
         //S = S + zeta_block_mpfr(v, block_size, t);
         if(mpz_divisible_ui_p(k, 5u)) {
             cout << "In stage2, completed " << k << " large blocks out of " << number_of_blocks << "." << endl;
@@ -553,18 +597,21 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t) {
     }
     mpz_add_ui(v, v, block_size);
 
-    S = S + zeta_block_stage2(v, remainder, t);
+    zeta_block_stage2(v, remainder, t, delta, M, S2);
+    for(int l = 0; l < M; l++) {
+        S[l] += S2[l];
+    }
     //S = S + zeta_block_mpfr(v, remainder, t);
 
     mpz_clear(v);
     mpz_clear(k);
     mpz_clear(number_of_blocks);
 
-    return S;
+    return S[0];
 
 }
 
-Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, int Kmin) {
+Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex * S, int Kmin) {
     //
     // Compute and return the sum
     //
@@ -574,7 +621,12 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, int Kmin) {
     // and add up all the terms. We could just call it directly, but we anticipate
     // shortly changing this routine to use multiple threads.
     //
-    Complex S = 0;
+    Complex S2[M];
+    for(int l = 0; l < M; l++) {
+        S[l] = 0.0;
+        S2[l] = 0.0;
+    }
+
 
     const unsigned int block_size = 1000000;
 
@@ -593,7 +645,10 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, int Kmin) {
     mpz_sub_ui(v, v, block_size);
     for(mpz_set_ui(k, 0u); mpz_cmp(k, number_of_blocks) < 0; mpz_add_ui(k, k, 1u)) {
         mpz_add_ui(v, v, block_size);
-        S = S + zeta_block_stage3(v, block_size, t, Z, Kmin);
+        zeta_block_stage3(v, block_size, t, Z, delta, M, S2, Kmin);
+        for(int l = 0; l < M; l++) {
+            S[l] += S2[l];
+        }
         //S = S + zeta_block_mpfr(v, block_size, t);
         if(mpz_divisible_ui_p(k, 5u)) {
             cout << "In stage3, completed " << k << " large blocks out of " << number_of_blocks << "." << endl;
@@ -601,14 +656,17 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, int Kmin) {
     }
     mpz_add_ui(v, v, block_size);
 
-    S = S + zeta_block_stage3(v, remainder, t, Z, Kmin);
+    zeta_block_stage3(v, remainder, t, Z, delta, M, S2, Kmin);
+    for(int l = 0; l < M; l++) {
+        S[l] += S2[l];
+    }
     //S = S + zeta_block_mpfr(v, remainder, t);
 
     mpz_clear(v);
     mpz_clear(k);
     mpz_clear(number_of_blocks);
 
-    return S;
+    return S[0];
 
 }
 
@@ -844,8 +902,10 @@ Complex zeta_sum_mpfr(mpfr_t t) {
     return S;
 }
 
-Complex zeta_sum(mpfr_t t) {
-    Complex S = 0.0;
+Complex zeta_sum(mpfr_t t, Double delta, int N, Complex * S) {
+    for(int l = 0; l < N; l++) {
+        S[l] = 0.0;
+    }
 
     mpz_t n1, n2, n3, N2, N3;
 
@@ -859,7 +919,9 @@ Complex zeta_sum(mpfr_t t) {
     stage_2_bound(n2, t);
     stage_3_bound(n3, t);
 
-    Complex S1, S2, S3;
+    Complex S1[N];
+    Complex S2[N];
+    Complex S3[N];
 
     if(mpz_cmp(n2, n3) > 0) {      // if n2 > n3, set n2 = n3
         mpz_set(n2, n3);
@@ -876,14 +938,14 @@ Complex zeta_sum(mpfr_t t) {
     mpz_sub(N2, n2, n1);        // N2 and N3 hold the lengths of the sums for stage 2 and stage 3
     mpz_sub(N3, n3, n2);
 
-    S1 = zeta_sum_stage1(n1, t);
-    cout << "Done with stage 1. Sum was: " << S1 << endl;
+    zeta_sum_stage1(n1, t, delta, N, S1);
+    cout << "Done with stage 1. Sum was: " << S1[0] << endl;
 
-    S2 = zeta_sum_stage2(n1, N2, t);
-    cout << "Done with stage 2. Sum was: " << S2 << endl;
+    zeta_sum_stage2(n1, N2, t, delta, N, S2);
+    cout << "Done with stage 2. Sum was: " << S2[0] << endl;
     
-    S3 = zeta_sum_stage3(n2, N3, t);
-    cout << "Done with stage 3. Sum was: " << S3 << endl;
+    zeta_sum_stage3(n2, N3, t, delta, N, S3);
+    cout << "Done with stage 3. Sum was: " << S3[0] << endl;
 
     mpz_clear(n1);
     mpz_clear(n2);
@@ -891,9 +953,11 @@ Complex zeta_sum(mpfr_t t) {
     mpz_clear(N2);
     mpz_clear(N3);
 
-    S = S1 + S2 + S3;
+    for(int l = 0; l < N; l++) {
+        S[l] = S1[l] + S2[l] + S3[l];
+    }
 
-    return S;
+    return S[0];
 }
 
 Double C(int n, Double *powers_z);
@@ -1196,7 +1260,7 @@ Complex hardy_Z(mpfr_t t, Complex &R) {
     Complex rotation_factor;
     Double remainder_terms;
 
-    main_sum = zeta_sum(t);
+    zeta_sum(t, 1, 1, &main_sum);
 
     rotation_factor = rs_rotation(t);
     R = rotation_factor;
@@ -1218,6 +1282,34 @@ Complex hardy_Z(mpfr_t t, Complex &R) {
 
     return Z_value;
 }
+
+Complex hardy_Z(mpfr_t t0, Double delta, int N, Complex * S) {
+    //
+    // Compute the hardy_Z function at t0, t0 + delta, ... t0 + (N - 1)delta and set R to the rotation
+    // factor so that zeta(.5 + it) = R * Z(t)
+    //
+    Complex main_sum[N];
+    Complex rotation_factor;
+    Double remainder_terms;
+
+    zeta_sum(t0, delta, N, main_sum);
+
+    mpfr_t t;
+    mpfr_init2(t, mpfr_get_prec(t0));
+    mpfr_set(t, t0, GMP_RNDN);
+
+    for(int l = 0; l < N; l++) {
+        rotation_factor = rs_rotation(t);
+        remainder_terms = rs_remainder(t);
+        S[l] = 2 * real(rotation_factor * main_sum[l]) + remainder_terms;
+        mpfr_add_d(t, t, delta, GMP_RNDN);
+    }
+
+    return S[0];
+}
+
+
+
 
 Complex zeta(mpfr_t t) {
     Complex rotation_factor;
