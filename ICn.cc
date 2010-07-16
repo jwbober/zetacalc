@@ -15,6 +15,8 @@ inline Complex IC0_method1(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * 
     MPFR_DECL_INIT(tmp, mpfr_get_prec(mp_a));
     MPFR_DECL_INIT(tmp2, mpfr_get_prec(mp_a));
 
+    stats::IC0_method1++;
+
     if(verbose::IC0) {
         cout << "IC0() using method 1. " << endl;
     }
@@ -23,7 +25,10 @@ inline Complex IC0_method1(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * 
         cout << "In ICO(), 'really small b' case:" << endl;
     }
 
-    int N = to_int(ceil(std::max ((Double)2.0, sqrt(2.0) * abs(fastlog(epsilon)) ) ));
+    int K = cache->K;
+
+    //int N = to_int(ceil(std::max ((Double)2.0, sqrt(2.0) * abs(fastlog(epsilon)) ) ));
+    int N = to_int(ceil(std::max ((Double)2.0, sqrt(2.0 * cache->b * (Double)K * (Double)K) ) ));
     if(verbose::IC0 >= 2) {
         cout << "N = " << N << endl;
     }
@@ -35,7 +40,6 @@ inline Complex IC0_method1(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * 
     //cout << "j: " << j << endl;
     //cout << "epsilon: " << epsilon << endl;
 
-    int K = cache->K;
 
     mpfr_mul_si(mp_a2, mp_a, K, GMP_RNDN);      //mp_a2 = aK
     mpfr_div_si(mp_a2, mp_a2, N, GMP_RNDN);     //now mp_a2 = aK/N
@@ -87,7 +91,8 @@ inline Complex IC0_method1(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * 
         //Complex C = Complex( cos(exp_linear_term + exp_quadratic_term), sin(exp_linear_term + exp_quadratic_term) );
         Complex C = Complex( cos(2 * PI * x), sin(2 * PI * x) );
         //Complex z = G_method1_R(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
-        Complex z = G_R(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
+        Complex z;
+        z = G_R(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
         //Complex z = G_method1(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
         //Complex z2 = G_via_Euler_MacLaurin(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
         //Complex z = G_via_Euler_MacLaurin(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
@@ -118,6 +123,8 @@ inline Complex IC0_method2(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * 
         cout << "IC0() using method 2. " << endl;
     }
 
+    stats::IC0_method2++;
+
     Double a = cache->a;
     Double b = cache->b;
     int K = cache->K;
@@ -144,6 +151,8 @@ inline Complex IC0_method3(int j, const theta_cache * cache, Double epsilon) {
         cout << "IC0() using method 3. " << endl;
     }
 
+    stats::IC0_method3++;
+
     int K = cache->K;
     Double a = cache->a;
     Double b = cache->b;
@@ -164,6 +173,8 @@ Complex IC0_method4(int j, const theta_cache * cache, Double epsilon) {
     if(verbose::IC0) {
         cout << "IC0() using method 4. " << endl;
     }
+
+    stats::IC0_method4++;
 
     int K = cache->K;
     Double a = cache->a;
@@ -186,6 +197,8 @@ Complex IC0(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, Double e
     Double b = cache->b;
     int K = cache->K;
 
+    stats::IC0++;
+
     if(verbose::IC0 >= 1) {
         cout << "IC0 called with:   " << endl;
         cout << "               a = " << cache->a << endl;
@@ -195,13 +208,20 @@ Complex IC0(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, Double e
         cout << "         epsilon = " << epsilon << endl;
     }
     Double logepsilon = abs(fastlog(epsilon));
-    if(b <= logepsilon * logepsilon * K_power(-2, cache)) {
-        return IC0_method1(j, mp_a, mp_b, cache, epsilon);
-    }
+    //if(b <= logepsilon * logepsilon * K_power(-2, cache)) {
+    //    return IC0_method1(j, mp_a, mp_b, cache, epsilon);
+    //}
     if(-a/(2 * b) >= 0 && -a/(2 * b) <= K) {
+        if(b <= logepsilon * logepsilon * K_power(-2, cache)) {
+            return IC0_method1(j, mp_a, mp_b, cache, epsilon);
+        }
         return IC0_method2(j, mp_a, mp_b, cache, epsilon);
     }
     else {
+        //if(b <= logepsilon * logepsilon * K_power(-2, cache)) {
+        if(b <= K_power(-2, cache)) {
+            return IC0_method1(j, mp_a, mp_b, cache, epsilon);
+        }
         if(-a/(2 * b) > K) {
             return IC0_method3(j, cache, epsilon);
         }
@@ -358,7 +378,7 @@ Complex IC4(int K, int j, Double a, Double b, Complex C11, const theta_cache * c
     Complex S = 0;
     for(int r = 0; r <= j; r++) {
         Double z = binomial_coefficient(j, r);
-        S = S + z * minus_I_power(r) * IC9H(K, r, -(a + 2 * b * (Double)K), b, cache, epsilon/z);
+        S = S + z * minus_I_power(r) * IC9H(K, r, -(a + 2 * b * (Double)K), b, cache, epsilon/(z * (j + 1)));
     }
     return -S * C11;
 }
@@ -372,7 +392,7 @@ Complex IC4c(int K, int j, Double a, Double b, Complex C11, const theta_cache * 
     Complex S = 0;
     for(int r = 0; r <= j; r++) {
         Double z = binomial_coefficient(j, r);
-        S = S + z * I_power(r) * IC9H(K, r, (a + 2 * b * (Double)K), b, cache, epsilon/z);
+        S = S + z * I_power(r) * IC9H(K, r, (a + 2 * b * (Double)K), b, cache, epsilon/(z * (j + 1)));
     }
     return S * C11;
 }
@@ -811,6 +831,9 @@ Complex IC7star(Double a, int j, Double epsilon, bool use_cache) {
             //z = G( alpha, I/( (Double)2 * PI), n, j, newepsilon/abs(z3));
             z = G_I_over_twopi(alpha, n, j, newepsilon/abs(z3));
             z = z * z3;
+            if(verbose::IC7star >= 2) {
+                cout << z << endl;
+            }
             S = S + z;
             alpha = alpha + I/PI;
             y = y * y1;

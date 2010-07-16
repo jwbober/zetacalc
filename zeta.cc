@@ -45,7 +45,7 @@ void stage_2_bound(mpz_t v, mpfr_t t) {
 
     // Right now this is 1120 t^{1/3}. With this choice, we won't
     // start stage 3 until it can use a block size of approximately 1000.
-    // (It is possible that we can to make this even larger right now.)
+    // (It is possible that we want to make this even larger right now.)
 
     mpfr_t x;
     mpfr_init2(x, mpfr_get_prec(t));

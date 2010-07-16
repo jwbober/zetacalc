@@ -20,7 +20,8 @@ const bool FAKE_IC7 = false;
 const bool FAKE_EULER_MACLAURIN = false;
 
 const int Kmin = 50;
-const int mpfr_Kmin = 2000;
+const int mpfr_Kmin = 0;
+//const int mpfr_Kmin = 2000;
 
 
 inline Complex I_power(int n) {
@@ -248,6 +249,12 @@ namespace stats {
     
     extern int IC7_taylor_expansion;
     extern int IC7_terms_used;
+
+    extern int IC0;
+    extern int IC0_method1;
+    extern int IC0_method2;
+    extern int IC0_method3;
+    extern int IC0_method4;
 }
 
 void print_stats();
@@ -443,7 +450,7 @@ Complex direct_exponential_sum_evaluation2(mpfr_t a, mpfr_t b, int j, int m, int
 
 inline Complex compute_C11(mpfr_t a, mpfr_t b, int K) {
     //
-    // Compute C11 = I exp(2 pi i a + 2 pi i b K^2)
+    // Compute C11 = I exp(2 pi i K a + 2 pi i b K^2)
     //
     mpfr_t tmp1;
     mpfr_t tmp2;

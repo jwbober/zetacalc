@@ -1084,7 +1084,7 @@ int main() {
     //seed = 1278182770; // this seed makes the first test in test_theta_algorithm(20, 5000)
     //seed = 1278268854;
     //seed = 1278723182;
-    seed = 1279180855;
+    //seed = 1279180855;
     cout << "Seeding rand() and gmp with " << seed << "." << endl;
     srand(seed);
     
@@ -1112,10 +1112,10 @@ int main() {
 
     //build_F0_cache(5, 4, 25, 50, exp(-30));
     //build_F0_cache(10, 20, 25, 20000, exp(-30));
-    build_F0_cache(10, 100, 25, 30000, exp(-30));
-    build_F1_cache(30, 2000, 30, exp(-30));
-    build_F2_cache(30000, 10, 10, 100, exp(-30));
-    build_IC7_cache(600, 200, 25, exp(-30));
+    //build_F0_cache(10, 100, 25, 30000, exp(-30));
+    //build_F1_cache(30, 2000, 30, exp(-30));
+    //build_F2_cache(30000, 10, 10, 100, exp(-30));
+    //build_IC7_cache(600, 200, 25, exp(-30));
 
     //time_zeta_sum_stage3(rand_state);
 
@@ -1169,22 +1169,33 @@ int main() {
     b = .00245;
 
     a = -7.7368794371080023, b = -3.1673489944857307, j = 2, K = 474;
+    
+    a = 0.052528253780923899, b = 2.9356077194412081e-06, j = 0, K = 100235;
+
+    //test_specific_inputs(a, b, K, j, pow(2, -50));
+    //test_specific_inputs(a, b, K, j, pow(2, -60));
+    //test_specific_inputs(a, b, K, j, pow(2, -70));
+    //test_specific_inputs(a, b, K, j, pow(2, -80));
+
+    //print_stats();
+    //exit(0);
+
+    //test_specific_inputs(.0000001, .0000000001, 10000, 0, pow(2, -30));
 
 
-    //test_theta_algorithm_EM_case(20, 10000, pow(2, -30));
-    //test_theta_algorithm_EM_case(100, 1000, pow(2, -50));
-    //test_theta_algorithm_EM_case(100, 1000, pow(2, -30));
-    //test_theta_algorithm_EM_case(20, 100000, pow(2, -50));
+    test_theta_algorithm_EM_case(20, 10000, pow(2, -30));
+    test_theta_algorithm_EM_case(100, 1000, pow(2, -50));
+    test_theta_algorithm_EM_case(100, 1000, pow(2, -30));
+    test_theta_algorithm_EM_case(20, 100000, pow(2, -50));
     //test_theta_algorithm_EM_case(100, 517, pow(2, -30));
 
     //cout << H_method1(50, 1000.0 * I) << endl;
     //cout << H(50, 1000.0 * I, exp(-30)) << endl;
 
-    //test_specific_inputs(a, b, K, j, pow(2, -40));
     
     //time_theta_algorithm_varying_Kmin(15, 40000, 30000, pow(2, -22));
     //time_theta_algorithm_zeta_case_varying_Kmin(15, 50000, 30000, pow(2, -20));
-    time_theta_algorithm_zeta_case_fixed_Kmin(15, 50000, 40000, 900, pow(2, -20));
+    //time_theta_algorithm_zeta_case_fixed_Kmin(15, 50000, 40000, 900, pow(2, -20));
 
 
     //test_specific_inputs(0.809496893458765, 9.61035310379055e-06, 10311, 0, pow(2, -50));
@@ -1201,12 +1212,12 @@ int main() {
     //test_theta_algorithm(1, 1000000, pow(2, -30));
     //test_theta_algorithm(1, 1000000, pow(2, -50));
 
-    //test_theta_algorithm(100, 517, pow(2, -30));
-    //test_theta_algorithm(100, 517, pow(2, -40));;
-    //test_theta_algorithm(50, 5432, pow(2, -30));
-    //test_theta_algorithm(50, 5432, pow(2, -40));
-    //test_theta_algorithm(50, 1432, pow(2, -30));
-    //test_theta_algorithm(50, 1432, pow(2, -40));
+    test_theta_algorithm(100, 517, pow(2, -30));
+    test_theta_algorithm(100, 517, pow(2, -40));;
+    test_theta_algorithm(50, 5432, pow(2, -30));
+    test_theta_algorithm(50, 5432, pow(2, -40));
+    test_theta_algorithm(50, 1432, pow(2, -30));
+    test_theta_algorithm(50, 1432, pow(2, -40));
     //test_theta_algorithm(500, 123, pow(2, -30));
     //test_theta_algorithm(500, 123, pow(2, -40));
     //test_theta_algorithm(10, 10000, pow(2, -40));

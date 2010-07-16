@@ -177,7 +177,6 @@ Complex G_R(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
         }
         else {
             method = 1;
-            stats::G_R_method1++;
         }
     }
     if(verbose::G) {
@@ -409,6 +408,8 @@ Complex G_method1(Complex alpha, Complex b, int n, int j, Double epsilon) {
 
 Complex G_method1_R(Complex alpha, Double b, int n, int j, Double epsilon) {
     // Specialized for b real.
+    
+
     if(n > 0) {
         Complex S = 0;
         Double n_power = 1.0;
@@ -419,6 +420,8 @@ Complex G_method1_R(Complex alpha, Double b, int n, int j, Double epsilon) {
         }
         return S;
     }
+
+    stats::G_R_method1++;
 
     // At this point we assume that n == 0
 
@@ -456,7 +459,6 @@ Complex G_method1_R(Complex alpha, Double b, int n, int j, Double epsilon) {
         r++;
         error = abs(s/max( PI * abs(alpha) / (r + 1.0 + j/2),  (Double)(2.0 * r + 1.0 + j)));
     }
-
 
     return S;
 }

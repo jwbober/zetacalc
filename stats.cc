@@ -48,6 +48,12 @@ namespace stats {
     int IC7zero = 0;
     int IC7_taylor_expansion = 0;
     int IC7_terms_used = 0;
+
+    int IC0 = 0;
+    int IC0_method1 = 0;
+    int IC0_method2 = 0;
+    int IC0_method3 = 0;
+    int IC0_method4 = 0;
 }
 
 
@@ -100,11 +106,19 @@ void print_stats() {
     std::cout << "          average number of terms used was " << (Double)stats::J_Integral_2_terms_used/(Double)stats::J_Integral_2_taylor_expansion << endl;
     std::cout << "      quickly returned 0 " << stats::J_Integral_2_zero << " times. " << std::endl;
 
-    std::cout << "IC7: " << endl;
+    std::cout << "IC7: " << std::endl;
     std::cout << "      called " << stats::IC7 << " times." << endl;
     std::cout << "      used taylor expansions " << stats::IC7_taylor_expansion << " times." << endl;
     std::cout << "          average number of terms used was " << (Double)stats::IC7_terms_used/(Double)stats::IC7_taylor_expansion << " times." << endl;
     std::cout << "      quickly returned 0 " << stats::IC7zero << " times." << endl;
+
+    cout << "IC0: " << endl;
+    cout << "        called " << stats::IC0 << " times." << endl;
+    cout << "        used " << endl;
+    cout << "           method 1 " << stats::IC0_method1 << " times." << endl;
+    cout << "           method 2 " << stats::IC0_method2 << " times." << endl;
+    cout << "           method 3 " << stats::IC0_method3 << " times." << endl;
+    cout << "           method 4 " << stats::IC0_method4 << " times." << endl;
 
 
 }
