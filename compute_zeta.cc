@@ -143,7 +143,7 @@ void compute_hardy_on_unit_interval(mpfr_t t) {
     ofstream outfile;
     outfile.open("zeta_data3.sage");
 
-    outfile << "zeta_data2 = [";
+    outfile << "zeta_data3 = [";
 
     for(Double d = 0; d < 1; d += .001) {
         if(d != 0)
@@ -161,13 +161,36 @@ void compute_hardy_on_unit_interval(mpfr_t t) {
     outfile.close();
 }
 
+void do_precomputation(mpfr_t t) {
+    mpz_t v;
+    mpz_init(v);
+
+    stage_3_bound(v, t);
+    int largest_block_size = stage_3_block_size(mpz_get_d(v), mpfr_get_d(t, GMP_RNDN)) + 500;
+
+    cout << "Doing a precomputation for block sizes up to " << largest_block_size << endl;
+
+    build_F0_cache(10, 100, 30, largest_block_size/2, exp(-30));
+    build_F1_cache(30, 200, 30, exp(-30));
+    build_F2_cache(largest_block_size/2, 10, 10, 100, exp(-30));
+    build_IC7_cache((int)sqrt(largest_block_size), 200, 35, exp(-30));
+
+    mpz_clear(v);
+}
+
+namespace zeta_config {
+    extern int number_of_threads;
+}
 
 int main() {
     cout << setprecision(10) << endl;
+    zeta_config::number_of_threads = 2;
 
     mpfr_t t;
     mpfr_init2(t, 150);
-    mpfr_set_str(t, "1e18", 10, GMP_RNDN);
+    mpfr_set_str(t, "1e24", 10, GMP_RNDN);
+
+    //do_precomputation(t);
 
     //build_F0_cache(10, 100, 25, 500, exp(-30));
     //build_F1_cache(30, 200, 30, exp(-30));
@@ -176,21 +199,47 @@ int main() {
 
 
 
-    compute_hardy_on_unit_interval(t);
+    //compute_hardy_on_unit_interval(t);
 
-    print_stats();
 
-    int N = 10;
+    int N = 1;
     double delta = .01; 
     Complex S[N];
-    return 0;
 
-
+    mpfr_set_str(t, "1e20", 10, GMP_RNDN);
     hardy_Z(t, delta, N, S);
-    for(int l = 0; l < N; l++) {
-        cout << S[l] << "    " << S[l] * rs_rotation(t) << endl;
-        mpfr_add_d(t, t, delta, GMP_RNDN);
-    }
+    cout << "1e20" << "  " << S[0] << "   " << S[0] * rs_rotation(t) << endl;
+    
+    mpfr_set_str(t, "1e18", 10, GMP_RNDN);
+    hardy_Z(t, delta, N, S);
+    cout << "1e18" << "  " << S[0] << "   " << S[0] * rs_rotation(t) << endl;
+    
+    //mpfr_set_str(t, "1e20", 10, GMP_RNDN);
+    //hardy_Z(t, delta, N, S);
+    //cout << "1e20" << "  " << S[0] << "   " << S[0] * rs_rotation(t) << endl;
+    
+
+    //mpfr_set_str(t, "1e21", 10, GMP_RNDN);
+    //hardy_Z(t, delta, N, S);
+    //cout << "1e21" << "  " << S[0] << "   " << S[0] * rs_rotation(t) << endl;
+
+    //mpfr_set_str(t, "1e22", 10, GMP_RNDN);
+    //hardy_Z(t, delta, N, S);
+    //cout << "1e22" << "  " << S[0] << "   " << S[0] * rs_rotation(t) << endl;
+
+    //mpfr_set_str(t, "1e23", 10, GMP_RNDN);
+    //hardy_Z(t, delta, N, S);
+    //cout << "1e23" << "  " << S[0] << "   " << S[0] * rs_rotation(t) << endl;
+
+    //mpfr_set_str(t, "1e24", 10, GMP_RNDN);
+    //hardy_Z(t, delta, N, S);
+    //cout << "1e24" << "  " << S[0] << "   " << S[0] * rs_rotation(t) << endl;
+
+    //for(int l = 0; l < N; l++) {
+    //    cout << S[l] << "    " << S[l] * rs_rotation(t) << endl;
+    //    mpfr_add_d(t, t, delta, GMP_RNDN);
+    //}
+    print_stats();
 
     return 0;
 }

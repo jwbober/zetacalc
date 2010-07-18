@@ -5,6 +5,10 @@
 
 using namespace std;
 
+namespace zeta_config {
+    int number_of_threads = 2;  
+};
+
 namespace zeta_stats {
     int zeta_block_d = 0;
     int zeta_block_d_using_mpfr = 0;
@@ -52,7 +56,8 @@ void stage_2_bound(mpz_t v, mpfr_t t) {
 
     mpfr_cbrt(x, t, GMP_RNDN);
     //mpfr_mul_ui(x, x, 1120u, GMP_RNDN);
-    mpfr_mul_ui(x, x, 26u, GMP_RNDN);
+    //mpfr_mul_ui(x, x, 51u, GMP_RNDN);
+    mpfr_mul_ui(x, x, 890u, GMP_RNDN);
 
     mpfr_get_z(v, x, GMP_RNDN);
 
@@ -71,8 +76,7 @@ void stage_3_bound(mpz_t v, mpfr_t t) {
     mpfr_init2(x, mpfr_get_prec(t));
    
     mpfr_const_pi(twopi, GMP_RNDN);
-    //mpfr_mul_ui(twopi, twopi, 2u, GMP_RNDN);
-    mpfr_mul_ui(twopi, twopi, 1120u, GMP_RNDN);
+    mpfr_mul_ui(twopi, twopi, 2u, GMP_RNDN);
     
     mpfr_div(x, t, twopi, GMP_RNDN);
     mpfr_sqrt(x, x, GMP_RNDN);
@@ -93,19 +97,20 @@ inline unsigned int stage_2_block_size(Double v, Double t) {
     
     // For now we set the block size to be v/t^{1/4}
 
-    unsigned int block_size = min((unsigned int)( v * pow(t, -.25) ), (unsigned int)(pow(t, 1.0/12.0)));
+    //unsigned int block_size = min((unsigned int)( v * pow(t, -.25) ), (unsigned int)(pow(t, 1.0/12.0)));
+    unsigned int block_size = (unsigned int)( v * pow(t, -.25) );
 
     return block_size;
 }
 
-inline unsigned int stage_3_block_size(Double v, Double t) {
+unsigned int stage_3_block_size(Double v, Double t) {
     // With this choice, the block size will hit N when
     // v = N/.9 * t^(1/3)
     //
     // So if we want to start stage 3 with a block size of 100, then we should
     // set stage_2_bound to 112 * t^(1/3)
-    //unsigned int block_size = (unsigned int)(.9 * v * pow(t, -.3333333333333333333333));
-    unsigned int block_size = (unsigned int)(2 * v * pow(t, -.3333333333333333333333));
+    unsigned int block_size = (unsigned int)(.9 * v * pow(t, -.3333333333333333333333));
+    //unsigned int block_size = (unsigned int)(2 * v * pow(t, -.3333333333333333333333));
     return block_size;
 }
 
@@ -379,7 +384,7 @@ Complex zeta_block_stage3_basic(mpz_t v, unsigned int *K, mpfr_t t, Complex ZZ[3
         w_power *= w;
     }
 
-    int j = 15;
+    int j = 18;
 
     // Compute Z[l]
  
@@ -423,6 +428,46 @@ Complex zeta_block_stage3_basic(mpz_t v, unsigned int *K, mpfr_t t, Complex ZZ[3
 //    cout << *K << endl;
 
     return S;
+}
+
+
+class stage2_data_t {
+public:
+    mpz_t v;
+    mpfr_t t;
+    unsigned int blocksize;
+    Double delta;
+    int M;
+    Complex * S;
+    
+    stage2_data_t() {
+        mpz_init(v);
+        mpfr_init2(t, 150);
+    }
+
+    void set(mpz_t _v, unsigned int _blocksize, mpfr_t _t, Double _delta, int _M, Complex * _S) {
+        mpz_set(v, _v);
+        mpfr_set(t, _t, GMP_RNDN);
+
+        blocksize = _blocksize;
+        delta = _delta;
+        M = _M;
+        S = _S;
+    }
+
+    ~stage2_data_t() {
+        mpz_clear(v);
+        mpfr_clear(t);
+    }
+
+};
+
+void * zeta_block_stage2(void * thread_data) {
+    stage2_data_t * data = (stage2_data_t * )(thread_data);
+
+    zeta_block_stage2(data->v, data->blocksize, data->t, data->delta, data->M, data->S);
+
+    pthread_exit(NULL);
 }
 
 
@@ -475,7 +520,7 @@ Complex zeta_block_stage3(mpz_t n, unsigned int N, mpfr_t t, Complex Z[30], Doub
     mpz_set(v, n);
     unsigned int K = N;
     while(N > 0) {
-        Complex current_term = zeta_block_stage3_basic(v, &K, t, Z, exp(-13), Kmin);
+        Complex current_term = zeta_block_stage3_basic(v, &K, t, Z, exp(-20), Kmin);
         Complex multiplier = exp(I * delta * log(mpz_get_d(v)));
         for(int l = 0; l < M; l++) {
             S[l] += current_term;
@@ -509,6 +554,8 @@ Complex zeta_sum_stage1(mpz_t N, mpfr_t t, Double delta, int M, Complex * S) {
     // and add up all of the terms. We could just call zeta_block_stage1
     // directly, but we anticipate shortly changing this routine
     // to use multiple threads.
+
+    time_t start_time = time(NULL);
 
     create_exp_itlogn_table(t);
 
@@ -553,6 +600,11 @@ Complex zeta_sum_stage1(mpz_t N, mpfr_t t, Double delta, int M, Complex * S) {
     mpz_clear(number_of_blocks);
     mpz_clear(number_of_terms);
 
+    time_t end_time = time(NULL);
+
+    time_t elapsed_time = end_time - start_time;
+    cout << "Spent " << elapsed_time << " seconds in stage 1." << endl;
+
     return S[0];
 }
 
@@ -566,11 +618,15 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
     // and add up all the terms. We could just call it directly, but we anticipate
     // shortly changing this routine to use multiple threads.
     //
+
+    time_t start_wall_time = time(NULL);
+    clock_t last_cpu_time = clock();
+    double total_cpu_time = 0;
+
     for(int l = 0; l < M; l++) {
         S[l] = 0.0;
     }
 
-    Complex S2[M];
 
     const unsigned int block_size = 1000000;
 
@@ -584,28 +640,91 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
 
     mpz_set(v, n);
     mpz_sub_ui(v, v, block_size);
-    for(mpz_set_ui(k, 0u); mpz_cmp(k, number_of_blocks) < 0; mpz_add_ui(k, k, 1u)) {
+    if(zeta_config::number_of_threads == 1) {
+        Complex S2[M];
+        for(mpz_set_ui(k, 0u); mpz_cmp(k, number_of_blocks) < 0; mpz_add_ui(k, k, 1u)) {
+            mpz_add_ui(v, v, block_size);
+            zeta_block_stage2(v, block_size, t, delta, M, S2);
+            for(int l = 0; l < M; l++) {
+                S[l] += S2[l];
+            }
+            //S = S + zeta_block_mpfr(v, block_size, t);
+            if(mpz_divisible_ui_p(k, 20u)) {
+                time_t current_wall_time = time(NULL);
+                clock_t current_cpu_time = clock();
+                time_t elapsed_wall_time = current_wall_time = start_wall_time;
+                double elapsed_cpu_time = ((double)current_cpu_time - (double)last_cpu_time)/CLOCKS_PER_SEC;
+                cout << "In stage2, completed " << k << " large blocks out of " << number_of_blocks << ". Spent " << elapsed_wall_time << " seconds so far and " << elapsed_cpu_time << " cpu seconds this block. " << endl;
+                last_cpu_time = current_cpu_time;
+            }
+        }
         mpz_add_ui(v, v, block_size);
-        zeta_block_stage2(v, block_size, t, delta, M, S2);
+
+        zeta_block_stage2(v, remainder, t, delta, M, S2);
         for(int l = 0; l < M; l++) {
             S[l] += S2[l];
         }
-        //S = S + zeta_block_mpfr(v, block_size, t);
-        if(mpz_divisible_ui_p(k, 5u)) {
-            cout << "In stage2, completed " << k << " large blocks out of " << number_of_blocks << "." << endl;
+    }
+    else {
+        int num_threads = zeta_config::number_of_threads;
+        pthread_t threads[num_threads];
+        
+        stage2_data_t thread_data[num_threads];
+        Complex S2[num_threads][M];
+        int next_thread = 0;
+        for(mpz_set_ui(k, 0u); mpz_cmp(k, number_of_blocks) < 0; mpz_add_ui(k, k, 1u)) {
+            if(next_thread == num_threads) {
+                for(int n = 0; n < num_threads; n++) {
+                    void * status;
+                    pthread_join(threads[n], &status);
+                    for(int l = 0; l < M; l++) {
+                        S[l] += S2[n][l];
+                    }
+                }
+                next_thread = 0;
+            }
+            mpz_add_ui(v, v, block_size);
+            thread_data[next_thread].set(v, block_size, t, delta, M, S2[next_thread]);
+            pthread_create(&threads[next_thread], NULL, zeta_block_stage2, (void *)(&thread_data[next_thread]));
+            next_thread++;
+            
+            //S = S + zeta_block_mpfr(v, block_size, t);
+            if(mpz_divisible_ui_p(k, 20u)) {
+                time_t current_wall_time = time(NULL);
+                clock_t current_cpu_time = clock();
+                time_t elapsed_wall_time = current_wall_time - start_wall_time;
+                double elapsed_cpu_time = ((double)current_cpu_time - (double)last_cpu_time)/CLOCKS_PER_SEC;
+                total_cpu_time += elapsed_cpu_time;
+                cout << "In stage2, completed " << k << " large blocks out of " << number_of_blocks << "." << endl;
+                cout << "        In stage2 thus far: " << elapsed_wall_time << " real seconds; " << total_cpu_time << " cpu seconds; " << elapsed_cpu_time << "cpu seconds this block. " << endl;
+                last_cpu_time = current_cpu_time;
+            }
         }
-    }
-    mpz_add_ui(v, v, block_size);
 
-    zeta_block_stage2(v, remainder, t, delta, M, S2);
-    for(int l = 0; l < M; l++) {
-        S[l] += S2[l];
+        for(int n = 0; n < next_thread; n++) {
+            void * status;
+            pthread_join(threads[n], &status);
+                for(int l = 0; l < M; l++) {
+                    S[l] += S2[n][l];
+                }
+        }
+
+        mpz_add_ui(v, v, block_size);
+
+        zeta_block_stage2(v, remainder, t, delta, M, S2[0]);
+        for(int l = 0; l < M; l++) {
+            S[l] += S2[0][l];
+        }
+
     }
-    //S = S + zeta_block_mpfr(v, remainder, t);
 
     mpz_clear(v);
     mpz_clear(k);
     mpz_clear(number_of_blocks);
+
+    time_t end_wall_time = time(NULL);
+    time_t elapsed_wall_time = end_wall_time - start_wall_time;
+    cout << "Spent " << elapsed_wall_time << " seconds in stage 2." << endl;
 
     return S[0];
 
@@ -621,6 +740,9 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
     // and add up all the terms. We could just call it directly, but we anticipate
     // shortly changing this routine to use multiple threads.
     //
+
+    time_t start_time = time(NULL);
+
     Complex S2[M];
     for(int l = 0; l < M; l++) {
         S[l] = 0.0;
@@ -650,8 +772,9 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
             S[l] += S2[l];
         }
         //S = S + zeta_block_mpfr(v, block_size, t);
-        if(mpz_divisible_ui_p(k, 5u)) {
-            cout << "In stage3, completed " << k << " large blocks out of " << number_of_blocks << "." << endl;
+        if(mpz_divisible_ui_p(k, 20u)) {
+            time_t current_time = time(NULL);
+            cout << "In stage3, completed " << k << " large blocks out of " << number_of_blocks << ". Spent " << current_time - start_time << " seconds so far." << endl;
         }
     }
     mpz_add_ui(v, v, block_size);
@@ -665,6 +788,10 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
     mpz_clear(v);
     mpz_clear(k);
     mpz_clear(number_of_blocks);
+
+    time_t end_time = time(NULL);
+    time_t elapsed_time = end_time - start_time;
+    cout << "Spent " << elapsed_time << " seconds in stage 3." << endl;
 
     return S[0];
 

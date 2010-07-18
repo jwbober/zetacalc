@@ -37,6 +37,9 @@ Complex zeta_block_stage3(mpz_t n, unsigned int N, mpfr_t t, Complex Z[30], Doub
 
 void stage_1_bound(mpz_t v, mpfr_t t);
 void stage_2_bound(mpz_t v, mpfr_t t);
+void stage_3_bound(mpz_t v, mpfr_t t);
+
+unsigned int stage_3_block_size(Double v, Double t);
 
 Complex rs_rotation(mpfr_t t);
 Double rs_remainder(mpfr_t t);
