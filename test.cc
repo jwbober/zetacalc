@@ -1095,6 +1095,9 @@ int main() {
     gmp_randseed_ui(rand_state, seed);
 
     cout << setprecision(17);
+    test_zeta_sum_stage1(rand_state);
+
+    return 0;
 
     //build_F0_cache(11, 6, 25, 11000, exp(-20));
     //build_F1_cache(181, 51, 25, exp(-30));
@@ -1278,7 +1281,6 @@ int main() {
     //test_exp_itlogn(rand_state);
     //time_exp_itlogn();
     //time_exp_itlogn_mpfr();
-    //test_zeta_sum_stage1(rand_state);
     //time_zeta_sum_stage1();
     //test_zeta_sum_stage2(rand_state);
     test_zeta_sum_stage3(rand_state);

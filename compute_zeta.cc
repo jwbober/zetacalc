@@ -206,13 +206,15 @@ int main() {
     double delta = .01; 
     Complex S[N];
 
+
+    mpfr_set_str(t, "1e18", 10, GMP_RNDN);
+    hardy_Z(t, delta, N, S);
+    cout << "1e18" << "  " << S[0] << "   " << S[0] * rs_rotation(t) << endl;
+
     mpfr_set_str(t, "1e20", 10, GMP_RNDN);
     hardy_Z(t, delta, N, S);
     cout << "1e20" << "  " << S[0] << "   " << S[0] * rs_rotation(t) << endl;
     
-    mpfr_set_str(t, "1e18", 10, GMP_RNDN);
-    hardy_Z(t, delta, N, S);
-    cout << "1e18" << "  " << S[0] << "   " << S[0] * rs_rotation(t) << endl;
     
     //mpfr_set_str(t, "1e20", 10, GMP_RNDN);
     //hardy_Z(t, delta, N, S);
