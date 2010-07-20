@@ -161,6 +161,23 @@ void compute_hardy_on_unit_interval(mpfr_t t) {
     outfile.close();
 }
 
+void * F0_thread(void * bound ) {
+    build_F0_cache(10, 100, 30, (int)(bound), exp(-30));
+    pthread_exit(NULL);
+}
+void * F1_thread(void * unused) {
+    build_F1_cache(30, 200, 30, exp(-30));
+    pthread_exit(NULL);
+}
+void * F2_thread(void * bound) {
+    build_F2_cache((int)(bound), 10, 10, 100, exp(-30));
+    pthread_exit(NULL);
+}
+void * IC7_thread(void * bound) {
+    build_IC7_cache((int)bound, 200, 35, exp(-30));
+    pthread_exit(NULL);
+}
+
 void do_precomputation(mpfr_t t) {
     mpz_t v;
     mpz_init(v);
@@ -170,10 +187,23 @@ void do_precomputation(mpfr_t t) {
 
     cout << "Doing a precomputation for block sizes up to " << largest_block_size << endl;
 
-    build_F0_cache(10, 100, 30, largest_block_size/2, exp(-30));
-    build_F1_cache(30, 200, 30, exp(-30));
-    build_F2_cache(largest_block_size/2, 10, 10, 100, exp(-30));
-    build_IC7_cache((int)sqrt(largest_block_size), 200, 35, exp(-30));
+    pthread_t thread0, thread1, thread2, thread3;
+
+    pthread_create(&thread0, NULL, F0_thread, (void *)(largest_block_size/2));
+    pthread_create(&thread1, NULL, F1_thread, (void *)(largest_block_size/2));
+    pthread_create(&thread2, NULL, F2_thread, (void *)(largest_block_size/2));
+    pthread_create(&thread3, NULL, IC7_thread, (void *)( (int)(sqrt(largest_block_size)) ));
+
+    void * status;
+    pthread_join(thread0, &status);
+    pthread_join(thread1, &status);
+    pthread_join(thread2, &status);
+    pthread_join(thread3, &status);
+    
+    //build_F0_cache(10, 100, 30, largest_block_size/2, exp(-30));
+    //build_F1_cache(30, 200, 30, exp(-30));
+    //build_F2_cache(largest_block_size/2, 10, 10, 100, exp(-30));
+    //build_IC7_cache((int)sqrt(largest_block_size), 200, 35, exp(-30));
 
     mpz_clear(v);
 }
@@ -190,7 +220,7 @@ int main() {
     mpfr_init2(t, 150);
     mpfr_set_str(t, "1e24", 10, GMP_RNDN);
 
-    //do_precomputation(t);
+    do_precomputation(t);
 
     //build_F0_cache(10, 100, 25, 500, exp(-30));
     //build_F1_cache(30, 200, 30, exp(-30));
