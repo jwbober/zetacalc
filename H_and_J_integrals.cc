@@ -5,6 +5,8 @@
 #include <iostream>
 #include <cmath>
 
+#include "boost/multi_array.hpp"
+
 using namespace std;
 
 static struct{
@@ -16,7 +18,9 @@ static struct{
     double b_spacing;
     long a_per_unit_interval;
     long b_per_unit_interval;
-    Complex **** values;
+    //Complex **** values;
+    boost::multi_array<Complex, 3> * values0; // a different array for M = 0, which we treat as -1, and which will be larger
+    boost::multi_array<Complex, 4> * values;
 } F0_cache;
 
 inline Complex get_cached_F0_value(int a_index, int b_index, int j, int M) {
@@ -26,7 +30,7 @@ inline Complex get_cached_F0_value(int a_index, int b_index, int j, int M) {
                 return 1.0;
             }
             else{
-                return F0_cache.values[0][a_index][b_index][j];
+                return (*F0_cache.values0)[a_index][b_index][j];
             }
         }
         else {
@@ -49,7 +53,7 @@ inline Complex get_cached_F0_value(int a_index, int b_index, int j, int M) {
             return 0.0;
         }
         else {
-            return F0_cache.values[M][a_index][b_index][j];
+            return (*F0_cache.values)[M][a_index][b_index][j];
         }
     }
     else {
@@ -78,7 +82,8 @@ static struct{
     double b_spacing;
     long a_per_unit_interval;
     long b_per_unit_interval;
-    Complex *** values;
+    //Complex *** values;
+    boost::multi_array<Complex, 3> * values;
 } F1_cache;
 
 static bool F1_cache_initialized = false;
@@ -96,7 +101,8 @@ static struct{
     long a1_per_unit_interval;
     long a2_per_unit_interval;
     long b_per_unit_interval;
-    Complex *** values;
+    //Complex *** values;
+    boost::multi_array<Complex, 3> * values;
 } F2_cache;
 
 
@@ -109,7 +115,8 @@ inline Complex get_cached_F1_value(int a_index, int b_index, int j) {
             return 0.0;
         }
         else {
-            return F1_cache.values[a_index][b_index][j];
+            //return F1_cache.values[a_index][b_index][j];
+            return (*F1_cache.values)[a_index][b_index][j];
         }
     }
     else {
@@ -129,10 +136,11 @@ inline Complex get_cached_F2_value(int a1_index, int a2_index, int b_index, int 
         }
         else {
             if(j == 0) {
-                return F2_cache.values[a1_index][a2_index][b_index];
+                return (*F2_cache.values)[a1_index][a2_index][b_index];
             }
             else {
-                return F0_cache.values[0][a1_index][b_index][j] - F0_cache.values[0][a2_index][b_index][j];
+                return (*F0_cache.values0)[a1_index][b_index][j] - (*F0_cache.values)[0][a2_index][b_index][j];
+                //return F0_cache.values[0][a1_index][b_index][j] - F0_cache.values[0][a2_index][b_index][j];
             }
         }
     }
@@ -891,7 +899,10 @@ void build_F0_cache(long a_per_unit_interval, long b_per_unit_interval, long max
         return;
     }
 
-    F0_cache.values = new Complex *** [max_M + 1];
+    F0_cache.values0 = new (boost::multi_array<Complex, 3>)(boost::extents[a_per_unit_interval * max_M + 1][b_per_unit_interval/4 + 1][max_j + 1]);
+
+    //F0_cache.values = new Complex *** [max_M + 1];
+    F0_cache.values = new (boost::multi_array<Complex, 4>)(boost::extents[max_M + 1][a_per_unit_interval + 1][b_per_unit_interval/4 + 1][max_j + 1]);
 
     Double a = 0;
     Double a_increment = 1.0/(number_of_a - 1);
@@ -905,7 +916,7 @@ void build_F0_cache(long a_per_unit_interval, long b_per_unit_interval, long max
 
     {
         // M == 0 case
-        F0_cache.values[0] = new Complex ** [(number_of_a - 1) * max_M + 2];
+        //F0_cache.values[0] = new Complex ** [(number_of_a - 1) * max_M + 2];
         for(int k = 0; k < (number_of_a - 1) * max_M + 2; k++) {
             percent_done = (Double)k/( (number_of_a - 1) * max_M + 1);
             if(old_percent_done + .005 < percent_done) {
@@ -914,13 +925,13 @@ void build_F0_cache(long a_per_unit_interval, long b_per_unit_interval, long max
             }
             //if(k % 100 == 0)
             //    cout << "a index = " << k << ", a = " << a << endl;
-            F0_cache.values[0][k] = new Complex * [number_of_b];
+            //F0_cache.values[0][k] = new Complex * [number_of_b];
             for(int l = 0; l < number_of_b; l++) {
 //                cout << "b index = " << l << ", b = " << b << endl;
 //                cout << a << " " << b << endl;
-                F0_cache.values[0][k][l] = new Complex [max_j + 1];
+                //F0_cache.values[0][k][l] = new Complex [max_j + 1];
                 for(int j = 1; j <= max_j; j++) {
-                    F0_cache.values[0][k][l][j] = J_Integral_0(a, b, j, -1, 1, NULL, epsilon, false);
+                    (*F0_cache.values0)[k][l][j] = J_Integral_0(a, b, j, -1, 1, NULL, epsilon, false);
                 }
                 b += b_increment;
             }
@@ -943,16 +954,16 @@ void build_F0_cache(long a_per_unit_interval, long b_per_unit_interval, long max
             cout <<  "    " << percent_done * 100 << " percent done with F0 stage 2." << endl;
             old_percent_done = percent_done;
         }
-        F0_cache.values[M] = new Complex ** [number_of_a];
+        //F0_cache.values[M] = new Complex ** [number_of_a];
         //cout << "M = " << M << endl;
         for(int k = 0; k < number_of_a; k++) {
             //cout << "a index = " << k << ", a = " << a << endl;
-            F0_cache.values[M][k] = new Complex * [number_of_b];
+            //F0_cache.values[M][k] = new Complex * [number_of_b];
             for(int l = 0; l < number_of_b; l++) {
             //    cout << a << " " << b << endl;
-                F0_cache.values[M][k][l] = new Complex [max_j + 1];
+                //F0_cache.values[M][k][l] = new Complex [max_j + 1];
                 for(int j = 0; j <= max_j; j++) {
-                    F0_cache.values[M][k][l][j] = J_Integral_0(a, b, j, M, 1, NULL, epsilon, false);
+                    (*F0_cache.values)[M][k][l][j] = J_Integral_0(a, b, j, M, 1, NULL, epsilon, false);
                 }
                 b += b_increment;
             }
@@ -999,7 +1010,8 @@ void build_F1_cache(long a_per_unit_interval, long b_per_unit_interval, long max
 
 
 
-    F1_cache.values = new Complex ** [number_of_a];
+    //F1_cache.values = new Complex ** [number_of_a];
+    F1_cache.values = new boost::multi_array<Complex, 3>(boost::extents[number_of_a][number_of_b][max_j + 1]);
 
     Double a = 0;
     Double a_increment = 6.0/(number_of_a - 1);
@@ -1018,14 +1030,15 @@ void build_F1_cache(long a_per_unit_interval, long b_per_unit_interval, long max
         }
 
         //cout << "a index = " << k << ", a = " << a << endl;
-        F1_cache.values[k] = new Complex * [number_of_b];
+        //F1_cache.values[k] = new Complex * [number_of_b];
         for(long l = 0; l < number_of_b; l++) {
 //            cout << a << " " << b << endl;
 //            cout << "b index = " << l << ", b = " << b << endl;
-            F1_cache.values[k][l] = new Complex[max_j + 1];
+            //F1_cache.values[k][l] = new Complex[max_j + 1];
             for(long j = 0; j <= max_j; j++) {
                 //F1_cache.values[k][l][j] = pow(100, j) * J_Integral_1(a, b, j, -1, 100, NULL, epsilon/pow(100, j), false);
-                F1_cache.values[k][l][j] = J_Integral_1_precomputation(a, b, j, epsilon);
+                //F1_cache.values[k][l][j] = J_Integral_1_precomputation(a, b, j, epsilon);
+                (*F1_cache.values)[k][l][j] = J_Integral_1_precomputation(a, b, j, epsilon);
             }
             b += b_increment;
         }
@@ -1085,7 +1098,8 @@ void build_F2_cache(long max_a1, long a1_per_unit_interval, long a2_per_unit_int
     Double percent_done = 0.0;
     Double old_percent_done = 0.0;
 
-    F2_cache.values = new Complex ** [(number_of_a1 - 1) * max_a1 + 2];
+    //F2_cache.values = new Complex ** [(number_of_a1 - 1) * max_a1 + 2];
+    F2_cache.values = new boost::multi_array<Complex, 3>(boost::extents[a1_per_unit_interval * max_a1 + 2][number_of_a2][number_of_b]);
     for(long k = 0; k <= a1_per_unit_interval * max_a1 + 1; k++) {
 
         percent_done = (Double)k/(  a1_per_unit_interval * max_a1 + 1 );
@@ -1093,14 +1107,14 @@ void build_F2_cache(long max_a1, long a1_per_unit_interval, long a2_per_unit_int
             cout <<  "    " << percent_done * 100 << " percent done with F2." << endl;
             old_percent_done = percent_done;
         }
-
-
-        F2_cache.values[k] = new Complex * [number_of_a2];
+        
+        //F2_cache.values[k] = new Complex * [number_of_a2];
         for(long j = 0; j < number_of_a2; j++) {
-            F2_cache.values[k][j] = new Complex[number_of_b];
+            //F2_cache.values[k][j] = new Complex[number_of_b];
             for(long l = 0; l < number_of_b; l++) {
                 //cout << a1 << " " << a2 << " " << b << endl;
-                F2_cache.values[k][j][l] = J_Integral_2(a1, a2, b, NULL, epsilon, false);
+                //F2_cache.values[k][j][l] = J_Integral_2(a1, a2, b, NULL, epsilon, false);
+                (*F2_cache.values)[k][j][l] = J_Integral_2(a1, a2, b, NULL, epsilon, false);
                 b += b_increment;
             }
             a2 += a2_increment;
@@ -1123,38 +1137,43 @@ void build_F2_cache(long max_a1, long a1_per_unit_interval, long a2_per_unit_int
 void free_F0_cache() {
     F0_cache_initialized = false;
 
-    for(long k = 0; k < F0_cache.number_of_a; k++) {
-        for(long l = 0; l < F0_cache.number_of_b; l++) {
-            for(long M = 0; M <= F0_cache.max_M; M++) {
-                delete [] F0_cache.values[k][l][M];
-            }
-            delete [] F0_cache.values[k][l];
-        }
-        delete [] F0_cache.values[k];
-    }
-    delete [] F0_cache.values;
+    delete F0_cache.values;
+    delete F0_cache.values0;
+
+    //for(long k = 0; k < F0_cache.number_of_a; k++) {
+    //    for(long l = 0; l < F0_cache.number_of_b; l++) {
+    //        for(long M = 0; M <= F0_cache.max_M; M++) {
+    //            delete [] F0_cache.values[k][l][M];
+    //        }
+    //        delete [] F0_cache.values[k][l];
+    //    }
+    //    delete [] F0_cache.values[k];
+    //}
+    //delete [] F0_cache.values;
 }
 
 void free_F1_cache() {
     F1_cache_initialized = false;
+    delete F1_cache.values;
 
-    for(long k = 0; k < F1_cache.number_of_a; k++) {
-        for(long l = 0; l < F1_cache.number_of_b; l++) {
-            delete [] F1_cache.values[k][l];
-        }
-        delete [] F1_cache.values[k];
-    }
-    delete [] F1_cache.values;
+    //for(long k = 0; k < F1_cache.number_of_a; k++) {
+    //    for(long l = 0; l < F1_cache.number_of_b; l++) {
+    //        delete [] F1_cache.values[k][l];
+    //    }
+    //    delete [] F1_cache.values[k];
+    //}
+    //delete [] F1_cache.values;
 }
 
 void free_F2_cache() {
     F2_cache_initialized = false;
+    delete F2_cache.values;
 
-    for(long k = 0; k < F2_cache.number_of_a1; k++) {
-        for(long j = 0; j < F2_cache.number_of_a2; j++) {
-            delete F2_cache.values[k][j];
-        }
-        delete [] F2_cache.values[k];
-    }
-    delete [] F2_cache.values;
+    //for(long k = 0; k < F2_cache.number_of_a1; k++) {
+    //    for(long j = 0; j < F2_cache.number_of_a2; j++) {
+    //        delete F2_cache.values[k][j];
+    //    }
+    //    delete [] F2_cache.values[k];
+    //}
+    //delete [] F2_cache.values;
 }

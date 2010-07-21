@@ -9,7 +9,8 @@
 using namespace std;
 
 namespace zeta_config {
-    int number_of_threads = 2;  
+    int stage2_number_of_threads = 2;
+    int stage3_number_of_threads = 2;
 };
 
 namespace zeta_stats {
@@ -758,7 +759,7 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
 
     // right now we don't handle the case where the number of blocks is less than the number of threads,
     // and we just do a single threaded run
-    if(zeta_config::number_of_threads == 1 || mpz_cmp_si(number_of_blocks, zeta_config::number_of_threads) < 0) {
+    if(zeta_config::stage2_number_of_threads == 1 || mpz_cmp_si(number_of_blocks, zeta_config::stage2_number_of_threads) < 0) {
         Complex S2[M];
         for(mpz_set_ui(k, 0u); mpz_cmp(k, number_of_blocks) < 0; mpz_add_ui(k, k, 1u)) {
             mpz_add_ui(v, v, block_size);
@@ -784,7 +785,7 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
         }
     }
     else {
-        int num_threads = zeta_config::number_of_threads;
+        int num_threads = zeta_config::stage2_number_of_threads;
         pthread_t threads[num_threads];
 
         queue<int> thread_queue;
@@ -982,7 +983,7 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
 
     mpz_set(v, n);
     mpz_sub_ui(v, v, block_size);
-    if(zeta_config::number_of_threads == 1 || mpz_cmp_si(number_of_blocks, zeta_config::number_of_threads) < 0 ) {
+    if(zeta_config::stage3_number_of_threads == 1 || mpz_cmp_si(number_of_blocks, zeta_config::stage3_number_of_threads) < 0 ) {
         for(mpz_set_ui(k, 0u); mpz_cmp(k, number_of_blocks) < 0; mpz_add_ui(k, k, 1u)) {
             mpz_add_ui(v, v, block_size);
             zeta_block_stage3(v, block_size, t, Z, delta, M, S2, Kmin);
@@ -991,8 +992,16 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
             }
             //S = S + zeta_block_mpfr(v, block_size, t);
             if(mpz_divisible_ui_p(k, 20u)) {
-                time_t current_time = time(NULL);
-                cout << "In stage3, completed " << k << " large blocks out of " << number_of_blocks << ". Spent " << current_time - start_wall_time << " seconds so far." << endl;
+                time_t current_wall_time = time(NULL);
+                clock_t current_cpu_time = clock();
+                time_t elapsed_wall_time = current_wall_time - start_wall_time;
+                double elapsed_cpu_time = ((double)current_cpu_time - (double)last_cpu_time)/CLOCKS_PER_SEC;
+                total_cpu_time += elapsed_cpu_time;
+                cout << "In stage3, completed " << k << " large blocks out of " << number_of_blocks << "." << endl;
+                cout << "        In stage3 thus far: " << elapsed_wall_time << " real seconds; " << total_cpu_time << " cpu seconds; " << elapsed_cpu_time << "cpu seconds this chunk. " << endl;
+                last_cpu_time = current_cpu_time;
+                int current_blocksize = stage_3_block_size(mpz_get_d(v), mpfr_get_d(t, GMP_RNDN));
+                cout << "        Current blocksize ~= " << current_blocksize << endl;
             }
         }
         mpz_add_ui(v, v, block_size);
@@ -1004,7 +1013,7 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
         //S = S + zeta_block_mpfr(v, remainder, t);
     }
     else {
-        int num_threads = zeta_config::number_of_threads;
+        int num_threads = zeta_config::stage3_number_of_threads;
         pthread_t threads[num_threads];
 
         queue<int> thread_queue;
@@ -1080,8 +1089,10 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
                 double elapsed_cpu_time = ((double)current_cpu_time - (double)last_cpu_time)/CLOCKS_PER_SEC;
                 total_cpu_time += elapsed_cpu_time;
                 cout << "In stage3, completed " << k << " large blocks out of " << number_of_blocks << "." << endl;
-                cout << "        In stage2 thus far: " << elapsed_wall_time << " real seconds; " << total_cpu_time << " cpu seconds; " << elapsed_cpu_time << "cpu seconds this block. " << endl;
+                cout << "        In stage3 thus far: " << elapsed_wall_time << " real seconds; " << total_cpu_time << " cpu seconds; " << elapsed_cpu_time << "cpu seconds this chunk. " << endl;
                 last_cpu_time = current_cpu_time;
+                int current_blocksize = stage_3_block_size(mpz_get_d(v), mpfr_get_d(t, GMP_RNDN));
+                cout << "        Current blocksize ~= " << current_blocksize << endl;
             }
 
             // now we have created a new thread to do some work.

@@ -209,12 +209,14 @@ void do_precomputation(mpfr_t t) {
 }
 
 namespace zeta_config {
-    extern int number_of_threads;
+    extern int stage2_number_of_threads;
+    extern int stage3_number_of_threads;
 }
 
 int main() {
     cout << setprecision(10) << endl;
-    zeta_config::number_of_threads = 2;
+    zeta_config::stage2_number_of_threads = 2;
+    zeta_config::stage3_number_of_threads = 2;
 
     mpfr_t t;
     mpfr_init2(t, 150);
