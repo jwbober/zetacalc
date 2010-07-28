@@ -899,7 +899,7 @@ void build_F0_cache(long a_per_unit_interval, long b_per_unit_interval, long max
         return;
     }
 
-    F0_cache.values0 = new (boost::multi_array<Complex, 3>)(boost::extents[a_per_unit_interval * max_M + 1][b_per_unit_interval/4 + 1][max_j + 1]);
+    F0_cache.values0 = new (boost::multi_array<Complex, 3>)(boost::extents[a_per_unit_interval * max_M + 2][b_per_unit_interval/4 + 1][max_j + 1]);
 
     //F0_cache.values = new Complex *** [max_M + 1];
     F0_cache.values = new (boost::multi_array<Complex, 4>)(boost::extents[max_M + 1][a_per_unit_interval + 1][b_per_unit_interval/4 + 1][max_j + 1]);

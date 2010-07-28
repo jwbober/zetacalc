@@ -41,6 +41,10 @@ void stage_1_bound(mpz_t v, mpfr_t t) {
     mpfr_mul_ui(x, x, 3u, GMP_RNDN);
     mpfr_get_z(v, x, GMP_RNDN);
 
+    if(mpz_cmp_ui(v, 1100000u) < 0) {
+        mpz_set_ui(v, 1100000u);
+    }
+
     mpfr_clear(x);
 }
 
@@ -61,7 +65,8 @@ void stage_2_bound(mpz_t v, mpfr_t t) {
     mpfr_cbrt(x, t, GMP_RNDN);
     //mpfr_mul_ui(x, x, 1120u, GMP_RNDN);
     //mpfr_mul_ui(x, x, 51u, GMP_RNDN);
-    mpfr_mul_ui(x, x, 890u, GMP_RNDN);
+    //mpfr_mul_ui(x, x, 890u, GMP_RNDN);
+    mpfr_mul_ui(x, x, 1200u, GMP_RNDN);
 
     mpfr_get_z(v, x, GMP_RNDN);
 
@@ -102,7 +107,8 @@ inline unsigned int stage_2_block_size(Double v, Double t) {
     // For now we set the block size to be v/t^{1/4}
 
     //unsigned int block_size = min((unsigned int)( v * pow(t, -.25) ), (unsigned int)(pow(t, 1.0/12.0)));
-    unsigned int block_size = (unsigned int)( v * pow(t, -.25) );
+    //unsigned int block_size = (unsigned int)( v * pow(t, -.25) );
+    unsigned int block_size = (unsigned int)( min(v * pow(t, -.25), sqrt(v)/500.0  ) );
 
     return block_size;
 }
@@ -113,7 +119,7 @@ unsigned int stage_3_block_size(Double v, Double t) {
     //
     // So if we want to start stage 3 with a block size of 100, then we should
     // set stage_2_bound to 112 * t^(1/3)
-    unsigned int block_size = (unsigned int)(.9 * v * pow(t, -.3333333333333333333333));
+    unsigned int block_size = (unsigned int)(  min(.9 * v * pow(t, -.3333333333333333333333), sqrt(v)/1024.0) );
     //unsigned int block_size = (unsigned int)(2 * v * pow(t, -.3333333333333333333333));
     return block_size;
 }
@@ -744,7 +750,7 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
     }
 
 
-    const unsigned int block_size = 1000000;
+    const unsigned int block_size = 10000000;
 
     mpz_t number_of_blocks;
     mpz_init(number_of_blocks);
@@ -968,7 +974,7 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
     }
 
 
-    const unsigned int block_size = 1000000;
+    const unsigned int block_size = 10000000;
 
     mpz_t number_of_blocks;
     mpz_init(number_of_blocks);

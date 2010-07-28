@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <iomanip>
 
 using namespace std;
@@ -213,6 +214,66 @@ namespace zeta_config {
     extern int stage3_number_of_threads;
 }
 
+void do_computation() {
+    mpfr_t t;
+    mpfr_init2(t, 150);
+
+    int N = 500;
+    Double delta = .01;
+    Complex main_sum_values[N];
+
+    ofstream logfile;
+    logfile.open("zeta_logfile");
+    logfile << setprecision(17);
+
+    for(int n = 16; n <= 20; n++) {
+        time_t start_time = time(NULL);
+        mpfr_set_si(t, 10, GMP_RNDN);
+        mpfr_pow_si(t, t, n, GMP_RNDN);
+        mpfr_sub_si(t, t, 5, GMP_RNDN);
+
+        mpz_t tz;
+        mpz_init(tz);
+        mpfr_get_z(tz, t, GMP_RNDN);
+
+        logfile << "Starting computation at t = " << tz << endl;
+        logfile << "    Using delta = " << delta << endl;
+        logfile << "    Computing at " << N << " points." << endl;
+        logfile.flush();
+
+        zeta_sum(t, delta, N, main_sum_values);
+
+        ofstream datafile;
+        stringstream filename_stream;
+        filename_stream << "zeta_1e" << n << ".data";
+        
+        time_t end_time = time(NULL);
+
+        logfile << "    Finished computation in " << end_time - start_time << " seconds." << endl;
+        logfile << "    Writing data to file " << filename_stream.str() << endl;
+        logfile.flush();
+
+        datafile.open(filename_stream.str().c_str());
+        datafile << setprecision(17);
+
+        //mpfr_exp_t exponent;
+        //char * t_string = mpfr_get_str(NULL, &exponent, 10, 0, GMP_RNDN);
+        
+        datafile << tz << endl;
+        datafile << delta << endl;
+        
+        for(int k = 0; k < N; k++) {
+            datafile << main_sum_values[k] << endl;
+        }
+
+        logfile << "    Finished writing data." << endl;
+        logfile.flush();
+
+        datafile.close();
+        mpz_clear(tz);
+    }
+}
+
 int main() {
     cout << setprecision(10) << endl;
     zeta_config::stage2_number_of_threads = 2;
@@ -220,9 +281,15 @@ int main() {
 
     mpfr_t t;
     mpfr_init2(t, 150);
-    mpfr_set_str(t, "1e24", 10, GMP_RNDN);
+    mpfr_set_str(t, "1e20", 10, GMP_RNDN);
 
     do_precomputation(t);
+
+    do_computation();
+
+    print_stats();
+
+    return 0;
 
     //build_F0_cache(10, 100, 25, 500, exp(-30));
     //build_F1_cache(30, 200, 30, exp(-30));
@@ -234,18 +301,18 @@ int main() {
     //compute_hardy_on_unit_interval(t);
 
 
-    int N = 1;
-    double delta = .01; 
-    Complex S[N];
+    //int N = 1;
+    //double delta = .01; 
+    //Complex S[N];
 
 
-    mpfr_set_str(t, "1e18", 10, GMP_RNDN);
-    hardy_Z(t, delta, N, S);
-    cout << "1e18" << "  " << S[0] << "   " << S[0] * rs_rotation(t) << endl;
+    //mpfr_set_str(t, "1e18", 10, GMP_RNDN);
+    //hardy_Z(t, delta, N, S);
+    //cout << "1e18" << "  " << S[0] << "   " << S[0] * rs_rotation(t) << endl;
 
-    mpfr_set_str(t, "1e20", 10, GMP_RNDN);
-    hardy_Z(t, delta, N, S);
-    cout << "1e20" << "  " << S[0] << "   " << S[0] * rs_rotation(t) << endl;
+    //mpfr_set_str(t, "1e20", 10, GMP_RNDN);
+    //hardy_Z(t, delta, N, S);
+    //cout << "1e20" << "  " << S[0] << "   " << S[0] * rs_rotation(t) << endl;
     
     
     //mpfr_set_str(t, "1e20", 10, GMP_RNDN);
@@ -273,7 +340,8 @@ int main() {
     //    cout << S[l] << "    " << S[l] * rs_rotation(t) << endl;
     //    mpfr_add_d(t, t, delta, GMP_RNDN);
     //}
-    print_stats();
 
+
+    print_stats();
     return 0;
 }
