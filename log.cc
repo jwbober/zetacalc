@@ -330,6 +330,9 @@ Complex exp_itlogn4(mpz_t n) {
             mpn_rshift(z, z, number_of_limbs_needed, 1);
             k++;
             if( __builtin_expect(current_bit_mask == 1u, 0)) {
+                if(k == N) {
+                    return y * exp_table2[a - 1];
+                }
                 current_limb_ptr--;
                 current_bit_mask = (1ul << (GMP_NUMB_BITS - 1u));
                 current_limb_index--;

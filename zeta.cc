@@ -108,7 +108,8 @@ inline unsigned int stage_2_block_size(Double v, Double t) {
 
     //unsigned int block_size = min((unsigned int)( v * pow(t, -.25) ), (unsigned int)(pow(t, 1.0/12.0)));
     //unsigned int block_size = (unsigned int)( v * pow(t, -.25) );
-    unsigned int block_size = (unsigned int)( min(v * pow(t, -.25), sqrt(v)/500.0  ) );
+    //unsigned int block_size = (unsigned int)( min(v * pow(t, -.25), sqrt(v)/500.0  ) );
+    unsigned int block_size = (unsigned int)( min(v * pow(t, -.25), pow(v, .75)/sqrt(500.0)  ) );
 
     return block_size;
 }
@@ -119,7 +120,7 @@ unsigned int stage_3_block_size(Double v, Double t) {
     //
     // So if we want to start stage 3 with a block size of 100, then we should
     // set stage_2_bound to 112 * t^(1/3)
-    unsigned int block_size = (unsigned int)(  min(.9 * v * pow(t, -.3333333333333333333333), sqrt(v)/1024.0) );
+    unsigned int block_size = (unsigned int)(  min(.9 * v * pow(t, -.3333333333333333333333), pow(v, .75)/sqrt(500)) );
     //unsigned int block_size = (unsigned int)(2 * v * pow(t, -.3333333333333333333333));
     return block_size;
 }
