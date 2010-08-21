@@ -623,7 +623,7 @@ int test_exp_itlogn(gmp_randstate_t state) {
         mpfr_fmod(w1, w1, twopi, GMP_RNDN);
         z1 = exp(I * mpfr_get_d(w1, GMP_RNDN));
 
-        z2 = exp_itlogn4(n);
+        z2 = exp_itlogn(n);
 
         Double error = abs(z1 - z2);
 
@@ -672,7 +672,7 @@ int time_exp_itlogn() {
 
     for(int k = 0; k < number_of_iterations; k++) {
         mpz_add_ui(n, n, 1u);
-        z2 += exp_itlogn4(n);
+        z2 += exp_itlogn(n);
     }
     cout << z2 << "...";
 

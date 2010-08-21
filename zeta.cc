@@ -147,7 +147,7 @@ Complex zeta_block_stage1(mpz_t v, unsigned int K, mpfr_t t, Double delta, int M
     mpz_set(n, v);
 
     for(unsigned int k = 0; k < K; k++) {
-        Complex current_term = exp_itlogn4(n)/sqrt(mpz_get_d(n));
+        Complex current_term = exp_itlogn(n)/sqrt(mpz_get_d(n));
         Complex multiplier = exp(I * delta * log(mpz_get_d(n)));
         
         for(int l = 0; l < M; l++) {
@@ -209,7 +209,7 @@ Complex zeta_block_stage2_basic(mpz_t v, unsigned int *K, mpfr_t t, Double epsil
     if(*K == 1) {
         if(0)
             cout << v << "  " << v << endl;
-        return exp_itlogn4(v)/sqrt(mpz_get_d(v));
+        return exp_itlogn(v)/sqrt(mpz_get_d(v));
     }  
     
      Double vv = mpz_get_d(v);
@@ -339,7 +339,7 @@ Complex zeta_block_stage2_basic(mpz_t v, unsigned int *K, mpfr_t t, Double epsil
     }
     S = S / sqrt(vv);
 
-    S = S * exp_itlogn4(v);
+    S = S * exp_itlogn(v);
 
     mpfr_clear(mp_v_power);
     mpfr_clear(z);
@@ -360,7 +360,7 @@ Complex zeta_block_stage3_basic(mpz_t v, unsigned int *K, mpfr_t t, Complex ZZ[3
         if(0) {
             cout << v << " " << v << endl;
         }
-        return exp_itlogn4(v)/sqrt(mpz_get_d(v));
+        return exp_itlogn(v)/sqrt(mpz_get_d(v));
     }
     
     Double vv = mpz_get_d(v);
@@ -427,7 +427,7 @@ Complex zeta_block_stage3_basic(mpz_t v, unsigned int *K, mpfr_t t, Complex ZZ[3
     // we don't need the previous values of a and b anymore, so
     // we can erase them.
 
-    Complex z = exp_itlogn4(v);
+    Complex z = exp_itlogn(v);
     z = z / sqrt(mpz_get_d(v));
     S = S * z;
 

@@ -163,7 +163,7 @@ void compute_hardy_on_unit_interval(mpfr_t t) {
 }
 
 void * F0_thread(void * bound ) {
-    build_F0_cache(10, 100, 30, (int)(bound), exp(-30));
+    build_F0_cache(10, 100, 30, (long)(bound), exp(-30));
     pthread_exit(NULL);
 }
 void * F1_thread(void * unused) {
@@ -171,11 +171,11 @@ void * F1_thread(void * unused) {
     pthread_exit(NULL);
 }
 void * F2_thread(void * bound) {
-    build_F2_cache((int)(bound), 10, 10, 100, exp(-30));
+    build_F2_cache((long)(bound), 10, 10, 100, exp(-30));
     pthread_exit(NULL);
 }
 void * IC7_thread(void * bound) {
-    build_IC7_cache((int)bound, 200, 35, exp(-30));
+    build_IC7_cache((long)bound, 200, 35, exp(-30));
     pthread_exit(NULL);
 }
 
@@ -276,14 +276,14 @@ void do_computation() {
 
 int main() {
     cout << setprecision(10) << endl;
-    zeta_config::stage2_number_of_threads = 2;
+    zeta_config::stage2_number_of_threads = 4;
     zeta_config::stage3_number_of_threads = 2;
 
     mpfr_t t;
     mpfr_init2(t, 150);
     mpfr_set_str(t, "1e20", 10, GMP_RNDN);
 
-    do_precomputation(t);
+    //do_precomputation(t);
 
     do_computation();
 
