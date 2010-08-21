@@ -1,0 +1,154 @@
+#include "theta_sums.h"
+#include "zeta.h"
+
+#include <iostream>
+#include <iomanip>
+
+using namespace std;
+
+//computes sinc function
+Double sinc(Double x){
+    //Taylor coefficients in sin expansions
+    const Double sin_coeff[]={1, -1.0 / 6.0, 1.0 / 120.0, -1.0 / 5040.0, 1 / 362880.0, -1.0 / 39916800.0};
+
+    //Parameters needed in sinc function; help overcome instability when sinc(x) is called with very small x 
+    Double sinh_tol=1.e-5;
+    int sin_terms = 3;
+
+    if(x < sinh_tol) {
+        Double x_squared = x*x;
+        Double x_power = x_squared;
+        Double ans = 1;
+
+        for(int j = 1; j < sin_terms; j++){
+            ans = ans + sin_coeff[j] * x_power;
+            x_power = x_squared * x_power;
+        }
+
+        return ans;
+    }
+    Double ans = sin(x) / x;
+    return ans;
+}
+
+
+//computes the kernel function in BLFI
+Double kernel(Double u, Double c, Double epsilon_1){
+    //Taylor coefficients in sinh and sin expansions
+    const Double sinh_coeff[]={1, 1 / 6.0, 1 / 120.0, 1 / 5040.0, 1 / 362880.0, 1 / 39916800.0};
+    //Parameters needed in kernel function; help overcome instability when kernel(x) is called with very small x 
+    Double sinh_tol=1.e-5;
+    int sin_terms = 3;
+
+    Double x = c*c - pow( epsilon_1*u, 2);
+
+    if( x <  0 ) {
+        cout << endl << "kernel: u is too large!" << endl;
+        exit(1);
+    }
+
+    if(x < sinh_tol) {
+
+        Double x_squared = x*x;
+        Double x_power = x_squared;
+        Double ans = 1;
+        
+        for(int j = 1; j < sin_terms; j++) {
+            ans = ans + sinh_coeff[j] * x_power;
+            x_power = x_squared * x_power;
+        }
+        ans = ans * c * exp(-c);
+        return ans;
+    }
+ 	
+    Double sinh_x = 0.5 * (exp(sqrt(x)) + exp(- sqrt(x)));
+    Double ans = sinh_x / sqrt(x);
+    ans = ans * c * exp(-c);
+    return  ans;
+}
+
+
+//We compute the main sum using the band-limited function interpolation formula (non-centered version).
+// We interpolate main_sum(1/2 + it) in  approximately the interval (t0 + c , t0 + max_n*PI/beta - c) to within t^0.25 * exp( - c )
+
+Complex blfi_inter(Double t, Double t_minus_t0, Double max_n, Double c, Complex* main_sum_values){
+ 
+    //we assume the blfi parameters are chosen as in (2.13) in "amortized complexity method...."
+    Double tau = log ( sqrt (t / (2 * PI)) ); // this is the heighest frequency in the main sum
+    Double beta = 3 * tau;  // note we assume main_sum_values are computed at integer multiples of PI / beta
+    Double lambda = ( beta + tau ) / 2; // this is an extraneous blfi parameter
+    Double epsilon_1 = ( beta - tau ) / 2; // an extraneous blfi parameter
+
+    int range = beta * c / ( PI * epsilon_1);  // 2*range is the number of terms that will be used in the bfli formula
+    int n0 =  round( (t_minus_t0) * beta / PI ); // this is the closest grid point to t - t0
+
+    //if t - t0 is too close to 0 or max_n*PI/beta then blfi doesn't work, so we exit
+    if( n0  <  range  ||  n0  >  max_n  - range || 2 * range > max_n || range < 1) {
+        cout << endl << "Error: blfi formula called out of range!" <<endl;
+        exit(1);
+    }
+
+    // we interpolate the main sum here using precomputed values main_sum_values[n]
+    Complex sum = 0;
+
+    for(int n = n0 - range + 1; n < n0 +  range;  n++){
+        Double u = n * PI /beta - (t_minus_t0); 
+        sum = sum + main_sum_values[n] * sinc(lambda * u) * kernel (u , c , epsilon_1);
+    }
+
+    sum = sum * lambda / beta;
+    return sum;
+}
+
+void compute_hardy_on_unit_interval(mpfr_t t) {
+    Double tt = mpfr_get_d(t, GMP_RNDN);
+    Double delta = PI/(3 * log(tt/(2 * PI)));
+
+    cout << "using delta = " << delta << endl;
+
+    mpfr_t t0;
+    mpfr_t tmp;
+    mpfr_init2(t0, mpfr_get_prec(t));
+    mpfr_init2(tmp, mpfr_get_prec(t));
+    mpfr_sub_d(t0, t, 50 * delta, GMP_RNDN);
+
+    mpfr_set_d(tmp, delta, GMP_RNDN);
+    mpfr_fmod(tmp, t0, tmp, GMP_RNDN);
+    mpfr_sub(t0, t0, tmp, GMP_RNDN);
+
+    int N = (int)(1.0/delta) + 100;
+
+    cout << "initially computing zeta at " << N << " points." << endl;
+
+    Complex main_sum[N];
+
+    zeta_sum(t0, delta, N, main_sum);
+    
+
+}
+
+
+int main() {
+    cout << setprecision(10) << endl;
+
+
+
+    mpfr_t t;
+    mpfr_init2(t, 150);
+    mpfr_set_str(t, "1e10", 10, GMP_RNDN);
+
+    compute_hardy_on_unit_interval(t);
+    return 0;
+
+    int N = 10;
+    double delta = .01; 
+    Complex S[N];
+
+
+    hardy_Z(t, delta, N, S);
+    for(int l = 0; l < N; l++) {
+        cout << S[l] << "    " << S[l] * rs_rotation(t) << endl;
+        mpfr_add_d(t, t, delta, GMP_RNDN);
+    }
+
+}

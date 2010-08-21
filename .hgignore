@@ -10,3 +10,17 @@ a.out
 *_mpc.*
 *.orig
 Makefile_mpc
+pictures/*
+pictures2/*
+data/*
+data2/*
+*.prof
+output*
+zeta_output*
+*.ps
+test
+scratch
+send_to_ias_home
+send_to_sage_math
+zeta
+theta_sums.tar.gz
