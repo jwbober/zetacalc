@@ -1,3 +1,36 @@
+//
+// Functions to compute the integral
+//
+// G(alpha, b, n, j) = int_0^1 (t + n)^j exp(2 pi i alpha t + 2 pi i b t^2) dt
+//
+// (We apologize for the strange naming convention of the variables. There is
+// no particular reason that one is greek and one is not.)
+//
+// We have two different methods to compute this integral. One method
+// is Euler-Maclaurin summation. The second method (which below is
+// called method1) is:
+//
+//      1. If n != 0 and j != 0, do a binomial expansion to
+//         write the integral as a linear combination of
+//         integrals of the same form, but with n = 0.
+//      
+//      2. In the n = 0 case, do a taylor expansion of the integrand
+//         in the "b" variable, which reduces the the integral to a sum
+//         of integrals of the form
+//
+//              H(alpha, j) = \int_0^1 t^j exp(2 pi i alpha t)
+//
+//         These "H functions" are dealt with in a separate file.
+//
+//
+// There are various functions in this file which duplicate functionality.
+// In general, the parameters alpha and b are complex numbers, but in many
+// instances one of them is real, so we have extra functions which take
+// advantage of this. Also, in a certain case we compute this function many
+// times with b = I/2pi, so this is also written in as a specific function.
+
+
+
 #include "theta_sums.h"
 #include "precomputed_tables.h"
 #include "log.h"
@@ -19,8 +52,6 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
     // gets expanded as a power series in b and the computation is reduced
     // to a bunch of calls to H().
     //
-    
-    //cout << "New code called" << endl;
     
     // Note b is _always_ (I think) either real or purely imaginary.
     // We should take advantage of this.
