@@ -274,22 +274,130 @@ void do_computation() {
     }
 }
 
-int main() {
-    cout << setprecision(10) << endl;
-    zeta_config::stage2_number_of_threads = 4;
+void usage() {
+    const char * usage_text =
+"Usage: zeta FILENAME\n\
+\n\
+FILENAME should be a plain text file, the first line\n\
+of which is the largest t that zeta(1/2 + it) will be\n\
+computed for, if the program is to using precomputation.\n\
+Otherwise, the first line should be 0, indicating that\n\
+no precomputation should be done.\n\
+\n\
+After the first line, each line should contain a single\n\
+integer. Currently the program computes the main sum\n\
+in the Riemann-Siegel formula at a grid of 500 points\n\
+over an interval of length 5 starting at this integer\n\
+and writes this data to a file zeta_N.data, where\n\
+N is replaced by this integer.\n\
+";
+    cout << usage_text;
+
+}
+
+int main(int argc, char * argv[]) {
+    if(argc != 2) {
+        usage();
+        return 0;
+    }
+
+    zeta_config::stage2_number_of_threads = 2;
     zeta_config::stage3_number_of_threads = 2;
 
+    ifstream input_file;
+    input_file.open(argv[1]);
+    if(!input_file.is_open()) {
+        cout << "Error: Could not open file " << argv[1] << endl << endl;
+        usage();
+        return 0;
+    }
+
+    string line;
+    getline(input_file, line);
+
     mpfr_t t;
-    mpfr_init2(t, 150);
-    mpfr_set_str(t, "1e20", 10, GMP_RNDN);
+    mpfr_init2(t, 200);
+    mpfr_set_str(t, line.c_str(), 10, GMP_RNDN);
+    if(mpfr_cmp_d(t, 0.0) != 0) {
+        do_precomputation(t);
+        // TODO: Write something to a logfile.
+    }
+    else {
+        // TODO: Write something to a logfile.
+    }
+
+    ofstream logfile;
+    logfile.open("zeta_logfile");
+    logfile << setprecision(17);
+
+    int N = 500;
+    Double delta = .01;
+    Complex main_sum_values[N];
+
+    mpz_t tz;
+    mpz_init(tz);
+
+    while(getline(input_file, line)) {
+        time_t start_time = time(NULL);
+        
+        mpz_set_str(tz, line.c_str(), 10);
+        mpfr_set_z(t, tz, GMP_RNDN);
+
+        logfile << "Starting computation at t = " << tz << endl;
+        logfile << "    Using delta = " << delta << endl;
+        logfile << "    Computing at " << N << " points." << endl;
+        logfile.flush();
+
+        zeta_sum(t, delta, N, main_sum_values);
+
+        ofstream datafile;
+        stringstream filename_stream;
+        filename_stream << "zeta_" << tz << ".data";
+        
+        time_t end_time = time(NULL);
+
+        logfile << "    Finished computation in " << end_time - start_time << " seconds." << endl;
+        logfile << "    Writing data to file " << filename_stream.str() << endl;
+        logfile.flush();
+
+        datafile.open(filename_stream.str().c_str());
+        datafile << setprecision(17);
+
+        //mpfr_exp_t exponent;
+        //char * t_string = mpfr_get_str(NULL, &exponent, 10, 0, GMP_RNDN);
+        
+        datafile << tz << endl;
+        datafile << delta << endl;
+        
+        for(int k = 0; k < N; k++) {
+            datafile << main_sum_values[k] << endl;
+        }
+
+        logfile << "    Finished writing data." << endl;
+        logfile.flush();
+
+        datafile.close();
+
+    }
+    
+    mpz_clear(tz);
+    logfile.close();
+    input_file.close();
+    return 0;
+
+    cout << setprecision(17) << endl;
+
+    //mpfr_t t;
+    //mpfr_init2(t, 150);
+    //mpfr_set_str(t, "1e20", 10, GMP_RNDN);
 
     //do_precomputation(t);
 
-    do_computation();
+    //do_computation();
 
-    print_stats();
+    //print_stats();
 
-    return 0;
+    //return 0;
 
     //build_F0_cache(10, 100, 25, 500, exp(-30));
     //build_F1_cache(30, 200, 30, exp(-30));

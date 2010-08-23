@@ -188,6 +188,65 @@ def find_candidate_large_value():
 
     return possible_t
 
+def find_candidates_for_large_value(repeat=1):
+    possible_t = []
+    X = var('X')
+    
+    p_start = 40 
+    p_end = 85
+
+    euler_product1 = 1
+    euler_product2 = 1
+    for p in prime_range(nth_prime(p_start) + 1):
+        print p
+        euler_product1 = euler_product1 / (1 - 1/p^(1/2 + i * X))
+
+    euler_product2 = euler_product1
+
+    for p in prime_range(nth_prime(p_start) + 1, nth_prime(p_end) + 1):
+        euler_product2 = euler_product2 / (1 - 1/p^(1/2 + i * X))
+
+    euler_product1 = fast_callable(euler_product1, domain=ComplexField(150), vars='X')
+    euler_product2 = fast_callable(euler_product2, domain=ComplexField(150), vars='X')
+
+    for l in xrange(repeat):
+        n = ZZ.random_element(p_start, p_end)
+        m = ZZ.random_element(70, 76)
+        r = ZZ.random_element(11, 17)
+        delta = RR.random_element(.9, .9999)
+
+        last_prime = nth_prime(n)
+        primes = prime_range(last_prime + 1)
+
+        weights = [p^(-1/4) for p in primes]
+        #print weights
+
+        A = copy(MatrixSpace(ZZ, n+1).zero())
+        for k in xrange(0, n):
+            A[0,k] = floor(weights[k] * RR(primes[k]).log() * 2^(m - r))
+
+        A[0,n] = 1
+
+        for k in xrange(0, n):
+            A[k + 1, k] = floor(2 * pi * weights[k] * 2^m)
+
+        B = A.LLL(delta=delta)
+
+        R = RealField(200)
+        for k in xrange(0, n + 1):
+            t = R(abs(B[n,k])/2^r)
+            v1 = euler_product1(t)
+            v2 = euler_product2(t)
+            possible_t.append( (abs(v2), abs(v1), t, floor(abs(t)) - 2) )
+        
+        possible_t.sort()
+        print "On try number", l, " best candidates so far are"
+        for _ in possible_t[-5:]:
+            print _
+        sys.stdout.flush()
+
+    return possible_t
+
 
 def find_candidate_large_value2():
     #primes = [2,3,5,7,11,13,17]
