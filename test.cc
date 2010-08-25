@@ -583,7 +583,7 @@ double time_theta_algorithm_EM_case(int j, int K, int number_of_tests, Double ep
 int test_exp_itlogn(gmp_randstate_t state) {
     mpfr_t t;
     mpfr_init2(t, 158);
-    mpfr_set_str(t, "1e30", 10, GMP_RNDN);
+    mpfr_set_str(t, "1633275126614341648036", 10, GMP_RNDN);
 
     Complex z1, z2;
     
@@ -629,7 +629,7 @@ int test_exp_itlogn(gmp_randstate_t state) {
 
         if(error > 1e-14) {
             cout << endl;
-            cout << "Large error found with n = " << n << ". Error was " << abs(z1 - z2);
+            cout << "On test number " << k << ": Large error found with n = " << n << ". Error was " << abs(z1 - z2);
             failures++;
         }
         if(failures == 11) {
@@ -1095,7 +1095,9 @@ int main() {
     gmp_randseed_ui(rand_state, seed);
 
     cout << setprecision(17);
-    test_zeta_sum_stage1(rand_state);
+    //test_zeta_sum_stage1(rand_state);
+
+    test_exp_itlogn(rand_state);
 
     return 0;
 

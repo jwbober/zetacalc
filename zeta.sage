@@ -155,6 +155,41 @@ def make_pictures():
         sys.stdout.flush()
         P.save(small_picture_name, figsize=[10,5])
 
+def process_imcoming():
+    data_directory = 'data/new/'
+    output_directory = 'pictures/new/'
+    filenames = os.listdir(data_directory)
+
+    for input_file in filenames:
+        datafile = data_directory + input_file
+        Z = ZetaData(datafile)
+        t = ZZ(Z.t0)
+        L = [(x-2, y) for (x,y) in Z.Z_values_from_array()]
+        P = list_plot(L, plotjoined = True)
+        
+        large_picture_name = output_directory + 'z_' + str(t) + '_large.png'
+        vertical_zoom_picture_name = output_directory + 'z_' + str(t) + '_vertical_zoom.png'
+        axis_zoom_picture_name = output_directory  + 'z_' + str(t) + '_axis_zoom.png'
+        small_picture_name = output_directory + 'z_' + str(t) + '_small.png'
+
+        print 'Writing image to', large_picture_name
+        sys.stdout.flush()
+        P.save(large_picture_name, figsize=[60,20])
+
+        print 'Writing image to', small_picture_name
+        sys.stdout.flush()
+        P.save(small_picture_name, figsize=[10,5])
+
+        print 'Writing image to', vertical_zoom_picture_name
+        sys.stdout.flush()
+        P.save(vertical_zoom_picture_name, figsize=[20,300])
+
+        print 'Writing image to', axis_zoom_picture_name
+        sys.stdout.flush()
+        P.save(axis_zoom_picture_name, figsize=[60,20], ymin=-5, ymax=5)
+
+
+
 
 def find_candidate_large_value():
     #primes = [2,3,5,7,11,13,17]
@@ -192,8 +227,8 @@ def find_candidates_for_large_value(repeat=1):
     possible_t = []
     X = var('X')
     
-    p_start = 40 
-    p_end = 85
+    p_start = 110 
+    p_end = 150 
 
     euler_product1 = 1
     euler_product2 = 1
@@ -211,8 +246,8 @@ def find_candidates_for_large_value(repeat=1):
 
     for l in xrange(repeat):
         n = ZZ.random_element(p_start, p_end)
-        m = ZZ.random_element(70, 76)
-        r = ZZ.random_element(11, 17)
+        m = ZZ.random_element(90, 130)
+        r = ZZ.random_element(40, 50)
         delta = RR.random_element(.9, .9999)
 
         last_prime = nth_prime(n)
@@ -223,7 +258,7 @@ def find_candidates_for_large_value(repeat=1):
 
         A = copy(MatrixSpace(ZZ, n+1).zero())
         for k in xrange(0, n):
-            A[0,k] = floor(weights[k] * RR(primes[k]).log() * 2^(m - r))
+            A[0,k] = floor(weights[k] * primes[k].log() * 2^(m - r))
 
         A[0,n] = 1
 
@@ -240,8 +275,9 @@ def find_candidates_for_large_value(repeat=1):
             possible_t.append( (abs(v2), abs(v1), t, floor(abs(t)) - 2) )
         
         possible_t.sort()
+        possible_t = possible_t[-500:]
         print "On try number", l, " best candidates so far are"
-        for _ in possible_t[-5:]:
+        for _ in possible_t[-10:]:
             print _
         sys.stdout.flush()
 

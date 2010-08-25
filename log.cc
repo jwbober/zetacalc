@@ -15,10 +15,18 @@
 //      the function exp_itlogn() ends up multiplying some of these together, making no
 //      attempt to control the small roundoff errors that may occur.)
 //
+// NOTE ON MULTITHREADING:
+//      It is safe to call exp_itlogn() simultaneously from multiple threads, but
+//      the table used is a global variable, so there can only be one t active at any time.
+//      In our typical use case, this one thread calls create_exp_itlogn_table() and then
+//      many threads call exp_itlogn(). This means that our current implementation
+//      supports using many threads to compute a single value of the zeta function,
+//      but it does not support computing different values of the zeta function
+//      simultaneously.
 //
 
 // The algorithm used is essentially the one described in exercises 25 and 28 of Section 1.2.2
-// of Knuths TAOCP Third Edition.
+// of Knuth's TAOCP Third Edition. It is described further below in the source code.
 
 #include <iostream>
 #include <cmath>
@@ -33,12 +41,8 @@
 unsigned int table_precision;
 mp_size_t number_of_limbs_needed;
 
-Complex * exp_table;
-Complex * exp_table2;
-
-namespace mp_temps {
-    mpz_t x, w, z, L;
-};
+Complex * exp_table;        // Table to store the values exp(i t log (2^k/(2^k - 1)))
+Complex * exp_table2;       // Table to store the values exp(i t log(2^k))
 
 namespace exp_itlogn_stats {
     int bigger_than_one = 0;
@@ -101,17 +105,6 @@ void create_exp_itlogn_table(mpfr_t t) {
     number_of_limbs_needed = table_precision/GMP_NUMB_BITS + 1;     // There may be one extra limb needed since
                                                                     // the division truncates.
 
-    mpz_init2(mp_temps::x, table_precision + 5);
-    mpz_init2(mp_temps::z, table_precision + 5);
-    mpz_init2(mp_temps::L, table_precision + 5);
-    mpz_init2(mp_temps::w, table_precision + 5);
-
-    mpz_set_si(mp_temps::x, 2);
-    mpz_mul_2exp(mp_temps::x, mp_temps::x, table_precision + 4);
-    mpz_set(mp_temps::x, mp_temps::x);
-    mpz_set(mp_temps::z, mp_temps::x);
-    mpz_set(mp_temps::L, mp_temps::x);
-    mpz_set(mp_temps::w, mp_temps::x);
 
     mpfr_clear(twopi);
     mpfr_clear(z);
@@ -213,8 +206,28 @@ inline void shift_right(mp_ptr output, mp_srcptr input, mp_size_t input_size, un
 
 
 Complex exp_itlogn(mpz_t n) {
-    // We start by padding n with zeros so that
-    // it has exactly table_precision bits.
+    // Compute exp(it log n) to (almost) 53 bits of precision, using whatever
+    // t was used as an argument to create_exp_itlogn_table().
+    //
+    // Conceptually, at least, the algorithm works by first dividing n by a large enough
+    // power of 2 to get some x = n/2^(a-1) so that we have 1 <= x < 2. (Thus we will
+    // have exp(it log n) = exp(it log 2^(a-1)) * exp(it log x). In fact, a is just
+    // the number of binary digits of n.)
+    //
+    // To compute exp(it log x) we repeatedly divide x by the largest number
+    // of the form 2^k/(2^k - 1) which is smaller than x. What we have in the end
+    // is
+    //
+    // exp(it log n) = exp(it log 2^(a-1)) * prod_{some k, possibly with repitition} exp(it log(2^k/(2^k - 1)))
+    //
+    // Each of these individual quantities is computed to full 53 bit precision in the
+    // function create_exp_itlogn_table(), and we ignore any (small) errors that
+    // appear when we multiply them together, which is why we say that this
+    // is accurate to (almost) 53 bis of precision.
+    //
+    // One reason that this algorithm work nicely is that dividing x by 2^k/(2^k - 1) is the same as
+    // subtracting x/2^k from x, so we can do this division with a shift and a subtraction.
+
     unsigned int a = mpz_sizeinbase(n, 2);
 
     if(a > table_precision) {
@@ -224,57 +237,60 @@ Complex exp_itlogn(mpz_t n) {
 
     unsigned int N = table_precision;
     int shift = N - a;
-
-    using namespace mp_temps;
-    using namespace exp_itlogn_stats;
-
-//    mpz_t x, z, L, w;
-//    mpz_init2(x, N);
-//    mpz_init2(z, N);
-//    mpz_init2(L, N);
-//    mpz_init2(w, N);
-
-
-//    mpz_mul_2exp(x, n, shift);
-
-    mp_limb_t x[number_of_limbs_needed];
-    mp_limb_t w[number_of_limbs_needed];
-    mp_limb_t z[number_of_limbs_needed];
+    
+    unsigned long k = 1u;
+    mp_limb_t x[number_of_limbs_needed];        // x will be as described above.
+    mp_limb_t z[number_of_limbs_needed];        // z is always going to be x/2^k
 
     for(mp_size_t k = 0; k < number_of_limbs_needed; k++) {
         x[k] = 0;
-        w[k] = 0;
         z[k] = 0;
     }
 
+    // We start by placing the bits of n into the highest order bits of x,
+    // and then we will interpret x as a rational number between 1 and 2.
+    //
+    // The input, n, has a digits base 2. x will have N digits base 2.
     shift_left(x, n->_mp_d, n->_mp_size, shift);
 
-//    mpz_set_ui(L, 1);
-//    mpz_mul_2exp(L, L, N - 1);
-
+    // y is an accumulator where we to the product of exp(it log(2^k/(2^k - 1))
+    // as we compute it.
     Complex y = 1.0;
 
-    unsigned long k = 1u;
-    unsigned long current_bit_index = N - (k + 1);
-    mp_size_t current_limb_index = current_bit_index / GMP_NUMB_BITS;     // even this division shouldn't be necessary.
-                                                                              // we can be more clever.
-    unsigned long bit_index_in_limb = current_bit_index % GMP_NUMB_BITS;
-    mp_srcptr current_limb_ptr = x + current_limb_index;
-    mp_limb_t current_limb = *current_limb_ptr;
 
-    mp_limb_t current_bit_mask = (1ul << bit_index_in_limb);
+    // To check if x > 2^k/(2^k - 1) we will mostly use bit operations. Suppose
+    // that we already know that x < 2^n/(2^n - 1) for all n < k. Then, since
+    // 2^k/(2^k - 1) = 1 + 2^(-k) + 2^(-2k) + ... we can first examine
+    // the kth most significant bit of x to see if it is 1. If not, then
+    // x is smaller than 2^k/(2^k - 1). (Otherwise we will need to do a
+    // little more work.) This gets a little confusing because the kth
+    // most significant bit of x, starting with k = 0, is the (N-(k+1))st bit
+    // of x. (All of our bit numberings start with 0.)
+    //
+    // Thus, we have the following variables to help keep
+    // track of these bit operations.
 
-    mp_size_t index_of_last_limb = current_limb_index;
-    mp_size_t number_of_limbs = index_of_last_limb + 1;
-    unsigned long N_minus_1_bit_index = (N - 1) % GMP_NUMB_BITS;
-    mp_limb_t N_minus_1_bit_mask = (1ul << N_minus_1_bit_index);
+    unsigned long first_bit_index = N - 2;                                  // The index of the 1st most significant bit of x. (Not the 0th).
+    mp_size_t first_limb_index = first_bit_index / GMP_NUMB_BITS;           // The index of the limb that this bit is in.
+    unsigned long bit_index_in_limb = first_bit_index % GMP_NUMB_BITS;      // The index of the 1st most significant bit inside the most significant limb.
 
-//    cout << "starting" << endl;
+    mp_srcptr current_limb_ptr = x + first_limb_index;                      // Pointer to the limb that contains the kth most significant bit.
+    mp_limb_t current_limb = *current_limb_ptr;                             // The actual limb.
+
+    mp_limb_t current_bit_mask = (1ul << bit_index_in_limb);                // The bit mask that we will use to check if the kth most significant bit is 1.
+
+    mp_srcptr most_significant_limb_ptr = x + number_of_limbs_needed - 1;
+    unsigned long N_minus_1_bit_index = (N - 1) % GMP_NUMB_BITS;            // To check of x < 2^k/(2^k - 1) we will actually subtract x/2^k from x
+    mp_limb_t N_minus_1_bit_mask = (1ul << N_minus_1_bit_index);            // and then simply check if the most significant bit of x is still 1.
+                                                                            // This is the bit mask that we will use to check this.
+
 
     while(1) {
-        current_limb = *current_limb_ptr;
+        // We start by finding the most significant bit of x (after the 0th) that is 1.
+        // At this point it should be guaranteed that bits 1 through k-1 (numbered from most significant)
+        // are all 0.
 
-        //while((k <= N - 1) && (current_limb & current_bit_mask) == 0) {
+        current_limb = *current_limb_ptr;
         while( (current_limb & current_bit_mask) == 0) {
             k++;
             if (__builtin_expect( (current_bit_mask == 1ul), 0) ) {
@@ -282,56 +298,38 @@ Complex exp_itlogn(mpz_t n) {
                     return y * exp_table2[a - 1];
                 }
                 current_limb_ptr--;
-                current_limb_index--;
                 current_bit_mask = (1ul << (GMP_NUMB_BITS - 1));
                 current_limb = *current_limb_ptr;
             }
             else {
                 current_bit_mask = current_bit_mask >> 1u;
             }
-//            cout << "Index: " << bit_index_in_limb << endl;
-//            cout << "Mask: " << current_bit_mask << endl;
-//            cout << "k = " << k << endl;
-//            cout << "N = " << N << endl;
-//            cout << "current bit should be " << N - (k + 1) << endl;
-//            cout << "------" << endl;
         }
         
-
-//        if(k == N) {
-//            mpz_clear(x);
-//            mpz_clear(z);
-//            mpz_clear(L);
-//            mpz_clear(w);
-
-//            cout << "here" << endl;
-//            return y * exp_table2[a - 1];
-//        }
-
-        //mpz_div_2exp(z, x, k);
-
-        //cout << "Want to shift " << x << " by " << k << " to the right." << endl;
+        // Now we set z to x/2^k and subtract it from x. We don't actually
+        // know yet whether the result will be >= 1, but it turns out that
+        // it usually is, so it is faster to do the subtraction in place
+        // than to use a temporary variable.
 
         shift_right(z, x, number_of_limbs_needed, k);
-
-        //mpz_sub(x, x, z);
         mpn_sub_n(x, x, z, number_of_limbs_needed);
 
-        //if(mpz_cmp(w, L) >= 1) {
-        //if(mpz_tstbit(w, N - 1)) {
-        if( __builtin_expect(  __builtin_expect(index_of_last_limb < number_of_limbs_needed, 1) && __builtin_expect( (x[index_of_last_limb] & N_minus_1_bit_mask) != 0, 1), 1) ) {
-            //bigger_than_one++; 
-            //mpz_swap(x, w);
+        // Here we actually check if the result is >= 1. Since we are testing >= (instead
+        // of just >) we can just check the most significant bit of x and see if it is 1).
+        if(__builtin_expect( (*most_significant_limb_ptr & N_minus_1_bit_mask) != 0, 1)) {
+            // If we are here, then the result of the subtraction was >= 1
+            // so we want to include the factor 2^k/(2^k - 1)
             
             y = y * exp_table[k];
 
+            // In this case, it is impossible for the factor 2^k/(2^k - 1) to be repeated
+            // again, so we advance k, and check for the terminating condition.
             k++;
             if (__builtin_expect( (current_bit_mask == 1u), 0) ) {
                 if(k == N) {
                     return y * exp_table2[a - 1];
                 }
                 current_limb_ptr--;
-                current_limb_index--;
                 current_bit_mask = (1ul << (GMP_NUMB_BITS - 1u));
             }
             else {
@@ -340,13 +338,17 @@ Complex exp_itlogn(mpz_t n) {
 
         }
         else {
-            //smaller_than_one++;
-            mpn_add_n(x, x, z, number_of_limbs_needed);             // We could have done the subtraction x <-- x - z
+            // If we are here, then the result of the subtraction was < 1,
+            // so we do not want to include the factor 2^k/(2^k - 1). However
+            // if this happens then we know that we want to include the factor
+            // 2^(k + 1)/(2^(k + 1) - 1), so we restore x, increase k and shift
+            // z one more to the right and subtract it.
+
+            mpn_add_n(x, x, z, number_of_limbs_needed);             // As mentioned above, we could have done the subtraction x <-- x - z
                                                                     // before with a temporary variable to avoid this step,
                                                                     // but this case is very unlikely, and the overhead from
                                                                     // an mpz_swap call almost every time is larger than
                                                                     // the overhead from an occasional extra addition.
-            //mpz_div_2exp(z, z, 1);
             mpn_rshift(z, z, number_of_limbs_needed, 1);
             k++;
             if( __builtin_expect(current_bit_mask == 1u, 0)) {
@@ -355,16 +357,12 @@ Complex exp_itlogn(mpz_t n) {
                 }
                 current_limb_ptr--;
                 current_bit_mask = (1ul << (GMP_NUMB_BITS - 1u));
-                current_limb_index--;
             }
             else {
                 current_bit_mask = (current_bit_mask >> 1u);
             }
-            //mpz_sub(x, x, z);
             mpn_sub_n(x, x, z, number_of_limbs_needed);
             y = y * exp_table[k];
         }
-
-        //mpz_div_2exp(z, x, k);
     }
 }
