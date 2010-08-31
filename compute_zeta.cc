@@ -301,7 +301,7 @@ int main(int argc, char * argv[]) {
         return 0;
     }
 
-    zeta_config::stage2_number_of_threads = 4;
+    zeta_config::stage2_number_of_threads = 2;
     zeta_config::stage3_number_of_threads = 2;
 
     ifstream input_file;

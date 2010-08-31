@@ -122,6 +122,8 @@ class ZetaData:
         
         input_file.close()
 
+        self.tmax = self.t0 + self.delta * (len(self.data) - 1)
+
     def Z_values_from_array(self):
         Z_value_pairs = []
         for n in range(len(self.data)):
@@ -130,6 +132,70 @@ class ZetaData:
             Z_value_pairs.append( (n * self.delta, Z_value) )
         return Z_value_pairs
 
+    def __call__(self, t):
+        return self.Z_value(t)
+
+    def Z_value(self, t):
+        RR = ComplexField(200)
+        CC = ComplexField(200)
+        I = CC.0
+        PI = RR(pi)
+        t = RR(t)
+        t0 = RR(self.t0)
+        delta = RR(self.delta)
+        data_range = self.delta * (len(self.data) - 1)
+        if t < 0 or t > data_range:
+            raise ValueError
+
+        #if(n0 == 0):
+        #    return self.data[0] + t * (self.data[1] - self.data[0])/self.delta
+        #if(n0 == len(self.data) - 1):
+        #    N = len(self.data) - 2
+        #    d = t - N * self.delta
+        #    return self.data[N] + d * (self.data[N + 1] - self.data[N])/self.delta
+
+        if data_range - t > t:
+            interpolation_range = srange(0, 2 * floor(t/delta))
+        else:
+            interpolation_range = srange(2 * ceil(t/delta) - len(self.data), len(self.data))
+
+        N = len(interpolation_range)
+        if N > 200:
+            interpolation_range = interpolation_range[N/2 - 100:N/2 + 100]
+
+        tau = 1/2 * log(self.t0/(2 * PI))
+        beta = PI/delta
+        Lambda = (beta + tau)/2
+        epsilon_1 = (beta - tau)/2
+
+        c = RR(len(interpolation_range))/2 * PI * epsilon_1/beta
+
+        alpha = tau
+
+        S = 0
+        for n in interpolation_range:
+            u = n * delta - t
+            z = RR(self.data[n]) * exp(-I * alpha * u) * sinc(Lambda * u) * blfi_kernel(u, c, epsilon_1)
+            S = S + z
+
+        S = S * Lambda/beta
+
+        return RealField(53)(2 * real(S * rotation_factor(t0 + t)) + remainder_terms(t0 + t))
+
+def blfi_kernel(u, c, epsilon_1):
+    x = c^2 - (epsilon_1 * u)^2
+    if abs(x) < .00001:
+        w = 1/39916800*x^5 + 1/362880*x^4 + 1/5040*x^3 + 1/120*x^2 + 1/6*x + 1
+    else:
+        w = sinh(sqrt(x))/sqrt(x)
+    z = w * c / cosh(c)
+    return z
+
+def sinc(x):
+    if abs(x) < .00001:
+        return 1/120*x^4 - 1/6*x^2 + 1
+    else:
+        return sin(x)/x
 
 def make_pictures():
     data_directory = 'data2/'
@@ -155,9 +221,9 @@ def make_pictures():
         sys.stdout.flush()
         P.save(small_picture_name, figsize=[10,5])
 
-def process_imcoming():
-    data_directory = 'data/new/'
-    output_directory = 'pictures/new/'
+def process_incoming():
+    data_directory = 'data/ap6/'
+    output_directory = 'pictures/ap6/'
     filenames = os.listdir(data_directory)
 
     for input_file in filenames:
@@ -180,14 +246,31 @@ def process_imcoming():
         sys.stdout.flush()
         P.save(small_picture_name, figsize=[10,5])
 
-        print 'Writing image to', vertical_zoom_picture_name
-        sys.stdout.flush()
-        P.save(vertical_zoom_picture_name, figsize=[20,300])
+        #print 'Writing image to', vertical_zoom_picture_name
+        #sys.stdout.flush()
+        #P.save(vertical_zoom_picture_name, figsize=[20,300])
 
         print 'Writing image to', axis_zoom_picture_name
         sys.stdout.flush()
         P.save(axis_zoom_picture_name, figsize=[60,20], ymin=-5, ymax=5)
 
+def get_max_values():
+    data_directory = 'data/all/'
+    filenames = os.listdir(data_directory)
+
+    max_values = []
+
+    for input_file in filenames:
+        datafile = data_directory + input_file
+        print "Processing file", input_file
+        sys.stdout.flush()
+        Z = ZetaData(datafile)
+        t = ZZ(Z.t0)
+
+        L = [abs(y) for (x, y) in Z.Z_values_from_array()]
+        max_values.append((t, max(L)))
+
+    return max_values
 
 
 
@@ -313,7 +396,16 @@ def find_candidate_large_value2():
 
     return possible_t
 
+def euler_product(X, domain=CC):
+    p = 2
+    S = 1
+    x = var('x')
+    while p < X:
+        S = S/(1 - 1/p^(1/2 + i * x))
+        p = next_prime(p)
 
+    f = fast_callable(S, vars=[x], domain=domain)
+    return f
 
 
 def euler_product_values(t_list, X):

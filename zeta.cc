@@ -68,6 +68,9 @@ void stage_2_bound(mpz_t v, mpfr_t t) {
     //mpfr_mul_ui(x, x, 890u, GMP_RNDN);
     mpfr_mul_ui(x, x, 1200u, GMP_RNDN);
     
+    // temporary multiplication to avoid entering stage3
+    mpfr_mul_ui(x, x, 100000u, GMP_RNDN);
+    
     mpfr_get_z(v, x, GMP_RNDN);
 
     mpfr_clear(x);
@@ -109,7 +112,8 @@ inline unsigned int stage_2_block_size(Double v, Double t) {
     //unsigned int block_size = min((unsigned int)( v * pow(t, -.25) ), (unsigned int)(pow(t, 1.0/12.0)));
     //unsigned int block_size = (unsigned int)( v * pow(t, -.25) );
     //unsigned int block_size = (unsigned int)( min(v * pow(t, -.25), sqrt(v)/500.0  ) );
-    unsigned int block_size = (unsigned int)( min(v * pow(t, -.25), pow(v, .75)/sqrt(500.0)  ) );
+    //unsigned int block_size = (unsigned int)( min(v * pow(t, -.25), pow(v, .75)/sqrt(300000.0)  ) );
+    unsigned int block_size = (unsigned int)( min(v * pow(t, -.25), v/(500.0 * 500.0)  ) );
 
     return block_size;
 }
@@ -120,7 +124,8 @@ unsigned int stage_3_block_size(Double v, Double t) {
     //
     // So if we want to start stage 3 with a block size of 100, then we should
     // set stage_2_bound to 112 * t^(1/3)
-    unsigned int block_size = (unsigned int)(  min(.9 * v * pow(t, -.3333333333333333333333), pow(v, .75)/sqrt(500)) );
+    //unsigned int block_size = (unsigned int)(  min(.9 * v * pow(t, -.3333333333333333333333), pow(v, .75)/sqrt(500)) );
+    unsigned int block_size = (unsigned int)(  min(.9 * v * pow(t, -.3333333333333333333333), v/500.0 * 500.0) );
     //unsigned int block_size = (unsigned int)(2 * v * pow(t, -.3333333333333333333333));
     return block_size;
 }
@@ -554,7 +559,6 @@ void * zeta_block_stage2(void * thread_data) {
     pthread_mutex_lock(data->queue_mutex);
 
     bool queue_was_empty = data->thread_queue->empty();
-
     data->thread_queue->push(data->id);
 
     if(queue_was_empty) {
