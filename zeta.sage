@@ -222,8 +222,8 @@ def make_pictures():
         P.save(small_picture_name, figsize=[10,5])
 
 def process_incoming():
-    data_directory = 'data/ap6/'
-    output_directory = 'pictures/ap6/'
+    data_directory = 'data/new/'
+    output_directory = 'pictures/new/'
     filenames = os.listdir(data_directory)
 
     for input_file in filenames:

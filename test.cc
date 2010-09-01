@@ -583,7 +583,11 @@ double time_theta_algorithm_EM_case(int j, int K, int number_of_tests, Double ep
 int test_exp_itlogn(gmp_randstate_t state) {
     mpfr_t t;
     mpfr_init2(t, 158);
+    mpfr_set_str(t, "1374481970215211977756", 10, GMP_RNDN);
     mpfr_set_str(t, "1633275126614341648036", 10, GMP_RNDN);
+    mpfr_set_str(t, "133275126614341648036", 10, GMP_RNDN);
+    mpfr_set_str(t, "233275126614341648036", 10, GMP_RNDN);
+    mpfr_set_str(t, "433275126614341648036", 10, GMP_RNDN);
 
     Complex z1, z2;
     

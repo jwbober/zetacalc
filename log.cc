@@ -61,6 +61,8 @@ void create_exp_itlogn_table(mpfr_t t) {
     Double tt = mpfr_get_d(t, GMP_RNDN);
     table_precision = (unsigned int)( log2(tt) + .5 * log2(log(tt/(2 * PI)))) + 56;
 
+    cout << "Using table_precision = " << table_precision << endl;
+
     // The number of entries in our table will be equal to the precision
     // that we are using. We add 1 to this, and won't use the 0th entry.
 
@@ -102,8 +104,17 @@ void create_exp_itlogn_table(mpfr_t t) {
     }
 
 
-    number_of_limbs_needed = table_precision/GMP_NUMB_BITS + 1;     // There may be one extra limb needed since
-                                                                    // the division truncates.
+    number_of_limbs_needed = table_precision/GMP_NUMB_BITS;
+
+    if(table_precision % GMP_NUMB_BITS != 0) {      // Since the division truncates,
+        number_of_limbs_needed++;                   // there is one extra limb needed, unless
+    }                                               // the division was exact.
+
+                                                    // NOTE: It is important that this variable
+                                                    // be exact. It is not only used to allocate
+                                                    // space, but also so that we know exactly
+                                                    // how much space is being used.
+                                                    
 
 
     mpfr_clear(twopi);
