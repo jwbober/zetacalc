@@ -69,7 +69,7 @@ void stage_2_bound(mpz_t v, mpfr_t t) {
     mpfr_mul_ui(x, x, 1200u, GMP_RNDN);
     
     // temporary multiplication to avoid entering stage3
-    mpfr_mul_ui(x, x, 100000u, GMP_RNDN);
+    //mpfr_mul_ui(x, x, 100000u, GMP_RNDN);
     
     mpfr_get_z(v, x, GMP_RNDN);
 
