@@ -301,8 +301,8 @@ int main(int argc, char * argv[]) {
         return 0;
     }
 
-    zeta_config::stage2_number_of_threads = 2;
-    zeta_config::stage3_number_of_threads = 2;
+    zeta_config::stage2_number_of_threads = 8;
+    zeta_config::stage3_number_of_threads = 8;
 
     ifstream input_file;
     input_file.open(argv[1]);

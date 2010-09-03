@@ -202,7 +202,7 @@ namespace verbose {
 }
 
 namespace stats {
-    const bool stats = true;
+    const bool stats = false;
     extern int H_method1;
     extern int H_method2;
     extern int H_method3;

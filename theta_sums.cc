@@ -28,8 +28,9 @@ Complex compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex
     //
     // sum_{i=0}^j v[i] * 1/K^j sum_{k=0}^K k^j exp(2 pi i a k + 2 pi i b k^2)
     //
-
-    stats::exponential_sum_called++;
+    
+    if(stats::stats)
+        stats::exponential_sum_called++;
 
     if(_Kmin == 0) {
         _Kmin = Kmin;
@@ -68,7 +69,8 @@ Complex compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex
         //else if(2.0 * b * K < 1 && b > pow((-log(epsilon))/((Double)K/(Double)8), 2)) {
         //else if(2.0 * b * K < 1) {
         else if(q <= p) {
-            stats::exponential_sum_euler_maclaurin++;
+            if(stats::stats)
+                stats::exponential_sum_euler_maclaurin++;
             method = 3;
         }
         else {

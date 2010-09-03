@@ -129,7 +129,8 @@ inline Complex H_method1_I(int j, Double alpha) {
 
 
 Complex H_method1(int j, Complex alpha) {
-    stats::H_method1++;
+    if(stats::stats)
+        stats::H_method1++;
     // In this case we compute an "exact" value using the antiderivative of the integrand.
     // 
 
@@ -190,7 +191,8 @@ inline Complex H_method2(int j, Complex alpha, Double epsilon) {
     //
     //int N = max(ceil(-log(epsilon)), ceil(2 * PI * alpha_0 * E * E));; // the number of terms we will use in the taylor expansion
 
-    stats::H_method2++;
+    if(stats::stats)
+        stats::H_method2++;
 
 
     Complex S = (Complex)0;
@@ -220,7 +222,8 @@ Complex H_method3(int j, Complex alpha, Double epsilon) {
     // Here, in the inner sum, alpha/M will always be small enough that H(j-r, alpha/M) is computed
     // with method 2.
     //
-    stats::H_method3++;
+    if(stats::stats)
+        stats::H_method3++;
 
     int M = to_int(ceil(abs(2 * PI * alpha)));
 
@@ -344,7 +347,8 @@ Complex H_method4(int j, Complex alpha, Double epsilon) {
     //
     // This code is largely copied from lcalc.
    
-    stats::H_method4++;
+    if(stats::stats)
+        stats::H_method4++;
 
     if(imag(alpha) == 0) {
         return H_method4(j, real(alpha), epsilon);

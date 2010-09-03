@@ -160,8 +160,8 @@ class ZetaData:
             interpolation_range = srange(2 * ceil(t/delta) - len(self.data), len(self.data))
 
         N = len(interpolation_range)
-        if N > 200:
-            interpolation_range = interpolation_range[N/2 - 100:N/2 + 100]
+        if N > 40:
+            interpolation_range = interpolation_range[N/2 - 20:N/2 + 20]
 
         tau = 1/2 * log(self.t0/(2 * PI))
         beta = PI/delta

@@ -14,8 +14,8 @@ inline Complex IC0_method1(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * 
     MPFR_DECL_INIT(mp_b2, mpfr_get_prec(mp_a));
     MPFR_DECL_INIT(tmp, mpfr_get_prec(mp_a));
     MPFR_DECL_INIT(tmp2, mpfr_get_prec(mp_a));
-
-    stats::IC0_method1++;
+    if(stats::stats)
+        stats::IC0_method1++;
 
     if(verbose::IC0) {
         cout << "IC0() using method 1. " << endl;
@@ -123,7 +123,8 @@ inline Complex IC0_method2(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * 
         cout << "IC0() using method 2. " << endl;
     }
 
-    stats::IC0_method2++;
+    if(stats::stats)
+        stats::IC0_method2++;
 
     Double a = cache->a;
     Double b = cache->b;
@@ -151,7 +152,8 @@ inline Complex IC0_method3(int j, const theta_cache * cache, Double epsilon) {
         cout << "IC0() using method 3. " << endl;
     }
 
-    stats::IC0_method3++;
+    if(stats::stats)
+        stats::IC0_method3++;
 
     int K = cache->K;
     Double a = cache->a;
@@ -174,7 +176,8 @@ Complex IC0_method4(int j, const theta_cache * cache, Double epsilon) {
         cout << "IC0() using method 4. " << endl;
     }
 
-    stats::IC0_method4++;
+    if(stats::stats)
+        stats::IC0_method4++;
 
     int K = cache->K;
     Double a = cache->a;
@@ -197,7 +200,8 @@ Complex IC0(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, Double e
     Double b = cache->b;
     int K = cache->K;
 
-    stats::IC0++;
+    if(stats::stats)
+        stats::IC0++;
 
     if(verbose::IC0 >= 1) {
         cout << "IC0 called with:   " << endl;
@@ -482,7 +486,8 @@ Complex IC7(int K, int j, Double a, Double b, const theta_cache * cache, Double 
     //assert(a <= 1);
 
 
-    stats::IC7++;
+    if(stats::stats)
+        stats::IC7++;
 
     if(FAKE_IC7)
         return 0.0;

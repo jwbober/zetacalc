@@ -99,21 +99,25 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
         //if(abs(alpha) < 1.5) {
         if(norm_alpha < 2.25) {
             method = 2;
-            stats::G_method2++;
+            if(stats::stats)
+                stats::G_method2++;
         }
         //else if( (1.5 <= abs(alpha)) && (abs(alpha) <= 2.5) && abs(b) > .024) {
         else if( (2.25 <= norm_alpha) && (norm_alpha <= 6.25) && norm_b > .000576) {
             method = 2;
-            stats::G_method2++;
+            if(stats::stats)
+                stats::G_method2++;
         }
         //else if( (abs(alpha) >= 2.5) && (abs(alpha) - 2.0)/10.0 < abs(b)) {
         else if( (norm_alpha >= 6.25) && (norm_alpha - 4.0) < 100 * norm_b) {
             method = 2;
-            stats::G_method2++;
+            if(stats::stats)
+                stats::G_method2++;
         }
         else {
             method = 1;
-            stats::G_method1++;
+            if(stats::stats)
+                stats::G_method1++;
         }
     }
     if(verbose::G) {
@@ -194,17 +198,20 @@ Complex G_R(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
         //if(abs(alpha) < 1.5) {
         if(norm_alpha < 2.25) {
             method = 2;
-            stats::G_R_method2++;
+            if(stats::stats)
+                stats::G_R_method2++;
         }
         //else if( (1.5 <= abs(alpha)) && (abs(alpha) <= 2.5) && abs(b) > .024) {
         else if( (2.25 <= norm_alpha) && (norm_alpha <= 6.25) && abs(b) > .024) {
             method = 2;
-            stats::G_R_method2++;
+            if(stats::stats)
+                stats::G_R_method2++;
         }
         //else if( (abs(alpha) >= 2.5) && (abs(alpha) - 2.0)/10.0 < abs(b)) {
         else if( (norm_alpha >= 6.25) && (norm_alpha - 4.0) < 100 * norm_b) {
             method = 2;
-            stats::G_R_method2++;
+            if(stats::stats)
+                stats::G_R_method2++;
         }
         else {
             method = 1;
@@ -276,21 +283,25 @@ Complex G_I(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
         //if(abs(alpha) < 1.5) {
         if(norm_alpha < 2.25) {
             method = 2;
-            stats::G_method2++;
+            if(stats::stats)
+                stats::G_method2++;
         }
         //else if( (1.5 <= abs(alpha)) && (abs(alpha) <= 2.5) && abs(b) > .024) {
         else if( (2.25 <= norm_alpha) && (norm_alpha <= 6.25) && norm_b > .000576) {
             method = 2;
-            stats::G_method2++;
+            if(stats::stats)
+                stats::G_method2++;
         }
         //else if( (abs(alpha) >= 2.5) && (abs(alpha) - 2.0)/10.0 < abs(b)) {
         else if( (norm_alpha >= 6.25) && (norm_alpha - 4.0) < 100 * norm_b) {
             method = 2;
-            stats::G_method2++;
+            if(stats::stats)
+                stats::G_method2++;
         }
         else {
             method = 1;
-            stats::G_method1++;
+            if(stats::stats)
+                stats::G_method1++;
         }
     }
     if(verbose::G) {
@@ -358,16 +369,19 @@ Complex G_I_over_twopi(Complex alpha, int n, int j, Double epsilon, int method) 
         //if(abs(alpha) < 1.5) {
         if(norm_alpha <= 6.25) {
             method = 2;
-            stats::G_itwopi_method2++;
+            if(stats::stats)
+                stats::G_itwopi_method2++;
         }
         //else if( (abs(alpha) >= 2.5) && (abs(alpha) - 2.0)/10.0 < abs(b)) {
         else if(norm_alpha - 4.0 < 25/(PI * PI)) {
             method = 2;
-            stats::G_itwopi_method2++;
+            if(stats::stats)
+                stats::G_itwopi_method2++;
         }
         else {
             method = 1;
-            stats::G_itwopi_method1++;
+            if(stats::stats)
+                stats::G_itwopi_method1++;
         }
     }
     if(verbose::G) {
@@ -452,7 +466,8 @@ Complex G_method1_R(Complex alpha, Double b, int n, int j, Double epsilon) {
         return S;
     }
 
-    stats::G_R_method1++;
+    if(stats::stats)
+        stats::G_R_method1++;
 
     // At this point we assume that n == 0
 

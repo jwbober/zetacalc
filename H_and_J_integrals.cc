@@ -172,8 +172,8 @@ Complex H_Integral_0(int j, Double a, int M, Double epsilon) {
     //
     // small m is just m < C = max(j, ceil(-log(epsilon)/2pi)
     //
-
-    stats::H_Integral_0++;
+    if(stats::stats)
+        stats::H_Integral_0++;
 
     Complex S = (Complex)0;
 
@@ -212,7 +212,8 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cach
     // sum_{r=0}^\infty ((2 pi i b)^r)/r! \sum_{m=1}^M int_0^1 t^j exp(-2 pi(m + a)t)dt
     //
     // -1 corresponds to infinity
-    stats::J_Integral_0++;
+    if(stats::stats)
+        stats::J_Integral_0++;
 
     if(FAKE_J_INTEGRALS)
         return 0.0;
@@ -232,7 +233,8 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cach
 
     //if(2 * pow(K, -j) * log(abs((Double)M) + 10) < epsilon) {
     if( 3 + fastlog2(K_pow_minus_j) + fastlog2(fastlog(abs(M) + 10.0)) < fastlog2(epsilon)) {
-        stats::J_Integral_0_zero++;
+        if(stats::stats)
+            stats::J_Integral_0_zero++;
         return 0.0;
     }
     epsilon = epsilon * K_pow_j;
@@ -346,7 +348,8 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
     //
     
     // We truncate the integral at L, where L is given by
-    stats::J_Integral_1++;
+    if(stats::stats)
+        stats::J_Integral_1++;
 
 
     if(FAKE_J_INTEGRALS)
@@ -630,7 +633,8 @@ Complex J_Integral_1_precomputation(Double a, Double b, int j, Double epsilon) {
 
 
 Complex H_Integral_2(int j, Double a1, Double a2, Double epsilon) {
-    stats::H_Integral_2++;
+    if(stats::stats)
+        stats::H_Integral_2++;
 
     Complex S = (Complex)0;
 
@@ -655,7 +659,8 @@ Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double
     //
     // lim_{M --> oo} J_Integral_0(a1, b, M) - J_Integral_0(a2, b, M)
     //
-    stats::J_Integral_2++;
+    if(stats::stats)
+        stats::J_Integral_2++;
 
     if(FAKE_J_INTEGRALS)
         return 0.0;
@@ -663,14 +668,16 @@ Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double
     if(a2 > a1) {
         //if (2.0 * ( (a2 - a1)/a2 * log(1 + a2) ) < epsilon) {
         if(1 + fastlog2( (a2 - a1)/a2 * (fastlog(1 + a2) + 1.0)) < fastlog2(epsilon)) {
-            stats::J_Integral_2_zero++;
+            if(stats::stats)
+                stats::J_Integral_2_zero++;
             return 0.0;
         }
     }
     else {
         //if (2.0 * ( (a1 - a2)/a1 * log(1 + a1) ) < epsilon) {
         if(1 + fastlog2( (a1 - a2)/a1 * (fastlog(1 + a1) + 1.0)) < fastlog2(epsilon)) {
-            stats::J_Integral_2_zero++;
+            if(stats::stats)
+                stats::J_Integral_2_zero++;
             return 0.0;
         }
     }
