@@ -1,6 +1,10 @@
 # program to use band-limited function interpolation to compute the zeta
 # function using the main sum data precomputed at a grid of points.
 
+from mpmath import siegeltheta, grampoint, mp
+
+mp.prec = 200
+
 import sys
 
 R = RealField(200)
@@ -108,6 +112,10 @@ def remainder_terms(t):
 
     return return_value
 
+def N_approx(t):
+    return RealField(200)(siegeltheta(t)/pi + 1)
+    pass
+
 class ZetaData:
     def __init__(self, filename):
         input_file = open(filename, 'r')
@@ -135,13 +143,17 @@ class ZetaData:
     def __call__(self, t):
         return self.Z_value(t)
 
-    def Z_value(self, t):
+    def Z_value(self, t, offset=True):
         RR = ComplexField(200)
         CC = ComplexField(200)
         I = CC.0
         PI = RR(pi)
         t = RR(t)
         t0 = RR(self.t0)
+
+        if not offset:
+            t = t - t0
+
         delta = RR(self.delta)
         data_range = self.delta * (len(self.data) - 1)
         if t < 0 or t > data_range:
@@ -181,6 +193,146 @@ class ZetaData:
         S = S * Lambda/beta
 
         return RealField(53)(2 * real(S * rotation_factor(t0 + t)) + remainder_terms(t0 + t))
+
+    def zeta_value(self, t):
+        RR = RealField(200)
+        t0 = RR(self.t0)
+        t = RR(t)
+        S = RR(self.Z_value(t))
+        return ComplexField(53)( S * rotation_factor(t0 + t) )
+
+    def zeta_value_separated(self, t):
+        # same as above, but returns the real and imaginary values separated in a tuple
+        RR = RealField(200)
+        t0 = RR(self.t0)
+        t = RR(t)
+        S = RR(self.Z_value(t))
+        zeta_value = ComplexField(53)( S * rotation_factor(t0 + t) )
+        return real(zeta_value), imag(zeta_value)
+
+    def make_animation(self, start, end, delta, location, bound):
+        frame_number = 1
+
+        t = start
+        L = []
+        while(t < end):
+            L.append(self.zeta_value_separated(t))
+            P = list_plot(L, plotjoined=True)
+            filename = location + ("/frame%010d" % frame_number) + ".png"
+            P.save(filename, figsize=[10,10], xmin=-bound, xmax=bound, ymin=-bound, ymax=bound)
+            frame_number += 1
+            t += delta
+
+    def calculate_N(self, t):
+        # we choose a gram point g near t and then try to use turing's method
+        # to prove that S(g) = 0, so that N(g) = N_approx(g)
+
+        RR = RealField(200)
+
+        N = floor(N_approx(t))
+        g = RR(grampoint(N))
+
+        delta = RR(.001)
+
+        # we need (-1)^N Z(g) > 0, so we keep advancing to the next gram point if this is not the case
+        
+        while (-1)^N * self.Z_value(g, offset=False) <= .001:
+            N = N + 1
+            g = grampoint(N)
+
+        starting_N = N
+
+        print "using N = ", N, "; g = ", g, " as starting gram point."
+
+        g_list = [RR(g)]
+        h_list = [RR(0)]
+
+        upper_bound_points = [RR(g)]
+
+        a = RR(2.067) #
+        b = RR(.059)  # values from Trudgian's paper
+
+        S_upper_bound = 100
+
+        # we know that S(g) is an even integer. we start by trying to bound it from above by something less than 2
+
+        while S_upper_bound > 1.95:
+            N = N + 1
+            g2 = RR(grampoint(N))
+            if g_list[-1] + h_list[-1] < g2 and (-1)^N * self.Z_value(g2, offset=False) > 0:
+                g_list.append(g2)
+                h_list.append(0)
+                S_upper_bound = RR(1 + (a + b * log(g2) + sum(h_list))/(g2 - g))
+                print "Found upper bound of ", S_upper_bound
+                upper_bound_points.append(g2)
+            else:
+                h2 = g_list[-1] + h_list[-1] - g2 + delta
+                while (-1)^N * self.Z_value(g2 + h2, offset = False) > 0:
+                    h2 = h2 + delta
+                    print "trying h =", h2
+                
+                print "appending point", N, ",", h2
+
+                g_list.append(g2)
+                h_list.append(h2)
+
+                upper_bound_points.append(g2 + h2)
+
+                print "Not computing upper bound because h is not zero"
+
+        print "Successfully proved that S(g) <= 0"
+
+        # now we do the same thing moving to the left, and trying to prove a lower bound for S(g)
+
+        S_lower_bound = -100
+        N = starting_N
+        lower_bound_points = [g]
+        g_list = [g]
+        h_list = [0]
+        while S_lower_bound < -1.95:
+            N = N - 1
+            g2 = RR(grampoint(N))
+            if g_list[-1] + h_list[-1] > g2 and (-1)^N * self.Z_value(g2, offset=False) > 0:
+                g_list.append(g2)
+                h_list.append(0)
+                S_lower_bound = RR(-1 - (a + b * log(g2) - sum(h_list))/(g - g2))
+                print "Found lower bound of ", S_lower_bound
+                lower_bound_points.append(g2)
+            else:
+                h2 = g_list[-1] + h_list[-1] - g2 - delta
+                while (-1)^N * self.Z_value(g2 + h2, offset = False) > 0:
+                    h2 = h2 - delta
+                    print "trying h =", h2
+                
+                print "appending point", N, ",", h2
+
+                g_list.append(g2)
+                h_list.append(h2)
+
+                print "Not computing lower bound because h is not zero"
+
+                lower_bound_points.append(g2 + h2)
+
+        print "Successfully proved that S(g) >= 0. Huzzah! "
+
+        return (starting_N, g, upper_bound_points, lower_bound_points)
+
+    def find_zeros(self, start, end, delta):
+        t1 = start
+        t2 = t1 + delta
+        zeros = []
+        count = 0
+        while(t2 <= end):
+            if self.Z_value(t1) * self.Z_value(t2) < 0:
+                z = find_root(self, t1, t2)
+                zeros.append(z)
+                count = count + 1
+                percent_done = RR((t2 - start)/(end - start) * 100)
+                print "Found zero number", count, "at", z, "; ", percent_done, "percent done"
+            t1 = t2
+            t2 = t1 + delta
+
+        return zeros
 
 def blfi_kernel(u, c, epsilon_1):
     x = c^2 - (epsilon_1 * u)^2

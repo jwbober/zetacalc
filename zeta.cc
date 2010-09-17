@@ -1121,7 +1121,7 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
         
         stage3_data_t thread_data[MAX_THREADS];
         Complex S2[MAX_THREADS][M];
-        int Kmin = 800;
+        int Kmin = 100;
 
         // start by spawning a bunch of threads
         //
@@ -1268,7 +1268,9 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
                     num_threads = new_num_threads;
                 }
 
-
+                if(mpz_cmp_ui(k, 100000u) == 0) {
+                    exit(0);
+                }
 
             }
         }
@@ -1617,7 +1619,9 @@ Complex zeta_sum(mpfr_t t, Double delta, int N, Complex * S) {
     zeta_sum_stage2(n1, N2, t, delta, N, S2);
     cout << "Done with stage 2. Sum was: " << S2[0] << endl;
     
-    zeta_sum_stage3(n2, N3, t, delta, N, S3);
+    //create_exp_itlogn_table(t);
+
+    zeta_sum_stage3(n2, N3, t, delta, N, S3, 100);
     cout << "Done with stage 3. Sum was: " << S3[0] << endl;
 
     mpz_clear(n1);

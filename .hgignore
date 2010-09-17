@@ -24,3 +24,8 @@ send_to_ias_home
 send_to_sage_math
 zeta
 theta_sums.tar.gz
+profile_data/*
+*.data
+annotated/*
+caches/*
+animation/*

@@ -3,7 +3,16 @@
 #include "log.h"
 
 #include <iostream>
+#include <string>
+#include <fstream>
 #include <cmath>
+
+#include <sys/mman.h>
+#include <cstdlib>
+#include <sys/types.h>
+#include <fcntl.h>
+
+#define BOOST_DISABLE_ASSERTS
 
 #include "boost/multi_array.hpp"
 
@@ -19,18 +28,30 @@ static struct{
     long a_per_unit_interval;
     long b_per_unit_interval;
     //Complex **** values;
-    boost::multi_array<Complex, 3> * values0; // a different array for M = 0, which we treat as -1, and which will be larger
-    boost::multi_array<Complex, 4> * values;
+    //boost::multi_array<Complex, 3> * values0; // a different array for M = 0, which we treat as -1, and which will be larger
+    //boost::multi_array<Complex, 4> * values;
+    Complex * values;   // 4-dimensional array indexed [m][a][b][j]
+    Complex * values0;
+
+    size_t values_M_multiplier;
+    size_t values_a_multiplier;
+    size_t values_b_multiplier;
+
+    size_t values0_a_multiplier;
+    size_t values0_b_multiplier;
+    
 } F0_cache;
 
 inline Complex get_cached_F0_value(int a_index, int b_index, int j, int M) {
     if(M == -1) {
-        if(a_index <= (F0_cache.number_of_a  - 1 )* F0_cache.max_M  + 1 && b_index < F0_cache.number_of_b && j <= F0_cache.max_j) {
+        if(1) {
+        //if(a_index <= (F0_cache.number_of_a  - 1 )* F0_cache.max_M  + 1 && b_index < F0_cache.number_of_b && j <= F0_cache.max_j) {
             if(FAKE_PRECOMPUTATION) {
                 return 1.0;
             }
             else{
-                return (*F0_cache.values0)[a_index][b_index][j];
+                //return (*F0_cache.values0)[a_index][b_index][j];
+                return F0_cache.values0[a_index * F0_cache.values0_a_multiplier + b_index * F0_cache.values0_b_multiplier + j];
             }
         }
         else {
@@ -48,12 +69,14 @@ inline Complex get_cached_F0_value(int a_index, int b_index, int j, int M) {
         }
     }
 
-    if(a_index < F0_cache.number_of_a && b_index < F0_cache.number_of_b && j <= F0_cache.max_j && M <= F0_cache.max_M) {
+    if(1) {
+    //if(a_index < F0_cache.number_of_a && b_index < F0_cache.number_of_b && j <= F0_cache.max_j && M <= F0_cache.max_M) {
         if(FAKE_PRECOMPUTATION) {
             return 0.0;
         }
         else {
-            return (*F0_cache.values)[M][a_index][b_index][j];
+            //return (*F0_cache.values)[M][a_index][b_index][j];
+            return F0_cache.values[M * F0_cache.values_M_multiplier + a_index * F0_cache.values_a_multiplier + b_index * F0_cache.values_b_multiplier + j];
         }
     }
     else {
@@ -83,7 +106,15 @@ static struct{
     long a_per_unit_interval;
     long b_per_unit_interval;
     //Complex *** values;
-    boost::multi_array<Complex, 3> * values;
+    //boost::multi_array<Complex, 3> * values;
+    Complex * values;
+    size_t a_index_multiplier;
+    size_t b_index_multiplier;
+        // we will treat values as a 3-dimensional array, where the [a][b][j] index is
+        // given by values[a * a_index_multiplier + b * b_index_multiplier + j]
+        // this is all taken care of by the function get_cached_F1_value
+
+//    boost::multi_array<int, 4> * integral_endpoint;
 } F1_cache;
 
 static bool F1_cache_initialized = false;
@@ -102,7 +133,11 @@ static struct{
     long a2_per_unit_interval;
     long b_per_unit_interval;
     //Complex *** values;
-    boost::multi_array<Complex, 3> * values;
+    //boost::multi_array<Complex, 3> * values;
+    Complex * values;
+    
+    size_t a1_index_multiplier;
+    size_t a2_index_multiplier;
 } F2_cache;
 
 
@@ -110,13 +145,15 @@ static bool F2_cache_initialized = false;
 
 
 inline Complex get_cached_F1_value(int a_index, int b_index, int j) {
-    if(a_index < F1_cache.number_of_a && b_index < F1_cache.number_of_b && j <= F1_cache.max_j) {
+    if(1) {
+    //if(a_index < F1_cache.number_of_a && b_index < F1_cache.number_of_b && j <= F1_cache.max_j) {
         if(FAKE_PRECOMPUTATION) {
             return 0.0;
         }
         else {
             //return F1_cache.values[a_index][b_index][j];
-            return (*F1_cache.values)[a_index][b_index][j];
+            //return (*F1_cache.values)[a_index][b_index][j];
+            return F1_cache.values[a_index * F1_cache.a_index_multiplier + b_index * F1_cache.b_index_multiplier + j];
         }
     }
     else {
@@ -130,16 +167,21 @@ inline Complex get_cached_F1_value(int a_index, int b_index, int j) {
 }
 
 inline Complex get_cached_F2_value(int a1_index, int a2_index, int b_index, int j) {
-    if(a1_index < (F2_cache.number_of_a1 - 1) * F2_cache.max_a1 + 1 && a2_index < F2_cache.number_of_a2 && b_index < F2_cache.number_of_b) {
+    if(1) {
+    //if(a1_index < (F2_cache.number_of_a1 - 1) * F2_cache.max_a1 + 1 && a2_index < F2_cache.number_of_a2 && b_index < F2_cache.number_of_b) {
         if(FAKE_PRECOMPUTATION) {
             return 0.0;
         }
         else {
             if(j == 0) {
-                return (*F2_cache.values)[a1_index][a2_index][b_index];
+                //return (*F2_cache.values)[a1_index][a2_index][b_index];
+                return F2_cache.values[a1_index * F2_cache.a1_index_multiplier + a2_index * F2_cache.a2_index_multiplier + b_index];
             }
             else {
-                return (*F0_cache.values0)[a1_index][b_index][j] - (*F0_cache.values)[0][a2_index][b_index][j];
+                //return (*F0_cache.values0)[a1_index][b_index][j] - (*F0_cache.values)[0][a2_index][b_index][j];
+                //return (*F0_cache.values0)[a1_index][b_index][j] - F0_cache.values[F0_cache.values_a_multiplier * a2_index + F0_cache.values_b_multiplier * b_index + j];
+                //return (*F0_cache.values0)[a1_index][b_index][j] - (*F0_cache.values0)[a2_index][b_index][j];
+                return F0_cache.values0[a1_index * F0_cache.values0_a_multiplier + b_index * F0_cache.values0_b_multiplier + j] - F0_cache.values0[F0_cache.values0_a_multiplier * a2_index + F0_cache.values0_b_multiplier * b_index + j];
                 //return F0_cache.values[0][a1_index][b_index][j] - F0_cache.values[0][a2_index][b_index][j];
             }
         }
@@ -266,15 +308,17 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cach
             Complex S2 = 0;
             int l = 0;
 
-            Complex z1 = two_pi_over_factorial_power(s) * minus_I_power(s) * b_minus_b0_power;
-            outside_error = abs(z1);
+            Double x = two_pi_over_factorial_power(s) * b_minus_b0_power;
+            Complex z1 = minus_I_power(s) * x;
+            outside_error = abs(x);
             
             Double inside_error = 2 * epsilon;
             while(l == 0 || inside_error *  outside_error > epsilon/6) {
                 //Complex z = minus_one_power(l) * two_pi_over_factorial_power(l) * a_minus_a0_power * F0_cache.values[M][a0_index][b0_index][j + l + 2 * s];
                 //Complex z = minus_one_power(l) * two_pi_over_factorial_power(l) * a_minus_a0_power * get_cached_F0_value(a0_index, b0_index, j + l + 2 * s, M);
-                Complex z = minus_one_power(l) * two_pi_over_factorial_power(l) * a_minus_a0_power;
-                inside_error = abs(z);
+                Double x = two_pi_over_factorial_power(l) * a_minus_a0_power;
+                Complex z = minus_one_power(l) * x;
+                inside_error = abs(x);
                 z *= get_cached_F0_value(a0_index, b0_index, j + l + 2 * s, M);
                 S2 = S2 + z;
                 a_minus_a0_power *= (a - a0);
@@ -340,6 +384,76 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cach
     return S;
 }
 
+inline Complex J_Integral_0_using_precomputation(Double a, Double a0, int a0_index, Double b, Double b0, int b0_index, int j, int M, int K, Double K_pow_minus_j, Double epsilon) {
+    //
+    // Compute the integral int_0^1 exp(-2 pi a t - 2 pi i b t^2) (1 - exp(-2 pi M t))/(exp(2 pi t) - 1) dt
+    //
+    // We can do this by expanding the denominator in a geometric series
+    // and doing a taylor expansion in b, which puts this integral in the form
+    //
+    // sum_{r=0}^\infty ((2 pi i b)^r)/r! \sum_{m=1}^M int_0^1 t^j exp(-2 pi(m + a)t)dt
+    //
+    // -1 corresponds to infinity
+
+    // First we do a quick check to see if we can return 0
+    // without doing much work
+    if( 3 + fastlog2(K_pow_minus_j) + fastlog2(fastlog(abs(M) + 10.0)) < fastlog2(epsilon)) {
+        if(stats::stats)
+            stats::J_Integral_0_zero++;
+        return 0.0;
+    }
+    epsilon = epsilon / K_pow_minus_j;
+
+    if(stats::stats)
+        stats::J_Integral_0_taylor_expansion++;
+
+    Double outside_error = 2 * epsilon;
+    Double b_minus_b0_power = 1.0;
+
+    int s = 0;
+    Complex S = 0;
+
+    int number_of_terms = 0;
+
+    while(outside_error > epsilon/2) {
+        Double a_minus_a0_power = 1.0;
+
+        Complex S2 = 0;
+        int l = 0;
+
+        Complex z1 = two_pi_over_factorial_power(s) * minus_I_power(s) * b_minus_b0_power;
+        outside_error = abs(z1);
+        
+        Double inside_error = 2 * epsilon;
+        while(l == 0 || inside_error *  outside_error > epsilon/6) {
+            Complex z = minus_one_power(l) * two_pi_over_factorial_power(l) * a_minus_a0_power;
+            inside_error = abs(z);
+            z *= get_cached_F0_value(a0_index, b0_index, j + l + 2 * s, M);
+            S2 = S2 + z;
+            a_minus_a0_power *= (a - a0);
+            l++;
+            if(stats::stats)
+                number_of_terms++;
+        }
+
+        z1 = z1 * S2;
+        S = S + z1;
+        s++;
+        b_minus_b0_power *= (b - b0);
+    }
+
+    if(stats::stats)
+        stats::J_Integral_0_terms_used += number_of_terms;
+
+    Complex answer = K_pow_minus_j * S;
+    
+    if(verbose::J_Integral_0)
+        cout << "Computed J_Integral_0( " << a << ", " << b << ", " << j << ", " << M << ", " << K << ") = " << answer << endl;
+
+    return answer;
+}   // end J_Integral_0_using_precomputation
+
+
 Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon, bool use_cache) {
     //
     // Compute the integral int_1^K exp(-2 pi a t - 2 pi i b t^2)(1 - exp(-2 pi M t))/(exp(2 pi t) - 1) dt
@@ -357,8 +471,13 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
 
     //int L = min(K, max(1, to_int(ceil(-LOG(epsilon)/(2 * PI * (1 + a))))));
 
-    int L = max(1.0, ceil(-fastlog(epsilon)/(2 * PI * (1 + a))));
-    L = max(1.0, L - j * fastlog( (Double)K/(Double)(L + 1))/(2 * PI) );
+    int L = ceil(-fastlog(epsilon) * (1/(2 * PI)) * inverse((int)(1 + a)));
+    if(L <= 1) {
+        if(stats::stats)
+            stats::J_Integral_1_zero++;
+        return 0.0;
+    }
+    L = max(1.0, L - j * fastlog( (Double)K * inverse(L + 1)) * (1.0/(2 * PI)) );
     L = min(K, L);
 
     if(verbose::J_Integral_1 > 1) {
@@ -432,25 +551,29 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
         int number_of_terms = 0;
 
         //while(s == 0 || L_power1 * outside_error > epsilon/2) {
-        while(s == 0 ||  outside_a_plus_1_power/(two_pi_over_factorial_power(j + 2 *  s) * 2 * PI) * outside_error > epsilon/2) {
+        //while(s == 0 ||  outside_a_plus_1_power/(two_pi_over_factorial_power(j + 2 *  s) * 2 * PI) * outside_error > epsilon/2) {
+        while(s == 0 ||  outside_a_plus_1_power * factorial_over_twopi_power(j + 2 *  s) / (2 * PI) * outside_error > epsilon/2) {
         //while(L_power1 * outside_error > epsilon/100) {
             Double a_minus_a0_power = 1.0;
 
 
-            Complex z1 = two_pi_over_factorial_power(s) * minus_I_power(s) * b_minus_b0_power;
-            outside_error = abs(z1);
+            Double x = two_pi_over_factorial_power(s) * b_minus_b0_power;
+            Complex z1 = minus_I_power(s) * x;
+            outside_error = abs(x);
             
             Double inside_error = 0;
             
             int l = 0;
             Complex S2 = 0;
             Double inside_a_plus_1_power = outside_a_plus_1_power;
-            while(l == 0 || inside_error *  outside_error * inside_a_plus_1_power/(two_pi_over_factorial_power(j + 2*s + l) * 2 * PI) > epsilon/6) {
+            //while(l == 0 || inside_error *  outside_error * inside_a_plus_1_power/(two_pi_over_factorial_power(j + 2*s + l) * 2 * PI) > epsilon/6) {
+            while(l == 0 || inside_error *  outside_error * inside_a_plus_1_power * factorial_over_twopi_power(j + 2*s + l) / (2 * PI) > epsilon/6) {
             //while(inside_error *  outside_error * L_power2 > epsilon/300) {
                 //Complex z = minus_one_power(l) * two_pi_over_factorial_power(l) * a_minus_a0_power * F0_cache.values[M][a0_index][b0_index][j + l + 2 * s];
                 //Complex z = minus_one_power(l) * two_pi_over_factorial_power(l) * a_minus_a0_power * get_cached_F0_value(a0_index, b0_index, j + l + 2 * s, M);
-                Complex z = minus_one_power(l) * two_pi_over_factorial_power(l) * a_minus_a0_power;
-                inside_error = abs(z);
+                Double x = two_pi_over_factorial_power(l) * a_minus_a0_power;
+                Complex z = minus_one_power(l) * x;
+                inside_error = abs(x);
                 z *= get_cached_F1_value(a0_index, b0_index, j + l + 2 * s);
                 S2 = S2 + z;
                 a_minus_a0_power *= (a - a0);
@@ -538,6 +661,130 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
 
 }
 
+
+inline Complex J_Integral_1_using_precomputation(Double a, Double a0, int a0_index, Double b, Double b0, int b0_index, int j, int M, int K, Double K_pow_minus_j, Double epsilon) {
+    //
+    // Compute the integral int_1^K exp(-2 pi a t - 2 pi i b t^2)(1 - exp(-2 pi M t))/(exp(2 pi t) - 1) dt
+    //
+    // If M == -1, then we treat it as positive infinity.
+    //
+    
+    // We truncate the integral at L, where L is given by
+    if(stats::stats)
+        stats::J_Integral_1++;
+
+    if(FAKE_J_INTEGRALS)
+        return 0.0;
+
+    int L = max(1.0, ceil(-fastlog(epsilon)/(2 * PI * (1 + a))));
+    L = max(1.0, L - j * fastlog( (Double)K/(Double)(L + 1))/(2 * PI) );
+    L = min(K, L);
+
+    if(L <= 1) {
+        if(stats::stats)
+            stats::J_Integral_1_zero++;
+        return 0.0;
+    }
+
+    Complex S = (Complex)0;
+
+    if( 5 + j * fastlog2(L) + fastlog2(K_pow_minus_j) - 2 * PI * (a + 1) * log2(E) < fastlog2(epsilon)) {
+        if(stats::stats)
+            stats::J_Integral_1_zero++;
+        return 0.0;
+    }
+
+
+    if(stats::stats)
+        stats::J_Integral_1_taylor_expansion++;
+
+    epsilon /= K_pow_minus_j;
+    
+    Double outside_error = 2 * epsilon;
+    Double b_minus_b0_power = 1.0;
+
+    int s = 0;
+
+    Double outside_a_plus_1_power = pow(a + 1, -j);
+    Double a_plus_1_inverse = 1.0/(a + 1.0);
+
+    int number_of_terms = 0;
+
+    while(s == 0 ||  outside_a_plus_1_power/(two_pi_over_factorial_power(j + 2 *  s) * 2 * PI) * outside_error > epsilon/2) {
+        Double a_minus_a0_power = 1.0;
+
+
+        Complex z1 = two_pi_over_factorial_power(s) * minus_I_power(s) * b_minus_b0_power;
+        outside_error = abs(z1);
+        
+        Double inside_error = 0;
+        
+        int l = 0;
+        Complex S2 = 0;
+        Double inside_a_plus_1_power = outside_a_plus_1_power;
+        while(l == 0 || inside_error *  outside_error * inside_a_plus_1_power/(two_pi_over_factorial_power(j + 2*s + l) * 2 * PI) > epsilon/6) {
+            Complex z = minus_one_power(l) * two_pi_over_factorial_power(l) * a_minus_a0_power;
+            inside_error = abs(z);
+            z *= get_cached_F1_value(a0_index, b0_index, j + l + 2 * s);
+            S2 = S2 + z;
+            a_minus_a0_power *= (a - a0);
+            l++;
+            inside_a_plus_1_power *= a_plus_1_inverse;
+            if(stats::stats)
+                number_of_terms++;
+        }
+
+
+        outside_a_plus_1_power *= (a_plus_1_inverse * a_plus_1_inverse);
+        z1 = z1 * S2;
+        S = S + z1;
+        s++;
+        b_minus_b0_power *= (b - b0);
+    }
+
+    if(stats::stats)
+        stats::J_Integral_1_terms_used += number_of_terms;
+
+    Complex answer = S * K_pow_minus_j;
+
+    if(verbose::J_Integral_1 > 1)
+        cout << "Computed J_Integral_1( " << a << ", " << b << ", " << j << ", " << M << ", " << K << ", " << epsilon << ") = " << answer << endl;
+    
+    return answer;
+}
+
+Complex JBulk2(Double a, Double b, int j, int M, int K, theta_cache * cache, Complex * Z, Double * epsilon) {
+    // return sum_{l=0}^j Z[l] * (J_Integral_0(a, b, j, M, K) + J_Integral_1(a, b, j, M, K))
+
+    int J0_a0_index = round( (F0_cache.number_of_a - 1) * a );
+    Double J0_a0 = J0_a0_index * 1.0/(F0_cache.number_of_a - 1);
+    int J0_b0_index = round( (F0_cache.number_of_b - 1) * b/.25);
+    Double J0_b0 = J0_b0_index * .25/(F0_cache.number_of_b - 1);
+ 
+    int J1_a0_index = round( (F1_cache.number_of_a - 1) * a/6.0 );
+    Double J1_a0 = J1_a0_index * 6.0/(F1_cache.number_of_a - 1);
+    int J1_b0_index = round( (F1_cache.number_of_b - 1) * b/.25);
+    Double J1_b0 = J1_b0_index * .25/(F1_cache.number_of_b - 1);
+
+    Double K_pow_minus_l = 1.0;
+    Double K_pow_minus_1 = 1.0/K;
+    Complex S = 0.0;
+    for(int l = 0; l <= j; l++) {
+        Complex J0_term = J_Integral_0_using_precomputation(a, J0_a0, J0_a0_index, b, J0_b0, J0_b0_index, l, M, K, K_pow_minus_l, epsilon[l]);
+        
+        Complex J1_term;
+        if(a <= 6 && (M > ceil(-fastlog(epsilon[l])/(PI)) || M == -1)) {
+            J1_term = J_Integral_1_using_precomputation(a, J1_a0, J1_a0_index, b, J1_b0, J1_b0_index, l, M, K, K_pow_minus_l, epsilon[l]);
+        }
+        else {
+            J1_term = J_Integral_1(a, b, l, M, K, cache, epsilon[l]);
+        }
+
+        S = S + Z[l] * (J0_term + J1_term);
+        K_pow_minus_l *= K_pow_minus_1;
+    }
+    return S;
+}
 
 Complex J_Integral_1_precomputation(Double a, Double b, int j, Double epsilon) {
     //
@@ -879,7 +1126,7 @@ void build_F0_cache(long number_of_a, long number_of_b, long max_j, long max_M, 
 */
 
 //void build_F0_cache(long number_of_a, long number_of_b, long max_j, long max_M, Double epsilon) {
-void build_F0_cache(long a_per_unit_interval, long b_per_unit_interval, long max_j, long max_M, Double epsilon) {
+void build_F0_cache(long a_per_unit_interval, long b_per_unit_interval, long max_j, long max_M, Double epsilon, string cache_directory) {
     
     long number_of_a = a_per_unit_interval + 1;
     long number_of_b = b_per_unit_interval/4 + 1;
@@ -892,6 +1139,13 @@ void build_F0_cache(long a_per_unit_interval, long b_per_unit_interval, long max
     F0_cache.b_per_unit_interval = b_per_unit_interval;
     F0_cache.max_j = max_j;
     F0_cache.max_M = max_M;
+
+    F0_cache.values_M_multiplier = number_of_a * number_of_b * (max_j + 1);
+    F0_cache.values_a_multiplier = number_of_b * (max_j + 1);
+    F0_cache.values_b_multiplier = (max_j + 1);
+
+    F0_cache.values0_a_multiplier = number_of_b * (max_j + 1);
+    F0_cache.values0_b_multiplier = (max_j + 1);
 
     Double stage_1_memory = (((Double)max_j + 1) * (Double)(b_per_unit_interval/4 + 1) * (Double)a_per_unit_interval * max_M + 1.0) * 16.0;
     Double stage_2_memory = (((Double)max_j + 1) * (Double)(b_per_unit_interval/4 + 1) * (Double)(a_per_unit_interval + 1) * max_M ) * 16.0;
@@ -906,10 +1160,129 @@ void build_F0_cache(long a_per_unit_interval, long b_per_unit_interval, long max
         return;
     }
 
-    F0_cache.values0 = new (boost::multi_array<Complex, 3>)(boost::extents[a_per_unit_interval * max_M + 2][b_per_unit_interval/4 + 1][max_j + 1]);
+
+    
 
     //F0_cache.values = new Complex *** [max_M + 1];
-    F0_cache.values = new (boost::multi_array<Complex, 4>)(boost::extents[max_M + 1][a_per_unit_interval + 1][b_per_unit_interval/4 + 1][max_j + 1]);
+    //F0_cache.values = new (boost::multi_array<Complex, 4>)(boost::extents[max_M + 1][a_per_unit_interval + 1][b_per_unit_interval/4 + 1][max_j + 1]);
+    
+    size_t stage1_filesize = 0;
+    size_t stage2_filesize = 0;
+    bool using_mmap = false;
+
+    if(cache_directory != "") {
+        ifstream info_file;
+        info_file.open( (cache_directory + "F0_cache_info").c_str() );
+
+        if(info_file) {
+            int x;
+            info_file >> x;
+            if(x != a_per_unit_interval) {
+                cout << "F0_cache mismatch" << endl;
+                exit(0);
+            }
+
+            info_file >> x;
+            if(x != b_per_unit_interval) {
+                cout << "F0_cache mismatch" << endl;
+                exit(0);
+            }
+
+            info_file >> x;
+            if(x < max_j) {
+                cout << "F0_cache mismatch" << endl;
+                exit(0);
+            }
+            else if(x > max_j) {
+                max_j = x;
+            }
+
+            info_file >> x;
+            if(x < max_M) {
+                cout << "F0_cache mismatch" << endl;
+                exit(0);
+            }
+            else if (x > max_M) {
+                max_M = x;
+            }
+
+            number_of_a = a_per_unit_interval + 1;
+            number_of_b = b_per_unit_interval/4 + 1;
+
+            F0_cache.number_of_a = number_of_a;
+            F0_cache.number_of_b = number_of_b;
+            F0_cache.a_spacing = 1.0/a_per_unit_interval;
+            F0_cache.b_spacing = 1.0/b_per_unit_interval;
+            F0_cache.a_per_unit_interval = a_per_unit_interval;
+            F0_cache.b_per_unit_interval = b_per_unit_interval;
+            F0_cache.max_j = max_j;
+            F0_cache.max_M = max_M;
+
+            F0_cache.values_M_multiplier = number_of_a * number_of_b * (max_j + 1);
+            F0_cache.values_a_multiplier = number_of_b * (max_j + 1);
+            F0_cache.values_b_multiplier = (max_j + 1);
+
+            F0_cache.values0_a_multiplier = number_of_b * (max_j + 1);
+            F0_cache.values0_b_multiplier = (max_j + 1);
+
+
+            int fd = open( (cache_directory + "F0_cache_data_stage2").c_str(), O_RDONLY );
+            int fd2 = open( (cache_directory + "F0_cache_data_stage1").c_str(), O_RDONLY );
+            struct stat sb;
+            struct stat sb2;
+            fstat(fd, &sb);
+            fstat(fd2, &sb2);
+            F0_cache.values = (Complex * )(mmap (0, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0));
+            F0_cache.values0 = (Complex * )(mmap (0, sb2.st_size, PROT_READ, MAP_PRIVATE, fd2, 0));
+            cout << "using F0_cache_stage1 from file." << endl;
+            cout << "using F0_cache_stage2 from file." << endl;
+            close(fd);
+            close(fd2);
+            F0_cache_initialized = true;
+            return;
+        }
+        else {
+            info_file.close();
+            ofstream info_outfile;
+            info_outfile.open( (cache_directory + "F0_cache_info").c_str() );
+            info_outfile << a_per_unit_interval << endl;
+            info_outfile << b_per_unit_interval << endl;
+            info_outfile << max_j << endl;
+            info_outfile << max_M << endl;
+            info_outfile.close();
+
+            // We create a new file to be memory mapped.
+            int fd;
+            int fd2;
+            fd = open( (cache_directory + "F0_cache_data_stage2").c_str() , O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+            fd2 = open( (cache_directory + "F0_cache_data_stage1").c_str() , O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+            stage2_filesize = sizeof(Complex) * (max_M + 1) * number_of_a * number_of_b * (max_j + 1);
+            stage1_filesize = sizeof(Complex) * (a_per_unit_interval * max_M + 2) * (b_per_unit_interval/4 + 1) * (max_j + 1);
+            lseek(fd, stage2_filesize - 1, SEEK_SET);
+            lseek(fd2, stage1_filesize - 1, SEEK_SET);
+            int result = write(fd, "", 1);
+            if(result == -1) {
+                cout << "Error creating new memory mapped file." << endl;
+            }
+
+            result = write(fd2, "", 1);
+            if(result == -1) {
+                cout << "Error creating new memory mapped file." << endl;
+            }
+
+            F0_cache.values = (Complex *)(mmap(0, stage2_filesize, PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0));
+            F0_cache.values0 = (Complex *)(mmap(0, stage1_filesize, PROT_WRITE | PROT_READ, MAP_SHARED, fd2, 0));
+            cout << "creating new memory mapped file for F0_cache stage2." << endl;
+            using_mmap = true;
+        }
+    }
+    else {
+        F0_cache.values = new Complex[(max_M + 1) * number_of_a * number_of_b * (max_j + 1)];
+        //F0_cache.values0 = new (boost::multi_array<Complex, 3>)(boost::extents[a_per_unit_interval * max_M + 2][b_per_unit_interval/4 + 1][max_j + 1]);
+        F0_cache.values0 = new Complex[(a_per_unit_interval * max_M + 2) * (b_per_unit_interval/4 + 1) * (max_j + 1)];
+    }
+
+ 
 
     Double a = 0;
     Double a_increment = 1.0/(number_of_a - 1);
@@ -924,7 +1297,7 @@ void build_F0_cache(long a_per_unit_interval, long b_per_unit_interval, long max
     {
         // M == 0 case
         //F0_cache.values[0] = new Complex ** [(number_of_a - 1) * max_M + 2];
-        for(int k = 0; k < (number_of_a - 1) * max_M + 2; k++) {
+        for(intptr_t k = 0; k < (number_of_a - 1) * max_M + 2; k++) {
             percent_done = (Double)k/( (number_of_a - 1) * max_M + 1);
             if(old_percent_done + .005 < percent_done) {
                 cout <<  "    " << percent_done * 100 << " percent done with F0 stage 1." << endl;
@@ -933,12 +1306,13 @@ void build_F0_cache(long a_per_unit_interval, long b_per_unit_interval, long max
             //if(k % 100 == 0)
             //    cout << "a index = " << k << ", a = " << a << endl;
             //F0_cache.values[0][k] = new Complex * [number_of_b];
-            for(int l = 0; l < number_of_b; l++) {
+            for(intptr_t l = 0; l < number_of_b; l++) {
 //                cout << "b index = " << l << ", b = " << b << endl;
 //                cout << a << " " << b << endl;
                 //F0_cache.values[0][k][l] = new Complex [max_j + 1];
-                for(int j = 1; j <= max_j; j++) {
-                    (*F0_cache.values0)[k][l][j] = J_Integral_0(a, b, j, -1, 1, NULL, epsilon, false);
+                for(intptr_t j = 1; j <= max_j; j++) {
+                    //(*F0_cache.values0)[k][l][j] = J_Integral_0(a, b, j, -1, 1, NULL, epsilon, false);
+                    F0_cache.values0[k * F0_cache.values0_a_multiplier + l * F0_cache.values0_b_multiplier + j] = J_Integral_0(a, b, j, -1, 1, NULL, epsilon, false);
                 }
                 b += b_increment;
             }
@@ -955,7 +1329,7 @@ void build_F0_cache(long a_per_unit_interval, long b_per_unit_interval, long max
 
     percent_done = 0.0;
     old_percent_done = 0.0;
-    for(int M = 1; M <= max_M; M++) {
+    for(intptr_t M = 1; M <= max_M; M++) {
         percent_done = (Double)M/(Double)max_M;
         if(old_percent_done + .005 < percent_done) {
             cout <<  "    " << percent_done * 100 << " percent done with F0 stage 2." << endl;
@@ -963,14 +1337,15 @@ void build_F0_cache(long a_per_unit_interval, long b_per_unit_interval, long max
         }
         //F0_cache.values[M] = new Complex ** [number_of_a];
         //cout << "M = " << M << endl;
-        for(int k = 0; k < number_of_a; k++) {
+        for(intptr_t k = 0; k < number_of_a; k++) {
             //cout << "a index = " << k << ", a = " << a << endl;
             //F0_cache.values[M][k] = new Complex * [number_of_b];
-            for(int l = 0; l < number_of_b; l++) {
+            for(intptr_t l = 0; l < number_of_b; l++) {
             //    cout << a << " " << b << endl;
                 //F0_cache.values[M][k][l] = new Complex [max_j + 1];
-                for(int j = 0; j <= max_j; j++) {
-                    (*F0_cache.values)[M][k][l][j] = J_Integral_0(a, b, j, M, 1, NULL, epsilon, false);
+                for(intptr_t j = 0; j <= max_j; j++) {
+                    //(*F0_cache.values)[M][k][l][j] = J_Integral_0(a, b, j, M, 1, NULL, epsilon, false);
+                    F0_cache.values[M * F0_cache.values_M_multiplier + k * F0_cache.values_a_multiplier + l * F0_cache.values_b_multiplier + j] = J_Integral_0(a, b, j, M, 1, NULL, epsilon, false);
                 }
                 b += b_increment;
             }
@@ -985,11 +1360,16 @@ void build_F0_cache(long a_per_unit_interval, long b_per_unit_interval, long max
     double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
     cout << "Total time to build F0 cache: " << elapsed_time << " seconds." << endl;
 
+    if(using_mmap) {
+        msync(F0_cache.values, stage2_filesize, MS_ASYNC);
+        msync(F0_cache.values0, stage1_filesize, MS_ASYNC);
+    }
+
     F0_cache_initialized = true;
 }
 
 
-void build_F1_cache(long a_per_unit_interval, long b_per_unit_interval, long max_j, Double epsilon) {
+void build_F1_cache(long a_per_unit_interval, long b_per_unit_interval, long max_j, Double epsilon, string cache_directory) {
 
 
     clock_t start_time = clock();
@@ -1005,10 +1385,31 @@ void build_F1_cache(long a_per_unit_interval, long b_per_unit_interval, long max
     F1_cache.a_per_unit_interval = a_per_unit_interval;
     F1_cache.b_per_unit_interval = b_per_unit_interval;
 
+    F1_cache.a_index_multiplier = number_of_b * (max_j + 1);
+    F1_cache.b_index_multiplier = (max_j + 1);
+
     Double memory_used = (Double)(a_per_unit_interval + 1) * (Double)(b_per_unit_interval/4 + 1) * (Double)(max_j + 1) * 16;
 
     cout << "Building F1 cache." << endl;
     cout << "    Total memory used for this cache will be " << memory_used/1000000.0 << " million bytes." << endl;
+    
+    
+
+    /*
+    F1_cache.integral_endpoint = new boost::multi_array<int, 4>(boost::extents[30][50][50][30000]);
+    for(int j = 0; j < 30; j++) {
+        for(int logepsilon = 0; logepsilon < 50; logepsilon++) {
+            for(int floor_a = 0; floor_a < 50; floor_a++) {
+                for(int K = 0; K < 30000; K++) {
+                    int L = max(1.0, ceil(logepsilon/(2 * PI * (1 + floor_a))));
+                    max(1.0, L - j * fastlog( (Double)K/(Double)(L + 1))/(2 * PI) );
+                    L = min(K, L);
+                    (*F1_cache.integral_endpoint)[j][logepsilon][floor_a][K] = L;
+                }
+            }
+        }
+    }
+    */
 
     if(FAKE_PRECOMPUTATION) {
         F1_cache_initialized = true;
@@ -1018,7 +1419,90 @@ void build_F1_cache(long a_per_unit_interval, long b_per_unit_interval, long max
 
 
     //F1_cache.values = new Complex ** [number_of_a];
-    F1_cache.values = new boost::multi_array<Complex, 3>(boost::extents[number_of_a][number_of_b][max_j + 1]);
+    //F1_cache.values = new boost::multi_array<Complex, 3>(boost::extents[number_of_a][number_of_b][max_j + 1]);
+    
+    // if cache_directory is not the empty string, then we check to see if there is already a file
+    // in this directory that matches the F1_cache.
+
+    int filesize = 0;
+    bool using_mmap = false;
+
+    if(cache_directory != "") {
+        ifstream info_file;
+        info_file.open( (cache_directory + "F1_cache_info").c_str() );
+
+        if(info_file) {
+            int x;
+            info_file >> x;
+            if(x != a_per_unit_interval) {
+                cout << "F1_cache mismatch" << endl;
+                exit(0);
+            }
+
+            info_file >> x;
+            if(x != b_per_unit_interval) {
+                cout << "F1_cache mismatch" << endl;
+                exit(0);
+            }
+
+            info_file >> x;
+            if(x < max_j) {
+                cout << "F1_cache mismatch" << endl;
+                exit(0);
+            }
+            else if(x > max_j) {
+                max_j = x;
+            }
+
+            number_of_a = a_per_unit_interval * 6 + 1;
+            number_of_b = b_per_unit_interval/4 + 1;
+
+            F1_cache.number_of_a = number_of_a;
+            F1_cache.number_of_b = number_of_b;
+            F1_cache.a_spacing = 1.0/a_per_unit_interval;
+            F1_cache.b_spacing = 1.0/b_per_unit_interval;
+            F1_cache.max_j = max_j;
+            F1_cache.a_per_unit_interval = a_per_unit_interval;
+            F1_cache.b_per_unit_interval = b_per_unit_interval;
+
+            F1_cache.a_index_multiplier = number_of_b * (max_j + 1);
+            F1_cache.b_index_multiplier = (max_j + 1);
+
+            int fd = open( (cache_directory + "F1_cache_data").c_str(), O_RDONLY );
+            struct stat sb;
+            fstat(fd, &sb);
+            F1_cache.values = (Complex * )(mmap (0, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0));
+            cout << "using F1_cache from file." << endl;
+            close(fd);
+            F1_cache_initialized = true;
+            return;
+        }
+        else {
+            info_file.close();
+            ofstream info_outfile;
+            info_outfile.open( (cache_directory + "F1_cache_info").c_str() );
+            info_outfile << a_per_unit_interval << endl;
+            info_outfile << b_per_unit_interval << endl;
+            info_outfile << max_j << endl;
+            info_outfile.close();
+
+            // We create a new file to be memory mapped.
+            int fd;
+            fd = open( (cache_directory + "F1_cache_data").c_str() , O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+            filesize = sizeof(Complex) * number_of_a * number_of_b * ( max_j + 1 );
+            lseek(fd, filesize - 1, SEEK_SET);
+            int result = write(fd, "", 1);
+            if(result == -1) {
+                cout << "Error creating new memory mapped file." << endl;
+            }
+            F1_cache.values = (Complex *)(mmap(0, filesize, PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0));
+            cout << "creating new memory mapped file for F1_cache." << endl;
+            using_mmap = true;
+        }
+    }
+    else {
+        F1_cache.values = new Complex[number_of_a * number_of_b * (max_j + 1)];
+    }
 
     Double a = 0;
     Double a_increment = 6.0/(number_of_a - 1);
@@ -1045,7 +1529,8 @@ void build_F1_cache(long a_per_unit_interval, long b_per_unit_interval, long max
             for(long j = 0; j <= max_j; j++) {
                 //F1_cache.values[k][l][j] = pow(100, j) * J_Integral_1(a, b, j, -1, 100, NULL, epsilon/pow(100, j), false);
                 //F1_cache.values[k][l][j] = J_Integral_1_precomputation(a, b, j, epsilon);
-                (*F1_cache.values)[k][l][j] = J_Integral_1_precomputation(a, b, j, epsilon);
+                //(*F1_cache.values)[k][l][j] = J_Integral_1_precomputation(a, b, j, epsilon);
+                F1_cache.values[k * F1_cache.a_index_multiplier + l * F1_cache.b_index_multiplier + j] = J_Integral_1_precomputation(a, b, j, epsilon);
             }
             b += b_increment;
         }
@@ -1059,10 +1544,14 @@ void build_F1_cache(long a_per_unit_interval, long b_per_unit_interval, long max
     double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
     cout << "Total time to build F1 cache: " << elapsed_time << " seconds." << endl;
 
+    if(using_mmap) {
+        msync(F1_cache.values, filesize, MS_ASYNC);
+    }
+
     F1_cache_initialized = true;
 }
 
-void build_F2_cache(long max_a1, long a1_per_unit_interval, long a2_per_unit_interval, long b_per_unit_interval, Double epsilon) {
+void build_F2_cache(long max_a1, long a1_per_unit_interval, long a2_per_unit_interval, long b_per_unit_interval, Double epsilon, string cache_directory) {
     int number_of_a1 = a1_per_unit_interval + 1;
     int number_of_a2 = a2_per_unit_interval + 1;
     int number_of_b = b_per_unit_interval/4 + 1;
@@ -1078,6 +1567,9 @@ void build_F2_cache(long max_a1, long a1_per_unit_interval, long a2_per_unit_int
     F2_cache.a1_per_unit_interval = a1_per_unit_interval;
     F2_cache.a2_per_unit_interval = a2_per_unit_interval;
     F2_cache.b_per_unit_interval = b_per_unit_interval;
+
+    F2_cache.a1_index_multiplier = number_of_a2 * number_of_b;
+    F2_cache.a2_index_multiplier = number_of_b;
 
     Double memory_used = (Double)(a1_per_unit_interval * max_a1 + 1) * (Double)(a2_per_unit_interval + 1) * (Double)(b_per_unit_interval/4 + 1) * 16;
 
@@ -1106,7 +1598,107 @@ void build_F2_cache(long max_a1, long a1_per_unit_interval, long a2_per_unit_int
     Double old_percent_done = 0.0;
 
     //F2_cache.values = new Complex ** [(number_of_a1 - 1) * max_a1 + 2];
-    F2_cache.values = new boost::multi_array<Complex, 3>(boost::extents[a1_per_unit_interval * max_a1 + 2][number_of_a2][number_of_b]);
+
+    int filesize = 0;
+    bool using_mmap = false;
+
+    if(cache_directory != "") {
+        ifstream info_file;
+        info_file.open( (cache_directory + "F2_cache_info").c_str() );
+
+        if(info_file) {
+            int x;
+            info_file >> x;
+            if(x < max_a1) {
+                cout << "F2_cache mismatch" << endl;
+                exit(0);
+            }
+            else if(x > max_a1) {
+                max_a1 = x;
+            }
+
+            info_file >> x;
+            if(x != a1_per_unit_interval) {
+                cout << "F2_cache mismatch" << endl;
+                exit(0);
+            }
+
+            info_file >> x;
+            if(x != a2_per_unit_interval) {
+                cout << "F2_cache mismatch" << endl;
+                exit(0);
+            }
+
+            info_file >> x;
+            if(x != b_per_unit_interval) {
+                cout << "F2_cache mismatch" << endl;
+                exit(0);
+            }
+
+            int number_of_a1 = a1_per_unit_interval + 1;
+            int number_of_a2 = a2_per_unit_interval + 1;
+            int number_of_b = b_per_unit_interval/4 + 1;
+
+            F2_cache.max_a1 = max_a1;
+            F2_cache.number_of_a1 = number_of_a1;
+            F2_cache.number_of_a2 = number_of_a2;
+            F2_cache.a1_spacing = 1.0/a1_per_unit_interval;
+            F2_cache.a2_spacing = 1.0/a2_per_unit_interval;
+            F2_cache.b_spacing = 1.0/b_per_unit_interval;
+            F2_cache.number_of_b = number_of_b;
+            F2_cache.a1_per_unit_interval = a1_per_unit_interval;
+            F2_cache.a2_per_unit_interval = a2_per_unit_interval;
+            F2_cache.b_per_unit_interval = b_per_unit_interval;
+
+            F2_cache.a1_index_multiplier = number_of_a2 * number_of_b;
+            F2_cache.a2_index_multiplier = number_of_b;
+
+
+
+
+            int fd = open( (cache_directory + "F2_cache_data").c_str(), O_RDONLY );
+            struct stat sb;
+            fstat(fd, &sb);
+            F2_cache.values = (Complex * )(mmap (0, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0));
+            cout << "using F2_cache from file." << endl;
+            close(fd);
+            F2_cache_initialized = true;
+            return;
+        }
+        else {
+            info_file.close();
+            ofstream info_outfile;
+            info_outfile.open( (cache_directory + "F2_cache_info").c_str() );
+            info_outfile << max_a1 << endl;
+            info_outfile << a1_per_unit_interval << endl;
+            info_outfile << a2_per_unit_interval << endl;
+            info_outfile << b_per_unit_interval << endl;
+            info_outfile.close();
+
+            // We create a new file to be memory mapped.
+            int fd;
+            fd = open( (cache_directory + "F2_cache_data").c_str() , O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+            //filesize = sizeof(Complex) * number_of_a * number_of_b * ( max_j + 1 );
+            filesize = sizeof(Complex) * (a1_per_unit_interval * max_a1 + 2) * number_of_a2 * number_of_b;
+            lseek(fd, filesize - 1, SEEK_SET);
+            int result = write(fd, "", 1);
+            if(result == -1) {
+                cout << "Error creating new memory mapped file." << endl;
+            }
+            F2_cache.values = (Complex *)(mmap(0, filesize, PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0));
+            cout << "creating new memory mapped file for F2_cache." << endl;
+            using_mmap = true;
+        }
+    }
+    else {
+        //F2_cache.values = new boost::multi_array<Complex, 3>(boost::extents[a1_per_unit_interval * max_a1 + 2][number_of_a2][number_of_b]);
+        F2_cache.values = new Complex[(a1_per_unit_interval * max_a1 + 2) * number_of_a2 * number_of_b];
+    }
+
+
+
+
+
     for(long k = 0; k <= a1_per_unit_interval * max_a1 + 1; k++) {
 
         percent_done = (Double)k/(  a1_per_unit_interval * max_a1 + 1 );
@@ -1121,7 +1713,8 @@ void build_F2_cache(long max_a1, long a1_per_unit_interval, long a2_per_unit_int
             for(long l = 0; l < number_of_b; l++) {
                 //cout << a1 << " " << a2 << " " << b << endl;
                 //F2_cache.values[k][j][l] = J_Integral_2(a1, a2, b, NULL, epsilon, false);
-                (*F2_cache.values)[k][j][l] = J_Integral_2(a1, a2, b, NULL, epsilon, false);
+                //(*F2_cache.values)[k][j][l] = J_Integral_2(a1, a2, b, NULL, epsilon, false);
+                F2_cache.values[k * F2_cache.a1_index_multiplier + j * F2_cache.a2_index_multiplier + l] = J_Integral_2(a1, a2, b, NULL, epsilon, false);
                 b += b_increment;
             }
             a2 += a2_increment;
@@ -1136,6 +1729,10 @@ void build_F2_cache(long max_a1, long a1_per_unit_interval, long a2_per_unit_int
 
     double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
     cout << "Total time to build F2 cache: " << elapsed_time << " seconds." << endl;
+
+    if(using_mmap) {
+        msync(F2_cache.values, filesize, MS_ASYNC);
+    }
 
     F2_cache_initialized = true;
 }

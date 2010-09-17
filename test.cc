@@ -396,10 +396,12 @@ void test_specific_inputs(Double a, Double b, int K, int j, Double epsilon, int 
 }
 
 
-double time_theta_algorithm(int j, int K) {
+double time_theta_algorithm(int j, int K, int number_of_tests = 1000) {
     Complex v[j + 1];
     for(int k = 0; k <= j; k++) {
-        v[j] = 1.0;
+        v[j] = 1.0/(k * k * k * k * k * k + 1);
+        cout << v[j] << endl;
+        //v[j] = 1.0;
     }
 
     clock_t start_time = clock();
@@ -409,17 +411,15 @@ double time_theta_algorithm(int j, int K) {
     int n = 0;
     Complex z1 = 0.0;
 
-    const int number_of_tests = 1000;
-
     cout << "Timing theta_algorithm with K = " << K << " and j = " << j << endl;
     cout << "   Running approximately 1000 iterations total." << endl;
 
     for(Double a = 0; a < .5; a += .5/(number_of_tests/1000.0) ) {
         for(Double b = 1.1/((Double)K); b <= 1.0; b += 1.0/1000.0) {
             n++;
-            if(n % 100 == 0) {
-                cout << "   Running iteration number " << n << " with a = " << a << " b = " << b << endl;
-            }
+       //     if(n % 100 == 0) {
+       //         cout << "   Running iteration number " << n << " with a = " << a << " b = " << b << endl;
+       //     }
             z1 += compute_exponential_sums(a, b, j, K, v, epsilon);
         }
     }
@@ -1101,9 +1101,9 @@ int main() {
     cout << setprecision(17);
     //test_zeta_sum_stage1(rand_state);
 
-    test_exp_itlogn(rand_state);
+    //test_exp_itlogn(rand_state);
 
-    return 0;
+    //return 0;
 
     //build_F0_cache(11, 6, 25, 11000, exp(-20));
     //build_F1_cache(181, 51, 25, exp(-30));
@@ -1116,10 +1116,11 @@ int main() {
     //build_F2_cache(10500, 11, 11, 6, exp(-30));
     //build_IC7_cache(600, 200, 25, exp(-30));
 
-    //build_F0_cache(11, 6, 25, 3100, exp(-25));
+    build_F1_cache(61, 51, 20, exp(-30), "caches/");
+    build_F0_cache(11, 6, 25, 11000, exp(-25), "caches/");
     //build_F1_cache(181, 51, 30, exp(-30));
-    //build_F2_cache(3100, 11, 11, 6, exp(-30));
-    //build_IC7_cache(600, 200, 25, exp(-30));
+    build_F2_cache(11000, 11, 11, 6, exp(-30), "caches/");
+    build_IC7_cache(600, 200, 25, exp(-30), "caches/");
 
     //build_F0_cache(5, 4, 25, 50, exp(-30));
     //build_F0_cache(10, 20, 25, 20000, exp(-30));
@@ -1219,18 +1220,44 @@ int main() {
     //test_theta_algorithm(5, 20231);
     //test_theta_algorithm(50, 5013);
     
+    double times[19];
+
+    times[1] = time_theta_algorithm(1, 10000, 50000);
+    times[2] = time_theta_algorithm(2, 10000, 50000);
+    times[3] = time_theta_algorithm(3, 10000, 50000);
+    times[4] = time_theta_algorithm(4, 10000, 50000);
+    times[5] = time_theta_algorithm(5, 10000, 50000);
+    times[6] = time_theta_algorithm(6, 10000, 50000);
+    times[7] = time_theta_algorithm(7, 10000, 50000);
+    times[8] = time_theta_algorithm(8, 10000, 50000);
+    times[9] = time_theta_algorithm(9, 10000, 50000);
+    times[10] = time_theta_algorithm(10, 10000, 50000);
+    times[11] = time_theta_algorithm(11, 10000, 50000);
+    times[12] = time_theta_algorithm(12, 10000, 50000);
+    times[13] = time_theta_algorithm(13, 10000, 50000);
+    times[14] = time_theta_algorithm(14, 10000, 50000);
+    times[15] = time_theta_algorithm(15, 10000, 50000);
+    times[16] = time_theta_algorithm(16, 10000, 50000);
+    times[17] = time_theta_algorithm(17, 10000, 50000);
+    times[18] = time_theta_algorithm(18, 10000, 50000);
+
+    for(int k = 1; k <= 18; k++) {
+        cout << k << ", " << times[k] << endl;
+    }
+
+    exit(0);
 
     //test_theta_algorithm(1, 1000000, pow(2, -30));
     //test_theta_algorithm(1, 1000000, pow(2, -50));
 
-    //test_theta_algorithm(100, 517, pow(2, -30));
-    //test_theta_algorithm(100, 517, pow(2, -40));;
-    //test_theta_algorithm(50, 5432, pow(2, -30));
-    //test_theta_algorithm(50, 5432, pow(2, -40));
-    //test_theta_algorithm(50, 1432, pow(2, -30));
-    //test_theta_algorithm(50, 1432, pow(2, -40));
-    //test_theta_algorithm(500, 123, pow(2, -30));
-    //test_theta_algorithm(500, 123, pow(2, -40));
+    test_theta_algorithm(100, 517, pow(2, -30));
+    test_theta_algorithm(100, 517, pow(2, -40));;
+    test_theta_algorithm(50, 5432, pow(2, -30));
+    test_theta_algorithm(50, 5432, pow(2, -40));
+    test_theta_algorithm(50, 1432, pow(2, -30));
+    test_theta_algorithm(50, 1432, pow(2, -40));
+    test_theta_algorithm(500, 123, pow(2, -30));
+    test_theta_algorithm(500, 123, pow(2, -40));
     //test_theta_algorithm(10, 10000, pow(2, -40));
     
     /*
@@ -1274,7 +1301,6 @@ int main() {
     //srand(new_seed);
     //time_theta_algorithm_EM_case(10, 20010, 1000, exp(-14));
 
-    //time_theta_algorithm(15, 10000);
     //test2();
 
     print_stats();

@@ -4,8 +4,14 @@
 #include "log.h"
 
 #include <iostream>
+#include <fstream>
 #include <cmath>
 #include <assert.h>
+
+#include <sys/mman.h>
+#include <cstdlib>
+#include <sys/types.h>
+#include <fcntl.h>
 
 using namespace std;
 
@@ -334,7 +340,7 @@ Complex IC1c(int K, int j, Double a, Double b, Complex C8, const theta_cache * c
 
     for(int l = 0; l <= j; l++) {
         Complex S1 = 0;
-        Double z = K_power(l, cache)/binomial_coefficient(j, l);
+        Double z = K_power(l, cache) * inverse_binomial_coefficient(j, l);
         for(int n = 0; n <= L - 1; n++) {
             S1 = S1 + EXP(2.0 * PI * n * (I * a - 2.0 * b * (Double)K + I * b * (Double)n) ) 
                     * G(a + (Double)2.0 * I * b * (Double)K + (Double)2.0 * b * (Double)n, b, n, l, epsilon * exp(4 * PI * b * K * (Double)n + 2 * PI * a * K) * z, 0);
@@ -660,13 +666,13 @@ static struct {
     int a_per_unit_interval;
     int number_of_a;
     int max_j;
-    Complex ** values;
+    Complex * values;
     double a_spacing;
 } IC7_cache;
 
 static bool IC7_cache_initialized = false;
 
-void build_IC7_cache(int a_per_unit_interval, Double max_a, int max_j, Double epsilon) {
+void build_IC7_cache(int a_per_unit_interval, Double max_a, int max_j, Double epsilon, string cache_directory) {
     int number_of_a = max_a * a_per_unit_interval + 1;
     
     IC7_cache.number_of_a = number_of_a;
@@ -690,9 +696,89 @@ void build_IC7_cache(int a_per_unit_interval, Double max_a, int max_j, Double ep
 
 
 
+    int filesize = 0;
+    bool using_mmap = false;
+
+    if(cache_directory != "") {
+        ifstream info_file;
+        info_file.open( (cache_directory + "IC7_cache_info").c_str() );
+
+        if(info_file) {
+            int x;
+            info_file >> x;
+            if(x < max_a) {
+                cout << "IC7_cache mismatch" << endl;
+                exit(0);
+            }
+            else if(x > max_a) {
+                max_a = x;
+            }
+            info_file >> x;
+            if(x != a_per_unit_interval) {
+                cout << "IC7_cache mismatch" << endl;
+                exit(0);
+            }
+
+            info_file >> x;
+            if(x < max_j) {
+                cout << "IC7_cache mismatch" << endl;
+                exit(0);
+            }
+            else if(x > max_j) {
+                max_j = x;
+            }
+
+            //  These values may have changed after we increased max_j and max_a
+            //  because of the information stored on disk, so we compute them again.
+
+            number_of_a = max_a * a_per_unit_interval + 1;
+            
+            IC7_cache.number_of_a = number_of_a;
+            IC7_cache.a_per_unit_interval = a_per_unit_interval;
+            IC7_cache.max_j = max_j;
+            IC7_cache.a_spacing = 1.0/a_per_unit_interval;
+
+            int fd = open( (cache_directory + "IC7_cache_data").c_str(), O_RDONLY );
+            struct stat sb;
+            fstat(fd, &sb);
+            IC7_cache.values = (Complex * )(mmap (0, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0));
+            cout << "using IC7_cache from file." << endl;
+            close(fd);
+            IC7_cache_initialized = true;
+            return;
+        }
+        else {
+            info_file.close();
+            ofstream info_outfile;
+            info_outfile.open( (cache_directory + "IC7_cache_info").c_str() );
+            info_outfile << max_a << endl;
+            info_outfile << a_per_unit_interval << endl;
+            info_outfile << max_j << endl;
+            info_outfile.close();
+
+            // We create a new file to be memory mapped.
+            int fd;
+            fd = open( (cache_directory + "IC7_cache_data").c_str() , O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+            //filesize = sizeof(Complex) * number_of_a * number_of_b * ( max_j + 1 );
+            filesize = sizeof(Complex) * ( number_of_a * (max_j + 1) );
+            lseek(fd, filesize - 1, SEEK_SET);
+            int result = write(fd, "", 1);
+            if(result == -1) {
+                cout << "Error creating new memory mapped file." << endl;
+            }
+            IC7_cache.values = (Complex *)(mmap(0, filesize, PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0));
+            cout << "creating new memory mapped file for IC7_cache." << endl;
+            using_mmap = true;
+        }
+    }
+    else {
+        IC7_cache.values = new Complex[number_of_a * (max_j + 1)];
+    }
 
 
-    IC7_cache.values = new Complex * [number_of_a];
+
+
+
     Double a = 0;
     Double a_increment = 1.0/a_per_unit_interval;
 
@@ -707,9 +793,8 @@ void build_IC7_cache(int a_per_unit_interval, Double max_a, int max_j, Double ep
             old_percent_done = percent_done;
         }
 
-        IC7_cache.values[n] = new Complex[max_j + 1];
         for(int j = 0; j <= max_j; j++) {
-            IC7_cache.values[n][j] = IC7star(a, j, epsilon, false);
+            IC7_cache.values[n * (max_j + 1) + j] = IC7star(a, j, epsilon, false);
         }
         a += a_increment;
     }
@@ -719,6 +804,9 @@ void build_IC7_cache(int a_per_unit_interval, Double max_a, int max_j, Double ep
     double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
     cout << "Total time to build IC7 cache: " << elapsed_time << " seconds." << endl;
 
+    if(using_mmap) {
+        msync(IC7_cache.values, filesize, MS_ASYNC);
+    }
 
     IC7_cache_initialized = true;
 }
@@ -733,7 +821,7 @@ inline Complex get_cached_IC7star_value(int a_index, int j) {
             return 0.0;
         }
         else {
-            return IC7_cache.values[a_index][j];
+            return IC7_cache.values[a_index * (IC7_cache.max_j + 1) + j];
         }
     }
     else {

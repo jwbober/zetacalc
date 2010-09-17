@@ -6,7 +6,7 @@ H_OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -g -pthread
 #H_OPTIONS = -msse2 -mfpmath=sse -Wall -g
 
 #OPTIONS = -O3 -Wall -ffast-math -g
-LIBS = -lmpfr -lgmp -lgmpxx -pthread
+LIBS = -lmpfr -lgmp -lgmpxx -pthread -g
 #LIBS = -lmpfr -lgmp -lgmpxx
 INCLUDEDIR = 
 #INCLUDEDIR = -I/usr/local/sage/local/include

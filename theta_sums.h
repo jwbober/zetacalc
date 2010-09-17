@@ -12,8 +12,12 @@
 
 #include "misc.h"
 
+// For timing purposes, we can set FAKE_PRECOMPUTATION = true
+// in this case, no precomputation will be done, and the answers
+// will be nonsense, but we can quickly get an idea of the
+// performance of the code
 const bool FAKE_PRECOMPUTATION = false;
-//const bool FAKE_PRECOMPUTATION = false;
+//const bool FAKE_PRECOMPUTATION = true;
 
 const bool FAKE_J_INTEGRALS = false;
 const bool FAKE_IC7 = false;
@@ -318,13 +322,16 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
 Complex H_Integral_2(int j, Double a1, Double a2, Double epsilon);              //
 Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double epsilon, bool use_cache = true);// Various integrals.
 
-void build_F0_cache(long number_of_a, long number_of_b, long max_j, long max_M, Double epsilon);
-void build_F1_cache(long number_of_a, long number_of_b, long max_j, Double epsilon);
-void build_F2_cache(long max_a1, long number_of_a1, long number_of_a2, long number_of_b, Double epsilon);
+void build_F0_cache(long number_of_a, long number_of_b, long max_j, long max_M, Double epsilon, string cache_directory);
+void build_F1_cache(long a_per_unit_interval, long b_per_unit_interval, long max_j, Double epsilon, string cache_directory);
+void build_F1_cache(string cache_directory);
+void build_F2_cache(long max_a1, long number_of_a1, long number_of_a2, long number_of_b, Double epsilon, string cache_directory);
 void free_F0_cache();
 void free_F1_cache();
 void free_F2_cache();
-                                                                                //
+                
+Complex JBulk2(Double a, Double b, int j, int M, int K, theta_cache * cache, Complex * Z, Double * epsilon);                
+
 inline Complex JBulk(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon) {         //                         
     Double x = epsilon/2;
     Complex A = J_Integral_0(a, b, j, M, K, cache, x);
@@ -374,7 +381,7 @@ inline Complex IC9H(int K, int j, Double a, Double b, const theta_cache * cache,
                                                                                 //
                                                                                 //
 
-void build_IC7_cache(int a_per_unit_interval, Double max_a, int max_j, Double epsilon); //max_a should be passed as about sqrt(K) to compute sums of length K
+void build_IC7_cache(int a_per_unit_interval, Double max_a, int max_j, Double epsilon, string cache_directory); //max_a should be passed as about sqrt(K) to compute sums of length K
 
 inline Complex IC3(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon) {
     // needs a <= 0
@@ -491,6 +498,7 @@ inline Complex compute_C12(mpfr_t mp_a, mpfr_t mp_b, int K) {
 
 Complex direct_exponential_sum_evaluation2(Double a, Double b, int j, int m, int M, int working_precision = 53);
 Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon, int _Kmin);
+Complex compute_exponential_sums_using_theta_algorithm2(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon, int _Kmin);
 Complex compute_exponential_sums_directly(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon);
 Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon);
 Complex compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon, int _Kmin = 0, int method=0);

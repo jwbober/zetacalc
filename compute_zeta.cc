@@ -8,6 +8,8 @@
 
 using namespace std;
 
+const char * PRECOMPUTATION_LOCATION = "caches/";
+
 //computes sinc function
 Double sinc(Double x){
     //Taylor coefficients in sin expansions
@@ -163,19 +165,19 @@ void compute_hardy_on_unit_interval(mpfr_t t) {
 }
 
 void * F0_thread(void * bound ) {
-    build_F0_cache(10, 100, 30, (long)(bound), exp(-30));
+    build_F0_cache(10, 100, 30, (long)(bound), exp(-30), PRECOMPUTATION_LOCATION);
     pthread_exit(NULL);
 }
 void * F1_thread(void * unused) {
-    build_F1_cache(30, 200, 30, exp(-30));
+    build_F1_cache(30, 200, 30, exp(-30), PRECOMPUTATION_LOCATION);
     pthread_exit(NULL);
 }
 void * F2_thread(void * bound) {
-    build_F2_cache((long)(bound), 10, 10, 100, exp(-30));
+    build_F2_cache((long)(bound), 10, 10, 100, exp(-30), PRECOMPUTATION_LOCATION);
     pthread_exit(NULL);
 }
 void * IC7_thread(void * bound) {
-    build_IC7_cache((long)bound, 200, 35, exp(-30));
+    build_IC7_cache((long)bound, 200, 35, exp(-30), PRECOMPUTATION_LOCATION);
     pthread_exit(NULL);
 }
 
@@ -301,8 +303,8 @@ int main(int argc, char * argv[]) {
         return 0;
     }
 
-    zeta_config::stage2_number_of_threads = 8;
-    zeta_config::stage3_number_of_threads = 8;
+    zeta_config::stage2_number_of_threads = 4;
+    zeta_config::stage3_number_of_threads = 4;
 
     ifstream input_file;
     input_file.open(argv[1]);
