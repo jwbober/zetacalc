@@ -708,6 +708,8 @@ void build_IC7_cache(int a_per_unit_interval, Double max_a, int max_j, Double ep
             info_file >> x;
             if(x < max_a) {
                 cout << "IC7_cache mismatch" << endl;
+                cout << "The cache has max_a = " << x << endl;
+                cout << "need max_a >= " << max_a << endl;
                 exit(0);
             }
             else if(x > max_a) {
@@ -716,12 +718,16 @@ void build_IC7_cache(int a_per_unit_interval, Double max_a, int max_j, Double ep
             info_file >> x;
             if(x != a_per_unit_interval) {
                 cout << "IC7_cache mismatch" << endl;
+                cout << "The cache has a_per_unit_interval = " << x << endl;
+                cout << "Expected: " << a_per_unit_interval << endl;
                 exit(0);
             }
 
             info_file >> x;
             if(x < max_j) {
                 cout << "IC7_cache mismatch" << endl;
+                cout << "The cache has max_j = " << x << endl;
+                cout << "Need max_j >= " << max_j << endl;
                 exit(0);
             }
             else if(x > max_j) {

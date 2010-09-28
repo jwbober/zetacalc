@@ -8,7 +8,7 @@
 
 using namespace std;
 
-const char * PRECOMPUTATION_LOCATION = "caches/";
+const char * PRECOMPUTATION_LOCATION = "/home/bober/math/experiments/theta_sums/caches/";
 
 //computes sinc function
 Double sinc(Double x){
@@ -177,7 +177,7 @@ void * F2_thread(void * bound) {
     pthread_exit(NULL);
 }
 void * IC7_thread(void * bound) {
-    build_IC7_cache((long)bound, 200, 35, exp(-30), PRECOMPUTATION_LOCATION);
+    build_IC7_cache(200, (long)bound, 35, exp(-30), PRECOMPUTATION_LOCATION);
     pthread_exit(NULL);
 }
 
@@ -298,8 +298,46 @@ N is replaced by this integer.\n\
 }
 
 int main(int argc, char * argv[]) {
-    if(argc != 2) {
+    if(argc != 2 && argc != 7) {
         usage();
+        return 0;
+    }
+
+    if(argc == 7) {
+        // we assume that the program was called with
+        // ./zeta t delta N start length number_of_threads
+        mpfr_t t;
+        mpz_t start;
+        mpz_t length;
+        mpz_init(start);
+        mpz_init(length);
+        mpfr_init2(t, 200);
+        mpfr_set_str(t, argv[1], 10, GMP_RNDN);
+        double delta = strtod(argv[2], NULL);
+        int N = atoi(argv[3]);
+        mpz_set_str(start, argv[4], 10);
+        mpz_set_str(length, argv[5], 10);
+        
+        int number_of_threads = atoi(argv[6]);
+
+        zeta_config::stage2_number_of_threads = number_of_threads;
+        zeta_config::stage3_number_of_threads = number_of_threads;
+
+        Complex S[N];
+        
+        cout << setprecision(17) << endl;
+
+        do_precomputation(t);
+        partial_zeta_sum(start, length, t, delta, N, S);
+
+        cout << "BEGIN RESULT" << endl;
+        for(int k = 0; k < N; k++) {
+            cout << S[k] << endl;
+        }
+
+        mpfr_clear(t);
+        mpz_clear(start);
+        mpz_clear(length);
         return 0;
     }
 
@@ -350,7 +388,7 @@ int main(int argc, char * argv[]) {
         logfile << "    Computing at " << N << " points." << endl;
         logfile.flush();
 
-        zeta_sum(t, delta, N, main_sum_values);
+        zeta_sum2(t, delta, N, main_sum_values);
 
         ofstream datafile;
         stringstream filename_stream;

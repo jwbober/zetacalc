@@ -21,6 +21,8 @@ Complex initial_zeta_sum_mpfr(mpz_t M, mpfr_t t);
 void print_zeta_stats();
 
 Complex zeta_sum(mpfr_t, Double delta, int N, Complex * S);
+Complex zeta_sum2(mpfr_t, Double delta, int N, Complex * S);
+Complex partial_zeta_sum(mpz_t start, mpz_t length, mpfr_t t, double delta, int N, Complex * S);
 Complex zeta_sum_mpfr(mpfr_t);
 Complex zeta_sum_basic(mpfr_t);
 
