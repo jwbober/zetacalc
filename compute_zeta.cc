@@ -329,7 +329,7 @@ int main(int argc, char * argv[]) {
     ifstream temp_infile;
     temp_infile.open(num_thread_location_filename.c_str());
     if(!temp_infile.is_open()) {
-        cout << "Error reading configuration data." << endl;
+        cout << "Error reading configuration data for number of threads filename." << endl;
         return 1;
     }
     string number_of_threads_filename;
@@ -338,7 +338,7 @@ int main(int argc, char * argv[]) {
 
     temp_infile.open(cache_location_filename.c_str());
     if(!temp_infile.is_open()) {
-        cout << "Error reading configuration data." << endl;
+        cout << "Error reading configuration data for cache location." << endl;
         return 1;
     }
     temp_infile >> precomputation_location;
@@ -346,7 +346,7 @@ int main(int argc, char * argv[]) {
 
     temp_infile.open(Kmin_filename.c_str());
     if(!temp_infile.is_open()) {
-        cout << "Error reading configuration data." << endl;
+        cout << "Error reading configuration data for Kmin." << endl;
         return 1;
     }
     int Kmin;
