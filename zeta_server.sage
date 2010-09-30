@@ -14,7 +14,7 @@ class Computation:
         self.N = N
         work_units = []
         self.end_point = floor(sqrt(t/(2 * pi)))
-        self.work_unit_length = 1000000000
+        self.work_unit_length = 10000000000
         self.next_index = 1
         self.lock = threading.Lock()
 

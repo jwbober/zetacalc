@@ -26,7 +26,8 @@ void print_zeta_stats() {
 }
 
 const int MAX_THREADS = 30;
-const char * NUM_THREADS_FILE = "/home/bober/math/experiments/theta_sums/number_of_threads";
+//const char * NUM_THREADS_FILE = "/home/bober/math/experiments/theta_sums/number_of_threads";
+string NUM_THREADS_FILE;
 
 void stage_1_bound(mpz_t v, mpfr_t t) {
     //
@@ -830,9 +831,20 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
     mpz_set(v, n);
     mpz_sub_ui(v, v, block_size);
 
+    ifstream num_threads_file;
+    int num_threads = 2;
+    num_threads_file.open(NUM_THREADS_FILE.c_str());
+    if(!num_threads_file) {
+        num_threads = 2;
+    }
+    else {
+        num_threads_file >> num_threads;
+        num_threads_file.close();
+    }
+
     // right now we don't handle the case where the number of blocks is less than the number of threads,
     // and we just do a single threaded run
-    if(zeta_config::stage2_number_of_threads == 1 || mpz_cmp_si(number_of_blocks, zeta_config::stage2_number_of_threads) < 0) {
+    if(num_threads == 1 || mpz_cmp_si(number_of_blocks, num_threads) < 0) {
         Complex S2[M];
         for(mpz_set_ui(k, 0u); mpz_cmp(k, number_of_blocks) < 0; mpz_add_ui(k, k, 1u)) {
             mpz_add_ui(v, v, block_size);
@@ -859,7 +871,6 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
     }
     else {
 
-        int num_threads = zeta_config::stage2_number_of_threads;
         pthread_t threads[MAX_THREADS];
         bool unjoined[MAX_THREADS];
         for(int l = 0; l < MAX_THREADS; l++) {
@@ -970,7 +981,7 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
                 last_cpu_time = current_cpu_time;
                 ifstream num_threads_file;
                 int new_num_threads = num_threads;
-                num_threads_file.open(NUM_THREADS_FILE);
+                num_threads_file.open(NUM_THREADS_FILE.c_str());
                 if(!num_threads_file) {
                     new_num_threads = 2;
                 }
@@ -1128,13 +1139,25 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
     Complex Z[30];
     compute_taylor_coefficients(t, Z);
 
+    int num_threads = 2;
+    ifstream num_threads_file;
+    num_threads_file.open(NUM_THREADS_FILE.c_str());
+    if(!num_threads_file) {
+        num_threads = 2;
+    }
+    else {
+        num_threads_file >> num_threads;
+        num_threads_file.close();
+    }
+
+
     mpz_t k, v;
     mpz_init(k);
     mpz_init(v);
 
     mpz_set(v, n);
     mpz_sub_ui(v, v, block_size);
-    if(zeta_config::stage3_number_of_threads == 1 || mpz_cmp_si(number_of_blocks, zeta_config::stage3_number_of_threads) < 0 ) {
+    if(num_threads == 1 || mpz_cmp_si(number_of_blocks, num_threads) < 0 ) {
         for(mpz_set_ui(k, 0u); mpz_cmp(k, number_of_blocks) < 0; mpz_add_ui(k, k, 1u)) {
             mpz_add_ui(v, v, block_size);
             zeta_block_stage3(v, block_size, t, Z, delta, M, S2, Kmin);
@@ -1164,7 +1187,6 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
         //S = S + zeta_block_mpfr(v, remainder, t);
     }
     else {
-        int num_threads = zeta_config::stage3_number_of_threads;
         pthread_t threads[MAX_THREADS];
         bool unjoined[MAX_THREADS];
         for(int l = 0; l < MAX_THREADS; l++) {
@@ -1269,7 +1291,7 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
 
                 ifstream num_threads_file;
                 int new_num_threads = num_threads;
-                num_threads_file.open(NUM_THREADS_FILE);
+                num_threads_file.open(NUM_THREADS_FILE.c_str());
                 if(!num_threads_file) {
                     new_num_threads = 2;
                 }
@@ -1631,13 +1653,15 @@ Complex zeta_sum_mpfr(mpfr_t t) {
     return S;
 }
 
-Complex partial_zeta_sum(mpz_t start, mpz_t length, mpfr_t t, Double delta, int N, Complex * S) {
+Complex partial_zeta_sum(mpz_t start, mpz_t length, mpfr_t t, Double delta, int N, Complex * S, string number_of_threads_filename, int Kmin) {
     //
     // Evaluate the sum \sum_{n=start}^{start + length - 1} exp(i(t + k delta)log n)/sqrt(n)
     // for 0 <= k < N in whatever way seems best possible. The answers will be put into S,
     // which should have space for N entries, and the return value will be the
     // value of the sum for k = 0
     //
+
+    NUM_THREADS_FILE = number_of_threads_filename;
 
     for(int l = 0; l < N; l++) {
         S[l] = 0.0;
@@ -1690,7 +1714,7 @@ Complex partial_zeta_sum(mpz_t start, mpz_t length, mpfr_t t, Double delta, int 
     
     //create_exp_itlogn_table(t);
 
-    zeta_sum_stage3(n2, N3, t, delta, N, S3, 800);
+    zeta_sum_stage3(n2, N3, t, delta, N, S3, Kmin);
     cout << "Done with stage 3. Sum was: " << S3[0] << endl;
 
     mpz_clear(n1);
@@ -1719,7 +1743,9 @@ Complex zeta_sum2(mpfr_t t, Double delta, int N, Complex * S) {
     stage_3_bound(length, t);
     mpz_set_ui(one, 1u);
 
-    Complex Z = partial_zeta_sum(one, length, t, delta, N, S);
+//    Complex Z = partial_zeta_sum(one, length, t, delta, N, S);
+    
+    Complex Z = 0;
 
     mpz_clear(length);
     mpz_clear(one);

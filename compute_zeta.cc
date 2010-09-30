@@ -5,10 +5,14 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
+#include <string>
 
 using namespace std;
 
-const char * PRECOMPUTATION_LOCATION = "/home/bober/math/experiments/theta_sums/caches/";
+//const char * PRECOMPUTATION_LOCATION = "/home/bober/math/experiments/theta_sums/caches/";
+
+string precomputation_location;
+string config_file_location = "/.zeta/";
 
 //computes sinc function
 Double sinc(Double x){
@@ -165,19 +169,19 @@ void compute_hardy_on_unit_interval(mpfr_t t) {
 }
 
 void * F0_thread(void * bound ) {
-    build_F0_cache(10, 100, 30, (long)(bound), exp(-30), PRECOMPUTATION_LOCATION);
+    build_F0_cache(10, 100, 30, (long)(bound), exp(-30), precomputation_location);
     pthread_exit(NULL);
 }
 void * F1_thread(void * unused) {
-    build_F1_cache(30, 200, 30, exp(-30), PRECOMPUTATION_LOCATION);
+    build_F1_cache(30, 200, 30, exp(-30), precomputation_location);
     pthread_exit(NULL);
 }
 void * F2_thread(void * bound) {
-    build_F2_cache((long)(bound), 10, 10, 100, exp(-30), PRECOMPUTATION_LOCATION);
+    build_F2_cache((long)(bound), 10, 10, 100, exp(-30), precomputation_location);
     pthread_exit(NULL);
 }
 void * IC7_thread(void * bound) {
-    build_IC7_cache(200, (long)bound, 35, exp(-30), PRECOMPUTATION_LOCATION);
+    build_IC7_cache(200, (long)bound, 35, exp(-30), precomputation_location);
     pthread_exit(NULL);
 }
 
@@ -280,24 +284,135 @@ void usage() {
     const char * usage_text =
 "Usage: zeta FILENAME\n\
 \n\
-FILENAME should be a plain text file, the first line\n\
-of which is the largest t that zeta(1/2 + it) will be\n\
-computed for, if the program is to using precomputation.\n\
-Otherwise, the first line should be 0, indicating that\n\
-no precomputation should be done.\n\
+FILENAME should be a plain text file, which contains\n\
+a list of numbers and a string. The numbers will be interpreted, in\n\
+order, as t, start, length, N, delta, output_filename.\n\
 \n\
-After the first line, each line should contain a single\n\
-integer. Currently the program computes the main sum\n\
-in the Riemann-Siegel formula at a grid of 500 points\n\
-over an interval of length 5 starting at this integer\n\
-and writes this data to a file zeta_N.data, where\n\
-N is replaced by this integer.\n\
+The program will then compute the main sum in the Riemann-Siegel\n\
+formula for zeta(.5 + it), from start to start + length - 1, at N points\n\
+spaced delta apart, and write the output to output_filename.\n\
+If length is 0 no work will be done. If it is negative, I don't know what\n\
+will happen. In the future it will be setup so that the whole sum is computed.\n\
 ";
     cout << usage_text;
 
 }
 
 int main(int argc, char * argv[]) {
+    if(argc != 2) {
+        usage();
+        return 1;
+    }
+
+    ifstream input_file;
+    input_file.open(argv[1]);
+    if(!input_file.is_open()) {
+        cout << "Error: Could not open file " << argv[1] << endl << endl;
+        usage();
+        return 1;
+    }
+
+    string home_directory;
+    char * home = getenv("HOME");
+    if(home==NULL) {
+        cout << "Couldn't find home directory. Make sure HOME environment variable is set." << endl;
+        return 1;
+    }
+
+    home_directory = home;
+    config_file_location = home + config_file_location;
+
+    string num_thread_location_filename = config_file_location + "number_of_threads_file_location";
+    string cache_location_filename = config_file_location + "cache_location";
+    string Kmin_filename = config_file_location + "Kmin";
+
+    ifstream temp_infile;
+    temp_infile.open(num_thread_location_filename.c_str());
+    if(!temp_infile.is_open()) {
+        cout << "Error reading configuration data." << endl;
+        return 1;
+    }
+    string number_of_threads_filename;
+    temp_infile >> number_of_threads_filename;
+    temp_infile.close();
+
+    temp_infile.open(cache_location_filename.c_str());
+    if(!temp_infile.is_open()) {
+        cout << "Error reading configuration data." << endl;
+        return 1;
+    }
+    temp_infile >> precomputation_location;
+    temp_infile.close();
+
+    temp_infile.open(Kmin_filename.c_str());
+    if(!temp_infile.is_open()) {
+        cout << "Error reading configuration data." << endl;
+        return 1;
+    }
+    int Kmin;
+    temp_infile >> Kmin;
+    temp_infile.close();
+
+    clock_t start_cpu_time = clock();
+    time_t start_wall_time = time(NULL);
+
+    mpfr_t t;
+    mpz_t start, length;
+
+    mpfr_init2(t, 200);
+    mpz_init(start);
+    mpz_init(length);
+
+    double delta;
+    int N;
+    string t_string;
+    string output_filename;
+
+    input_file >> t_string;
+    mpfr_set_str(t, t_string.c_str(), 10, GMP_RNDN);
+    input_file >> start;
+    input_file >> length;
+    input_file >> N;
+    input_file >> delta;
+    input_file >> output_filename;
+
+    cout << start << endl;
+    cout << length << endl;
+    cout << N << endl;
+    cout << delta << endl;
+    cout << output_filename << endl;
+
+    do_precomputation(t);
+    
+    Complex S[N];
+    partial_zeta_sum(start, length, t, delta, N, S, number_of_threads_filename, Kmin);
+
+    ofstream output_file;
+    output_file.open(output_filename.c_str());
+    
+    output_file << setprecision(17);
+
+    output_file << t_string << " ";
+    output_file << start << " ";
+    output_file << length << " ";
+    output_file << N << " ";
+    output_file << delta << " ";
+    output_file << output_filename << " ";
+
+    clock_t end_cpu_time = clock();
+    time_t end_wall_time = time(NULL);
+
+    output_file << ((double)end_cpu_time - (double)start_cpu_time)/CLOCKS_PER_SEC << " ";
+    output_file << end_wall_time - start_wall_time << endl;
+    
+    for(int k = 0; k < N; k++) {
+         output_file << S[k] << endl;
+    }
+    return 0;
+
+}
+
+int oldmain(int argc, char * argv[]) {
     if(argc != 2 && argc != 7) {
         usage();
         return 0;
@@ -328,7 +443,8 @@ int main(int argc, char * argv[]) {
         cout << setprecision(17) << endl;
 
         do_precomputation(t);
-        partial_zeta_sum(start, length, t, delta, N, S);
+
+        // should call partial_zeta_sum here.
 
         cout << "BEGIN RESULT" << endl;
         for(int k = 0; k < N; k++) {
@@ -388,7 +504,7 @@ int main(int argc, char * argv[]) {
         logfile << "    Computing at " << N << " points." << endl;
         logfile.flush();
 
-        zeta_sum2(t, delta, N, main_sum_values);
+        zeta_sum(t, delta, N, main_sum_values);
 
         ofstream datafile;
         stringstream filename_stream;

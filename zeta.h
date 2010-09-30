@@ -22,7 +22,7 @@ void print_zeta_stats();
 
 Complex zeta_sum(mpfr_t, Double delta, int N, Complex * S);
 Complex zeta_sum2(mpfr_t, Double delta, int N, Complex * S);
-Complex partial_zeta_sum(mpz_t start, mpz_t length, mpfr_t t, double delta, int N, Complex * S);
+Complex partial_zeta_sum(mpz_t start, mpz_t length, mpfr_t t, double delta, int N, Complex * S, string number_of_threads_filename, int Kmin);
 Complex zeta_sum_mpfr(mpfr_t);
 Complex zeta_sum_basic(mpfr_t);
 
