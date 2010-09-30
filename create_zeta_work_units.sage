@@ -2,7 +2,7 @@ import sys
 import os
 import fcntl
 
-smallest_work_unit_size = 50000000
+smallest_work_unit_size = 2500000000
 default_number_of_work_units = 2000
 
 def main():
