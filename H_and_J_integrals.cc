@@ -12,10 +12,6 @@
 #include <sys/types.h>
 #include <fcntl.h>
 
-#define BOOST_DISABLE_ASSERTS
-
-#include "boost/multi_array.hpp"
-
 using namespace std;
 
 static struct{
