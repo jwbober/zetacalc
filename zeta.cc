@@ -1706,7 +1706,7 @@ Complex partial_zeta_sum(mpz_t start, mpz_t length, mpfr_t t, Double delta, int 
     mpz_sub(N2, n2, n1);        // N2 and N3 hold the lengths of the sums for stage 2 and stage 3
     mpz_sub(N3, n3, n2);
 
-    zeta_sum_stage1_version2(n1, N1, t, delta, N, S1);
+    zeta_sum_stage1_version2(start, N1, t, delta, N, S1);
     cout << "Done with stage 1. Sum was: " << S1[0] << endl;
 
     zeta_sum_stage2(n1, N2, t, delta, N, S2);
