@@ -2,13 +2,23 @@
 # function using the main sum data precomputed at a grid of points.
 
 from mpmath import siegeltheta, grampoint, mp
+import pymongo
+from pymongo import Connection
 
-mp.prec = 200
+from bisect import bisect
+from copy import copy
+
+connection = Connection()
+db = connection.zeta
+large_values_collection = db.large_values
+
+
+mp.prec = 300
 
 import sys
 
-R = RealField(200)
-C = ComplexField(200)
+R = RealField(300)
+C = ComplexField(300)
 PI = R(pi)
 
 S = PolynomialRing(R, 'z')
@@ -117,20 +127,47 @@ def N_approx(t):
     pass
 
 class ZetaData:
-    def __init__(self, filename):
-        input_file = open(filename, 'r')
-        self.t0 = R(input_file.readline().strip())
-        self.delta = R(input_file.readline().strip())
-        self.data = []
-        next = input_file.readline().strip()
-        while(len(next) > 0):
-            a, b = next[1:-1].split(',')
-            self.data.append(C(a,b))
+    def __init__(self, data, type = "file"):
+        if type == "file":
+            input_file = open(data, 'r')
+            self.t0 = R(input_file.readline().strip())
+            self.delta = R(input_file.readline().strip())
+            self.data = []
             next = input_file.readline().strip()
-        
-        input_file.close()
+            while(len(next) > 0):
+                a, b = next[1:-1].split(',')
+                self.data.append(C(a,b))
+                next = input_file.readline().strip()
+            input_file.close()
+            self.tmax = self.t0 + self.delta * (len(self.data) - 1)
+        elif type == "large_value_entry":
+            db_entry = large_values_collection.find_one( {'t' : data} )
+            self.t0 = R(db_entry['t'])
+            self.delta = R(db_entry['delta'])
+            self.data = []
+            for x,y in db_entry['values']:
+                self.data.append( C(x,y) )
 
-        self.tmax = self.t0 + self.delta * (len(self.data) - 1)
+            self.tmax = self.t0 + self.delta * (len(self.data) - 1)
+        elif type == "dict":
+            self.t0 = data['t0']
+            self.delta = data['delta']
+            self.data = copy(data['data'])
+            self.tmax = self.t0 + self.delta * (len(self.data) - 1)
+
+    def update_db_entry(self, collection):
+        t_string = self.t0.str(no_sci = 2, skip_zeroes = True)
+        if t_string[-1] == '.':
+            t_string = t_string[:-1]
+        current_entry = collection.find_one( {'t' : t_string} )
+        max_value = float(max( (abs(y) for (x,y) in self.Z_values_from_array() )))
+        values = [ (float(real(x)), float(imag(x))) for x in self.data ]
+        if current_entry:
+            ID = current_entry['_id']
+            collection.save( { '_id' : ID, 't' : t_string, 'delta' : float(self.delta), 'max_value' : max_value , 'values' : values} )
+        else:
+            collection.save( { 't' : t_string, 'delta' : float(self.delta), 'max_value' : max_value, 'values' : values} )
+
 
     def Z_values_from_array(self):
         Z_value_pairs = []
@@ -144,8 +181,8 @@ class ZetaData:
         return self.Z_value(t)
 
     def Z_value(self, t, offset=True):
-        RR = ComplexField(200)
-        CC = ComplexField(200)
+        RR = ComplexField(300)
+        CC = ComplexField(300)
         I = CC.0
         PI = RR(pi)
         t = RR(t)
@@ -192,7 +229,9 @@ class ZetaData:
 
         S = S * Lambda/beta
 
-        return RealField(53)(2 * real(S * rotation_factor(t0 + t)) + remainder_terms(t0 + t))
+        X = rotation_factor(t0 + t)
+
+        return RealField(53)(2 * real(S * X) + remainder_terms(t0 + t))
 
     def zeta_value(self, t):
         RR = RealField(200)
@@ -226,8 +265,10 @@ class ZetaData:
     def calculate_N(self, t):
         # we choose a gram point g near t and then try to use turing's method
         # to prove that S(g) = 0, so that N(g) = N_approx(g)
+        
 
         RR = RealField(200)
+        t = self.t0 + RR(t)
 
         N = floor(N_approx(t))
         g = RR(grampoint(N))
@@ -315,7 +356,7 @@ class ZetaData:
 
         print "Successfully proved that S(g) >= 0. Huzzah! "
 
-        return (starting_N, g, upper_bound_points, lower_bound_points)
+        return (starting_N, RR(g - self.t0), upper_bound_points, lower_bound_points)
 
     def find_zeros(self, start, end, delta):
         t1 = start
@@ -333,6 +374,55 @@ class ZetaData:
             t2 = t1 + delta
 
         return zeros
+
+    def create_S_t(self, start, starting_index, zeros):
+        def S(t):
+            if t < start:
+                return 0
+            num_zeros = starting_index + bisect(zeros, t) + 1
+            return num_zeros - RealField(200)(N_approx(self.t0 + RealField(200)(t)))
+            
+        #return plot(S, start, end, rgbcolor=(1, 0, 0), plot_points=5000)
+        return S
+
+
+def plot_max_values():
+    entries = large_values_collection.find()
+    L = []
+    log10 = RR(10).log()
+    for entry in entries:
+        t = RR(entry['t'])
+        m = RR(entry['max_value'])
+        L.append( point((t.log(), m.log())))
+
+    return sum(L)
+
+
+
+def update_all_entries(collection):
+    t_list = []
+    entries = collection.find(fields = ['t'])
+    for entry in entries:
+        t_list.append(entry['t'])
+    
+    for t in t_list:
+        print "loading data for t =", t
+        Z = ZetaData(t, type = "large_value_entry")
+        print "updating entry for t =", t
+        Z.update_db_entry(collection)
+
+def update_all_entries_missing_max(collection):
+    t_list = []
+    entries = collection.find(fields = ['t', 'max_value'])
+    for entry in entries:
+        if not 'max_value' in entry:
+            t_list.append(entry['t'])
+
+    for t in t_list:
+        print "loading data for t =", t
+        Z = ZetaData(t, type = "large_value_entry")
+        print "updating entry for t =", t
+        Z.update_db_entry(collection)
 
 def blfi_kernel(u, c, epsilon_1):
     x = c^2 - (epsilon_1 * u)^2
@@ -373,30 +463,74 @@ def make_pictures():
         sys.stdout.flush()
         P.save(small_picture_name, figsize=[10,5])
 
+def make_pictures_from_database(collection):
+    output_location = "static/images"
+    
+    t_list = []
+    entries = collection.find(fields = ['t'])
+    for entry in entries:
+        t_list.append(entry['t'])
+    
+    for t in t_list:
+        print "Processing data for t =", t
+        large_location = os.path.join( output_location, "large", t + ".png")
+        small_location = os.path.join( output_location, "small", t + ".png")
+        axis_zoom_location = os.path.join( output_location, "axis_zoom", t + ".png")
+
+        Z = ZetaData(t, type="large_value_entry")
+
+        plot_begin = .1
+        plot_end = Z.tmax - Z.t0 - .1
+
+        plot_created = False
+        if not os.path.exists(small_location):
+            if not plot_created:
+                P = plot(lambda t : Z(t), plot_begin, plot_end)
+                plot_created = True
+            P.save(small_location, figsize=[20,10])
+
+        if not os.path.exists(large_location):
+            if not plot_created:
+                P = plot(lambda t : Z(t), plot_begin, plot_end)
+                plot_created = True
+            P.save(large_location, figsize=[100,30])
+
+        if not os.path.exists(axis_zoom_location):
+            if not plot_created:
+                P = plot(lambda t : Z(t), plot_begin, plot_end)
+                plot_created = True
+            P.save(axis_zoom_location, figsize=[100,30], ymax=10, ymin=-10)
+
 def process_incoming():
-    data_directory = 'data/new/'
-    output_directory = 'pictures/new/'
+    data_directory = 'data7/'
+    output_directory = 'pictures3/'
     filenames = os.listdir(data_directory)
 
     for input_file in filenames:
         datafile = data_directory + input_file
         Z = ZetaData(datafile)
-        t = ZZ(Z.t0)
-        L = [(x-2, y) for (x,y) in Z.Z_values_from_array()]
-        P = list_plot(L, plotjoined = True)
+        Z.update_db_entry(large_values_collection)
+        t = ZZ(floor(Z.t0))
+        #L = [(x-2, y) for (x,y) in Z.Z_values_from_array()]
+        #L = Z.Z_values_from_array()
+        #P = list_plot(L, plotjoined = True)
+        print 'calculating plot for t = ', t
+        sys.stdout.flush()
+        P = plot(lambda t : Z(t), .1, 39.9)
         
         large_picture_name = output_directory + 'z_' + str(t) + '_large.png'
         vertical_zoom_picture_name = output_directory + 'z_' + str(t) + '_vertical_zoom.png'
         axis_zoom_picture_name = output_directory  + 'z_' + str(t) + '_axis_zoom.png'
         small_picture_name = output_directory + 'z_' + str(t) + '_small.png'
+        medium_picture_name = output_directory + 'z_' + str(t) + '_medium.png'
 
         print 'Writing image to', large_picture_name
         sys.stdout.flush()
-        P.save(large_picture_name, figsize=[60,20])
+        P.save(large_picture_name, figsize=[30,10], dpi=200)
 
         print 'Writing image to', small_picture_name
         sys.stdout.flush()
-        P.save(small_picture_name, figsize=[10,5])
+        P.save(small_picture_name, figsize=[5,2.5], dpi=200)
 
         #print 'Writing image to', vertical_zoom_picture_name
         #sys.stdout.flush()
@@ -404,7 +538,11 @@ def process_incoming():
 
         print 'Writing image to', axis_zoom_picture_name
         sys.stdout.flush()
-        P.save(axis_zoom_picture_name, figsize=[60,20], ymin=-5, ymax=5)
+        P.save(axis_zoom_picture_name, figsize=[30,10], ymin=-5, ymax=5, dpi=200)
+
+        print 'Writing image to', medium_picture_name
+        sys.stdout.flush()
+        P.save(medium_picture_name, figsize=[8,4], ymin=-5, ymax=5, dpi=200)
 
 def get_max_values():
     data_directory = 'data/all/'
@@ -586,3 +724,98 @@ def blah():
 
 def blah2(x):
     return floor(x) - 2
+
+def blah3(location):
+    work_units = os.listdir(location)
+    work_units.sort()
+
+    print work_units
+
+    results_created = False
+
+    filecount = 0
+
+    for filename in work_units:
+        print "processing", os.path.join(location, filename)
+        w = open(os.path.join(location, filename), 'r')
+        first_line = w.readline()
+        t_str, start_str, length_str, N_str, delta_str, filename_str, cputime_str, realtime_str = first_line.split()
+
+        t0 = RealField(300)(t_str)
+        N = Integer(N_str)
+        delta = R(delta_str)
+        if not results_created:
+            results = [C(0)] * N
+            results_created = True
+
+        count = 0
+        for line in w:
+            x, y = line.strip()[1:-1].split(',')
+            x = R(x)
+            y = R(y)
+            #results[count] += CC(line)
+            results[count] += C( (x,y) )
+            count = count + 1
+
+        w.close()
+
+        filecount = filecount + 1
+        if filecount > 253:
+        #if True:
+            Z = ZetaData({"t0" : t0, "delta" : delta, "data" : results}, type="dict")
+            L = Z.Z_values_from_array()
+            P = list_plot(L, plotjoined = True)
+            #P.save("partial_sums/%08d.png" % filecount, ymax=80, ymin=-80, figsize=[30,20])
+            P.save("partial_sums/%08d.png" % filecount, figsize=[10,5])
+
+    Z = ZetaData({"t0" : t0, "delta" : delta, "data" : results}, type="dict")
+    #L = Z.Z_values_from_array()
+    #P = list_plot(L, plotjoined = True)
+    P = plot(lambda t : Z(t), 1, 39)
+    P.save("partial_sums/final.png", ymax=15, ymin=-15, figsize=[30,20])
+
+
+def examine_euler_product(t, X):
+    C = ComplexField(200)
+    I = C("(0, 1)")
+    euler_product = C(1)
+    n = 0
+    prev = 1
+    for p in prime_range(nth_prime(X) + 1):
+        n = n + 1
+        prev = euler_product
+        euler_product = euler_product / (1 - 1/p^(1/2 + I * t))
+        average = (prev * euler_product)^(1/2)
+        if p % 5000 == 3:
+            print n, p, CC(euler_product), average
+
+    print p, CC(euler_product), average
+
+def remove_duplicates(zero_list, delta):
+    output = [zero_list[0]]
+    for z in zero_list[1:]:
+        if abs(z - output[-1]) > delta:
+            output.append(z)
+
+    return output
+
+def compute_spacings(zeros):
+    s = [ (y - x) for (x,y) in zip(zeros[:-1], zeros[1:]) ]
+    s.sort()
+    return s
+
+def partition_zeros(zeros, g1, g2):
+    z1 = [z for z in zeros if z < g1]
+    z2 = [z for z in zeros if z > g1 and z < g2]
+    z3 = [z for z in zeros if z > g2]
+
+    return z1, z2, z3
+
+def make_plot_for_msri():
+    t0 = RealField(300)("9178358656494989336431259004785")
+    offset = 20.337429013215523
+    values = load("zeta_values")
+    
+    abs_values = [(x - offset, abs(y)) for x, y in values]
+    P = list_plot(abs_values, plotjoined=True)
+    P.show(figsize=[30,15], xmin=-2, xmax=2)

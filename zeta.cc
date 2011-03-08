@@ -1288,6 +1288,7 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
                 last_cpu_time = current_cpu_time;
                 int current_blocksize = stage_3_block_size(mpz_get_d(v), mpfr_get_d(t, GMP_RNDN));
                 cout << "        Current blocksize ~= " << current_blocksize << endl;
+                cout << "        Sum so far: " << S[0] << endl;
 
                 ifstream num_threads_file;
                 int new_num_threads = num_threads;
