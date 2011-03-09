@@ -32,7 +32,7 @@
 #include <cmath>
 #include <cstring>
 #include "theta_sums.h"
-#include "zeta.h"
+#include "rs_sum.h"
 
 #include "mpfr.h"
 #include "gmp.h"

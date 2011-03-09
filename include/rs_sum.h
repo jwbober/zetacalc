@@ -9,8 +9,6 @@ namespace verbose {
 
 
 Complex zeta_sum(mpfr_t t);
-void compute_taylor_coefficients(mpfr_t t, Complex Z[13]);
-
 
 Complex zeta_block_d_stupid(mpz_t v, int K, mpfr_t t);
 Complex zeta_block_mpfr(mpz_t v, unsigned int K, mpfr_t t);
@@ -31,6 +29,7 @@ Complex hardy_Z(mpfr_t, Complex &R);
 Complex hardy_Z(mpfr_t t0, Double delta, int N, Complex * S);
 
 Complex zeta_sum_stage1(mpz_t N, mpfr_t t, Double delta, int M, Complex * S);
+Complex zeta_sum_stage1_version2(mpz_t start, mpz_t length, mpfr_t t, Double delta, int M, Complex * S);
 Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex * S);
 Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex * S, int Kmin = 0);
 Complex zeta_block_stage1(mpz_t v, unsigned int K, mpfr_t t, Double delta, int M, Complex * S);

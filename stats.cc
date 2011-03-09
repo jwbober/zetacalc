@@ -1,5 +1,5 @@
 #include "theta_sums.h"
-#include "zeta.h"
+#include "rs_sum.h"
 #include "log.h"
 
 namespace stats {

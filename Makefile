@@ -8,71 +8,78 @@ H_OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -g -pthread
 #OPTIONS = -O3 -Wall -ffast-math -g
 LIBS = -lmpfr -lgmp -lgmpxx -pthread -g
 #LIBS = -lmpfr -lgmp -lgmpxx
-INCLUDEDIR = 
+INCLUDEDIR = -Iinclude
 #INCLUDEDIR = -I/usr/local/sage/local/include
 
-a.out: theta_sums.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o misc.o zeta.o log.o zeta.h log.h direct_evaluation.o exp_sum_euler_maclaurin.o theta_algorithm.o stats.o w_coefficient.o cache.o
-	g++ -O3 theta_sums.o direct_evaluation.o exp_sum_euler_maclaurin.o theta_algorithm.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o misc.o zeta.o log.o stats.o w_coefficient.o cache.o $(LIBS)
+zetacalc:  build/theta_sums.o build/G_functions.o build/H_functions.o build/ICn.o build/H_and_J_integrals.o build/derivative_computations.o build/misc.o build/log.o include/rs_sum.h include/log.h build/direct_evaluation.o build/exp_sum_euler_maclaurin.o build/theta_algorithm.o build/stats.o build/w_coefficient.o build/cache.o build/compute_zeta.o build/riemann_siegel_sum.o build/stage1.o build/stage2.o build/stage3.o build/log.o build/rs_misc.o
+	g++ -O3 -o zetacalc build/theta_sums.o build/direct_evaluation.o build/exp_sum_euler_maclaurin.o build/theta_algorithm.o build/G_functions.o build/H_functions.o build/ICn.o build/H_and_J_integrals.o build/derivative_computations.o build/misc.o build/rs_misc.o build/stage1.o build/stage2.o build/stage3.o build/riemann_siegel_sum.o build/log.o build/stats.o build/w_coefficient.o build/cache.o build/compute_zeta.o $(LIBS)
 
-test:  theta_sums.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o misc.o zeta.o log.o zeta.h log.h direct_evaluation.o exp_sum_euler_maclaurin.o theta_algorithm.o test.o stats.o w_coefficient.o cache.o
-	g++ -O3 -o test theta_sums.o direct_evaluation.o exp_sum_euler_maclaurin.o theta_algorithm.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o test.o misc.o zeta.o log.o stats.o w_coefficient.o cache.o $(LIBS)
+build/test.o: test.cc include/theta_sums.h include/log.h
+	g++ -c test.cc $(OPTIONS) $(INCLUDEDIR) -o build/test.o
 
-zeta:  theta_sums.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o misc.o zeta.o log.o zeta.h log.h direct_evaluation.o exp_sum_euler_maclaurin.o theta_algorithm.o stats.o w_coefficient.o cache.o compute_zeta.o
-	g++ -O3 -o zeta theta_sums.o direct_evaluation.o exp_sum_euler_maclaurin.o theta_algorithm.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o misc.o zeta.o log.o stats.o w_coefficient.o cache.o compute_zeta.o $(LIBS)
+build/main.o: main.cc include/theta_sums.h
+	g++ -c main.cc $(OPTIONS) $(INCLUDEDIR) -o build/main.o
 
-test.o: test.cc theta_sums.h log.h
-	g++ -c test.cc $(OPTIONS) $(INCLUDEDIR)
+build/stats.o: stats.cc include/theta_sums.h include/rs_sum.h
+	g++ -c stats.cc $(OPTIONS) $(INCLUDEDIR) -o build/stats.o
 
-main.o: main.cc theta_sums.h
-	g++ -c main.cc $(OPTIONS) $(INCLUDEDIR)
+build/theta_sums.o: theta_sums.cc include/theta_sums.h
+	g++ -c theta_sums.cc $(OPTIONS) $(INCLUDEDIR) -o build/theta_sums.o
 
-stats.o: stats.cc theta_sums.h
-	g++ -c stats.cc $(OPTIONS) $(INCLUDEDIR)
+build/direct_evaluation.o: direct_evaluation.cc include/theta_sums.h
+	g++ -c direct_evaluation.cc $(OPTIONS) $(INCLUDEDIR) -o build/direct_evaluation.o
 
-theta_sums.o: theta_sums.cc theta_sums.h
-	g++ -c theta_sums.cc $(OPTIONS) $(INCLUDEDIR)
+build/exp_sum_euler_maclaurin.o: exp_sum_euler_maclaurin.cc include/theta_sums.h precomputed_tables.h
+	g++ -c exp_sum_euler_maclaurin.cc $(OPTIONS) $(INCLUDEDIR) -o build/exp_sum_euler_maclaurin.o
 
-direct_evaluation.o: direct_evaluation.cc theta_sums.h
-	g++ -c direct_evaluation.cc $(OPTIONS) $(INCLUDEDIR)
+build/theta_algorithm.o: theta_algorithm.cc include/theta_sums.h precomputed_tables.h
+	g++ -c theta_algorithm.cc $(OPTIONS) $(INCLUDEDIR) -o build/theta_algorithm.o
 
-exp_sum_euler_maclaurin.o: exp_sum_euler_maclaurin.cc theta_sums.h precomputed_tables.h
-	g++ -c exp_sum_euler_maclaurin.cc $(OPTIONS) $(INCLUDEDIR)
+build/G_functions.o: G_functions.cc include/theta_sums.h precomputed_tables.h
+	g++ -c G_functions.cc $(OPTIONS) $(INCLUDEDIR) -o build/G_functions.o
 
-theta_algorithm.o: theta_algorithm.cc theta_sums.h precomputed_tables.h
-	g++ -c theta_algorithm.cc $(OPTIONS) $(INCLUDEDIR)
+build/H_functions.o: H_functions.cc include/theta_sums.h precomputed_tables.h
+	g++ -c H_functions.cc $(H_OPTIONS) $(INCLUDEDIR) -o build/H_functions.o
 
-G_functions.o: G_functions.cc theta_sums.h precomputed_tables.h
-	g++ -c G_functions.cc $(OPTIONS) $(INCLUDEDIR)
+build/ICn.o: ICn.cc include/theta_sums.h precomputed_tables.h include/log.h
+	g++ -c ICn.cc $(OPTIONS) $(INCLUDEDIR) -o build/ICn.o
 
-H_functions.o: H_functions.cc theta_sums.h precomputed_tables.h
-	g++ -c H_functions.cc $(H_OPTIONS) $(INCLUDEDIR)
+build/H_and_J_integrals.o: H_and_J_integrals.cc include/theta_sums.h precomputed_tables.h
+	g++ -c H_and_J_integrals.cc $(OPTIONS) $(INCLUDEDIR) -o build/H_and_J_integrals.o
 
-ICn.o: ICn.cc theta_sums.h precomputed_tables.h log.h
-	g++ -c ICn.cc $(OPTIONS) $(INCLUDEDIR)
+build/cache.o: cache.cc include/theta_sums.h
+	g++ -c cache.cc $(OPTIONS) $(INCLUDEDIR) -o build/cache.o
 
-H_and_J_integrals.o: H_and_J_integrals.cc theta_sums.h precomputed_tables.h
-	g++ -c H_and_J_integrals.cc $(OPTIONS) $(INCLUDEDIR)
+build/derivative_computations.o: derivative_computations.cc include/theta_sums.h
+	g++ -c derivative_computations.cc $(OPTIONS) $(INCLUDEDIR) -o build/derivative_computations.o
 
-cache.o: cache.cc theta_sums.h
-	g++ -c cache.cc $(OPTIONS) $(INCLUDEDIR)
+build/stage1.o: rs_sum/stage1.cc include/rs_sum.h
+	g++ -c rs_sum/stage1.cc $(OPTIONS) $(INCLUDEDIR) -o build/stage1.o
 
-derivative_computations.o: derivative_computations.cc theta_sums.h
-	g++ -c derivative_computations.cc $(OPTIONS) $(INCLUDEDIR)
+build/stage2.o: rs_sum/stage2.cc include/rs_sum.h
+	g++ -c rs_sum/stage2.cc $(OPTIONS) $(INCLUDEDIR) -o build/stage2.o
 
-zeta.o: zeta.cc zeta.h
-	g++ -c zeta.cc $(OPTIONS) $(INCLUDEDIR)
+build/stage3.o: rs_sum/stage3.cc include/rs_sum.h
+	g++ -c rs_sum/stage3.cc $(OPTIONS) $(INCLUDEDIR) -o build/stage3.o
 
-compute_zeta.o: zeta.h compute_zeta.cc
-	g++ -c compute_zeta.cc $(OPTIONS) $(INCLUDEDIR)
+build/rs_misc.o: rs_sum/rs_misc.cc include/rs_sum.h
+	g++ -c rs_sum/rs_misc.cc $(OPTIONS) $(INCLUDEDIR) -o build/rs_misc.o
 
-misc.o: misc.cc precomputed_tables.h misc.h log.h
-	g++ -c misc.cc $(OPTIONS) $(INCLUDEDIR)
+build/riemann_siegel_sum.o: rs_sum/riemann_siegel_sum.cc include/rs_sum.h include/theta_sums.h
+	g++ -c rs_sum/riemann_siegel_sum.cc $(OPTIONS) $(INCLUDEDIR) -o build/riemann_siegel_sum.o
 
-w_coefficient.o: w_coefficient.cc w_coefficient.h misc.h theta_sums.h precomputed_tables.h
-	g++ -c w_coefficient.cc $(OPTIONS) $(INCLUDEDIR)
+build/compute_zeta.o: include/rs_sum.h compute_zeta.cc
+	g++ -c compute_zeta.cc $(OPTIONS) $(INCLUDEDIR) -o build/compute_zeta.o
 
-log.o: log.cc log.h
-	g++ -c log.cc $(OPTIONS) $(INCLUDEDIR)
+build/misc.o: misc.cc precomputed_tables.h include/misc.h include/log.h
+	g++ -c misc.cc $(OPTIONS) $(INCLUDEDIR) -o build/misc.o
+
+build/w_coefficient.o: w_coefficient.cc w_coefficient.h include/misc.h include/theta_sums.h precomputed_tables.h
+	g++ -c w_coefficient.cc $(OPTIONS) $(INCLUDEDIR) -o build/w_coefficient.o
+
+build/log.o: log/log.cc include/log.h
+	g++ -c log/log.cc $(OPTIONS) $(INCLUDEDIR) -o build/log.o
 
 clean:
-	rm theta_sums.o direct_evaluation.o exp_sum_euler_maclaurin.o theta_algorithm.o G_functions.o H_functions.o ICn.o H_and_J_integrals.o derivative_computations.o main.o misc.o zeta.o log.o test.o test stats.o w_coefficient.o cache.o compute_zeta.o zeta
+	rm zetacalc
+	rm build/*
