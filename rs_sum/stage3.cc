@@ -271,7 +271,7 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
     }
 
 
-    const unsigned int block_size = 10000000;
+    const unsigned int block_size = 100000000;
 
     mpz_t number_of_blocks;
     mpz_init(number_of_blocks);
