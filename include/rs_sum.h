@@ -44,3 +44,5 @@ unsigned int stage_3_block_size(Double v, Double t);
 
 Complex rs_rotation(mpfr_t t);
 Double rs_remainder(mpfr_t t);
+
+void compute_Z_from_rs_sum(mpfr_t t0, double delta, int N, Complex * S, Complex * Z);

@@ -11,6 +11,10 @@ using namespace std;
 const int MAX_THREADS = 30;
 //const char * NUM_THREADS_FILE = "/home/bober/math/experiments/theta_sums/number_of_threads";
 string NUM_THREADS_FILE;
+bool use_num_threads_file;
+int default_number_of_threads = 4;
+
+unsigned int stage3_start = 1200;
 
 void stage_1_bound(mpz_t v, mpfr_t t) {
     //
@@ -53,7 +57,7 @@ void stage_2_bound(mpz_t v, mpfr_t t) {
     //mpfr_mul_ui(x, x, 1120u, GMP_RNDN);
     //mpfr_mul_ui(x, x, 51u, GMP_RNDN);
     //mpfr_mul_ui(x, x, 890u, GMP_RNDN);
-    mpfr_mul_ui(x, x, 1200u, GMP_RNDN);
+    mpfr_mul_ui(x, x, stage3_start, GMP_RNDN);
     
     // temporary multiplication to avoid entering stage3
     //mpfr_mul_ui(x, x, 100000u, GMP_RNDN);
@@ -95,8 +99,14 @@ Complex partial_zeta_sum(mpz_t start, mpz_t length, mpfr_t t, Double delta, int 
     // which should have space for N entries, and the return value will be the
     // value of the sum for k = 0
     //
-
-    NUM_THREADS_FILE = number_of_threads_filename;
+    
+    if(number_of_threads_filename != "") {
+        NUM_THREADS_FILE = number_of_threads_filename;
+        use_num_threads_file = true;
+    }
+    else {
+        use_num_threads_file = false;
+    }
 
     for(int l = 0; l < N; l++) {
         S[l] = 0.0;
@@ -140,6 +150,8 @@ Complex partial_zeta_sum(mpz_t start, mpz_t length, mpfr_t t, Double delta, int 
     mpz_sub(N1, n1, start);
     mpz_sub(N2, n2, n1);        // N2 and N3 hold the lengths of the sums for stage 2 and stage 3
     mpz_sub(N3, n3, n2);
+
+    create_exp_itlogn_table(t);
 
     zeta_sum_stage1_version2(start, N1, t, delta, N, S1);
     cout << "Done with stage 1. Sum was: " << S1[0] << endl;

@@ -492,6 +492,39 @@ Complex rs_rotation(mpfr_t t) {
     return answer;
 }
 
+void compute_Z_from_rs_sum(mpfr_t t0, double delta, int N, Complex * S, Complex * Z) {
+    Complex rotation_factor;
+    Double remainder_terms;
+
+    mpfr_t t;
+    mpfr_init2(t, mpfr_get_prec(t0));
+    mpfr_set(t, t0, GMP_RNDN);
+
+    for(int l = 0; l < N; l++) {
+        rotation_factor = rs_rotation(t);
+        remainder_terms = rs_remainder(t);
+        Z[l] = 2 * real(rotation_factor * S[l]) + remainder_terms;
+        mpfr_add_d(t, t, delta, GMP_RNDN);
+    }
+}
+
+void compute_zeta_from_Z(mpfr_t t0, double delta, int N, Complex * Z, Complex * zeta) {
+    Complex rotation_factor;
+    Double remainder_terms;
+
+    mpfr_t t;
+    mpfr_init2(t, mpfr_get_prec(t0));
+    mpfr_set(t, t0, GMP_RNDN);
+
+    for(int l = 0; l < N; l++) {
+        rotation_factor = rs_rotation(t);
+        remainder_terms = rs_remainder(t);
+        zeta[l] = 2 * real(rotation_factor * Z[l]) + remainder_terms;
+        mpfr_add_d(t, t, delta, GMP_RNDN);
+    }
+
+}
+
 Complex hardy_Z(mpfr_t t, Complex &R) {
     //
     // Compute the hardy_Z function at t and set R to the rotation

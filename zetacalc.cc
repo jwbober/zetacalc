@@ -1,6 +1,8 @@
 #include "theta_sums.h"
 #include "rs_sum.h"
 
+#include <getopt.h>
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -9,10 +11,15 @@
 
 using namespace std;
 
+extern int default_number_of_threads;
+
+extern int stage3_start;
+
 //const char * PRECOMPUTATION_LOCATION = "/home/bober/math/experiments/theta_sums/caches/";
 
 string precomputation_location;
 string config_file_location = "/.zeta/";
+string output_filename = "";
 
 //computes sinc function
 Double sinc(Double x){
@@ -215,11 +222,6 @@ void do_precomputation(mpfr_t t) {
     mpz_clear(v);
 }
 
-namespace zeta_config {
-    extern int stage2_number_of_threads;
-    extern int stage3_number_of_threads;
-}
-
 void do_computation() {
     mpfr_t t;
     mpfr_init2(t, 150);
@@ -298,16 +300,222 @@ will happen. In the future it will be setup so that the whole sum is computed.\n
 
 }
 
-int main(int argc, char * argv[]) {
-    if(argc != 2) {
+int process_input_file(char const* filename) {
+
+    ifstream input_file;
+    input_file.open(filename);
+    if(!input_file.is_open()) {
+        cout << "Error: Could not open file " << filename << endl << endl;
         usage();
         return 1;
     }
 
-    ifstream input_file;
-    input_file.open(argv[1]);
-    if(!input_file.is_open()) {
-        cout << "Error: Could not open file " << argv[1] << endl << endl;
+    clock_t start_cpu_time = clock();
+    time_t start_wall_time = time(NULL);
+
+    mpfr_t t;
+    mpz_t start, length;
+
+    mpfr_init2(t, 200);
+    mpz_init(start);
+    mpz_init(length);
+
+    double delta;
+    int N;
+    string t_string;
+
+
+    input_file >> t_string;
+    mpfr_set_str(t, t_string.c_str(), 10, GMP_RNDN);
+    input_file >> start;
+    input_file >> length;
+    input_file >> N;
+    input_file >> delta;
+    if(output_filename == "") {
+        input_file >> output_filename;
+    }
+    else {
+        string blah;
+        input_file >> blah;
+    }
+
+    cout << start << endl;
+    cout << length << endl;
+    cout << N << endl;
+    cout << delta << endl;
+    cout << output_filename << endl;
+
+    Complex S[N];
+    partial_zeta_sum(start, length, t, delta, N, S, "",  Kmin);
+
+    ofstream output_file;
+    output_file.open(output_filename.c_str());
+    
+    output_file << setprecision(17);
+
+    output_file << t_string << " ";
+    output_file << start << " ";
+    output_file << length << " ";
+    output_file << N << " ";
+    output_file << delta << " ";
+    output_file << output_filename << " ";
+
+    clock_t end_cpu_time = clock();
+    time_t end_wall_time = time(NULL);
+
+    output_file << ((double)end_cpu_time - (double)start_cpu_time)/CLOCKS_PER_SEC << " ";
+    output_file << end_wall_time - start_wall_time << endl;
+    
+    for(int k = 0; k < N; k++) {
+         output_file << S[k] << endl;
+    }
+    return 0;
+
+}
+
+
+
+int main(int argc, char * argv[]) {
+    
+    // initial setup of default arguments
+
+    int Kmin = 0;
+    char const* filename = NULL;
+
+    bool do_precomp = false;
+    bool use_precomputation = false;
+    bool length_set = false;
+    bool use_input_file = false;
+
+    double delta = .05;
+    int N = 20;
+
+    int Z_flag = 0;
+    int zeta_flag = 0;
+
+    mpfr_t t;
+    mpfr_init2(t, 250);
+    mpfr_set_str(t, "1000", 10, GMP_RNDN);
+
+    mpz_t start;
+    mpz_t length;
+
+    mpz_init(start);
+    mpz_init(length);
+
+    mpz_set_str(start, "1", 10);
+
+    while (1) {
+        enum {KMIN = 2, T, START, LENGTH, DELTA, DOPRECOMPUTATION, USEPRECOMPUTATION, FILENAME, NUMTHREADS, N_OPTION, STAGE3_START, OUTPUT};
+
+        static struct option options[] = 
+            {
+                {"Kmin", required_argument, 0, KMIN},
+                {"t", required_argument, 0, T},
+                {"start", required_argument, 0, START},
+                {"length", required_argument, 0, LENGTH},
+                {"delta", required_argument, 0, DELTA},
+                {"Z", no_argument, &Z_flag, 1},
+                {"zeta", no_argument, &zeta_flag, 1},
+                {"do_precomputation", required_argument, 0, DOPRECOMPUTATION},
+                {"use_precomputation", required_argument, 0, USEPRECOMPUTATION},
+                {"filename", required_argument, 0, FILENAME},
+                {"number_of_threads", required_argument, 0, NUMTHREADS},
+                {"N", required_argument, 0, N_OPTION},
+                {"stage3_start", required_argument, 0, STAGE3_START},
+                {"output", required_argument, 0, OUTPUT},
+                {0, 0, 0, 0}
+            };
+
+        int option_index = 0;
+        int c = getopt_long(argc, argv, "", options, &option_index);
+        if (c == -1)
+            break;
+
+        switch(options[option_index].val) {
+            case KMIN:
+                Kmin = atoi(optarg);
+                break;
+            case T:
+                mpfr_set_str(t, optarg, 10, GMP_RNDN);
+                break;
+            case START:
+                mpz_set_str(start, optarg, 10);
+                break;
+            case LENGTH:
+                length_set = true;
+                mpz_set_str(length, optarg, 10);
+                break;
+            case DELTA:
+                delta = atof(optarg);
+                break;
+            case DOPRECOMPUTATION:
+                do_precomp = true;
+                precomputation_location = optarg;
+                break;
+            case USEPRECOMPUTATION:
+                use_precomputation = true;
+                precomputation_location = optarg;
+                break;
+            case FILENAME:
+                filename = optarg;
+                use_input_file = true;
+                break;
+            case NUMTHREADS:
+                default_number_of_threads = atoi(optarg);
+                break;
+            case N_OPTION:
+                N = atoi(optarg);
+                break;
+            case STAGE3_START:
+                stage3_start = strtoul(optarg, NULL, 10);
+                break;
+            case OUTPUT:
+                output_filename = optarg;
+                break;
+
+        }
+    }
+
+    if(do_precomp) {
+        do_precomputation(t);
+        return 0;
+    }
+
+    if(use_precomputation) {
+        do_precomputation(t);
+    }
+
+    if(use_input_file) {
+        return process_input_file(filename);
+    }
+
+    if(!length_set) {
+        mpfr_t z;
+        mpfr_init2(z, 250);
+        mpfr_const_pi(z, GMP_RNDN);
+        mpfr_mul_2ui(z, z, 1, GMP_RNDN);
+        mpfr_div(z, t, z, GMP_RNDN);
+        mpfr_sqrt(z, z, GMP_RNDN);
+        mpfr_get_z(length, z, GMP_RNDD);
+    }
+
+    complex<double> S[N];
+
+    partial_zeta_sum(start, length, t, delta, N, S, "", Kmin);
+
+    if(Z_flag) {
+        compute_Z_from_rs_sum(t, delta, N, S, S);
+    }
+
+    for(int n = 0; n < N; n++) {
+        cout << S[n] << endl;
+    }
+
+    return 0;
+
+
+    if(argc != 2) {
         usage();
         return 1;
     }
@@ -343,71 +551,5 @@ int main(int argc, char * argv[]) {
     }
     temp_infile >> precomputation_location;
     temp_infile.close();
-
-    temp_infile.open(Kmin_filename.c_str());
-    if(!temp_infile.is_open()) {
-        cout << "Error reading configuration data for Kmin." << endl;
-        return 1;
-    }
-    int Kmin;
-    temp_infile >> Kmin;
-    temp_infile.close();
-
-    clock_t start_cpu_time = clock();
-    time_t start_wall_time = time(NULL);
-
-    mpfr_t t;
-    mpz_t start, length;
-
-    mpfr_init2(t, 200);
-    mpz_init(start);
-    mpz_init(length);
-
-    double delta;
-    int N;
-    string t_string;
-    string output_filename;
-
-    input_file >> t_string;
-    mpfr_set_str(t, t_string.c_str(), 10, GMP_RNDN);
-    input_file >> start;
-    input_file >> length;
-    input_file >> N;
-    input_file >> delta;
-    input_file >> output_filename;
-
-    cout << start << endl;
-    cout << length << endl;
-    cout << N << endl;
-    cout << delta << endl;
-    cout << output_filename << endl;
-
-    do_precomputation(t);
-    
-    Complex S[N];
-    partial_zeta_sum(start, length, t, delta, N, S, number_of_threads_filename, Kmin);
-
-    ofstream output_file;
-    output_file.open(output_filename.c_str());
-    
-    output_file << setprecision(17);
-
-    output_file << t_string << " ";
-    output_file << start << " ";
-    output_file << length << " ";
-    output_file << N << " ";
-    output_file << delta << " ";
-    output_file << output_filename << " ";
-
-    clock_t end_cpu_time = clock();
-    time_t end_wall_time = time(NULL);
-
-    output_file << ((double)end_cpu_time - (double)start_cpu_time)/CLOCKS_PER_SEC << " ";
-    output_file << end_wall_time - start_wall_time << endl;
-    
-    for(int k = 0; k < N; k++) {
-         output_file << S[k] << endl;
-    }
-    return 0;
 
 }

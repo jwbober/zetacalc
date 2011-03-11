@@ -26,6 +26,8 @@
 using namespace std;
 const int MAX_THREADS = 30;
 extern string NUM_THREADS_FILE;
+extern bool use_num_threads_file;
+extern int default_number_of_threads;
 
 inline unsigned int stage_2_block_size(Double v, Double t) {
     //
@@ -40,6 +42,9 @@ inline unsigned int stage_2_block_size(Double v, Double t) {
     //unsigned int block_size = (unsigned int)( min(v * pow(t, -.25), sqrt(v)/500.0  ) );
     //unsigned int block_size = (unsigned int)( min(v * pow(t, -.25), pow(v, .75)/sqrt(300000.0)  ) );
     unsigned int block_size = (unsigned int)( min(v * pow(t, -.25), v/(500.0 * 500.0)  ) );
+
+    if(block_size > 5000)
+        return 5000;
 
     return block_size;
 }
@@ -93,7 +98,7 @@ Complex zeta_block_stage2_basic(mpz_t v, unsigned int *K, mpfr_t t, Double epsil
         return exp_itlogn(v)/sqrt(mpz_get_d(v));
     }  
     
-     Double vv = mpz_get_d(v);
+    Double vv = mpz_get_d(v);
     Double tt = mpfr_get_d(t, GMP_RNDN);
     
     unsigned int block_size = min(stage_2_block_size(vv, tt), *K);
@@ -362,15 +367,15 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
     mpz_set(v, n);
     mpz_sub_ui(v, v, block_size);
 
-    ifstream num_threads_file;
-    int num_threads = 2;
-    num_threads_file.open(NUM_THREADS_FILE.c_str());
-    if(!num_threads_file) {
-        num_threads = 2;
-    }
-    else {
-        num_threads_file >> num_threads;
-        num_threads_file.close();
+    int num_threads = default_number_of_threads;
+
+    if(use_num_threads_file) {
+        ifstream num_threads_file;
+        num_threads_file.open(NUM_THREADS_FILE.c_str());
+        if(num_threads_file) {
+            num_threads_file >> num_threads;
+            num_threads_file.close();
+        }
     }
 
     // right now we don't handle the case where the number of blocks is less than the number of threads,
@@ -510,63 +515,66 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
                 cout << "In stage2, completed " << k << " large blocks out of " << number_of_blocks << "." << endl;
                 cout << "        In stage2 thus far: " << elapsed_wall_time << " real seconds; " << total_cpu_time << " cpu seconds; " << elapsed_cpu_time << "cpu seconds this block. " << endl;
                 last_cpu_time = current_cpu_time;
-                ifstream num_threads_file;
-                int new_num_threads = num_threads;
-                num_threads_file.open(NUM_THREADS_FILE.c_str());
-                if(!num_threads_file) {
-                    new_num_threads = 2;
-                }
-                else {
-                    num_threads_file >> new_num_threads;
-                    num_threads_file.close();
-                }
-                if(new_num_threads > num_threads) {
-                    if(new_num_threads > MAX_THREADS)
-                        new_num_threads = MAX_THREADS;
-                    cout << "Increasing the number of threads to " << new_num_threads << endl;
-                    // We actually need to spawn new threads now. First we check to see how many blocks
-                    // are remaining. If it is less than the number of new threads we should
-                    // spawn, we actually do nothing. (Assuming that MAX_THREADS isn't very large
-                    // this can never be too wasteful.)
-                    
-                    mpz_sub(number_of_blocks, number_of_blocks, k);
-                    if(mpz_cmp_si(number_of_blocks, num_threads - new_num_threads) >= 0) {
-                        mpz_add(number_of_blocks, number_of_blocks, k);
-                        mpz_add_ui(k, k, new_num_threads - num_threads);
-                        for(int k = num_threads; k < new_num_threads; k++) {
-                            mpz_add_ui(v, v, block_size);
-                            thread_data[k].set(v, block_size, t, delta, M, S2[k], &thread_queue, &queue_mutex, &queue_nonempty_signaler, k);
-                            pthread_create(&threads[k], NULL, zeta_block_stage2, (void *)(&thread_data[k]));
-                            unjoined[k] = true;
-                        }
+                
+                if(use_num_threads_file) {
+                    int new_num_threads = num_threads;
+                    ifstream num_threads_file;
+                    num_threads_file.open(NUM_THREADS_FILE.c_str());
+                    if(!num_threads_file) {
+                        new_num_threads = 2;
                     }
                     else {
-                        mpz_add(number_of_blocks, number_of_blocks, k);
-                        // Do nothing. This is the case where the number of blocks
-                        // remaining is very small.
+                        num_threads_file >> new_num_threads;
+                        num_threads_file.close();
                     }
-
-                    num_threads = new_num_threads;   
-                }
-                else if(new_num_threads < num_threads) {
-                    if(new_num_threads < 1)
-                        new_num_threads = 1;
-                    cout << "Decreasing the number of threads to " << new_num_threads << endl;
-                    pthread_mutex_unlock(&queue_mutex);
-                    for(int k = new_num_threads; k < num_threads;k++) {
-                        void * status;
-                        cout << "Attempting to join thread " << k << endl;
-                        cout.flush();
-                        if(unjoined[k]) {
-                            pthread_join(threads[k], &status);
-                            unjoined[k] = false;
+                    if(new_num_threads > num_threads) {
+                        if(new_num_threads > MAX_THREADS)
+                            new_num_threads = MAX_THREADS;
+                        cout << "Increasing the number of threads to " << new_num_threads << endl;
+                        // We actually need to spawn new threads now. First we check to see how many blocks
+                        // are remaining. If it is less than the number of new threads we should
+                        // spawn, we actually do nothing. (Assuming that MAX_THREADS isn't very large
+                        // this can never be too wasteful.)
+                        
+                        mpz_sub(number_of_blocks, number_of_blocks, k);
+                        if(mpz_cmp_si(number_of_blocks, num_threads - new_num_threads) >= 0) {
+                            mpz_add(number_of_blocks, number_of_blocks, k);
+                            mpz_add_ui(k, k, new_num_threads - num_threads);
+                            for(int k = num_threads; k < new_num_threads; k++) {
+                                mpz_add_ui(v, v, block_size);
+                                thread_data[k].set(v, block_size, t, delta, M, S2[k], &thread_queue, &queue_mutex, &queue_nonempty_signaler, k);
+                                pthread_create(&threads[k], NULL, zeta_block_stage2, (void *)(&thread_data[k]));
+                                unjoined[k] = true;
+                            }
                         }
+                        else {
+                            mpz_add(number_of_blocks, number_of_blocks, k);
+                            // Do nothing. This is the case where the number of blocks
+                            // remaining is very small.
+                        }
+
+                        num_threads = new_num_threads;   
                     }
-                    cout << "Reacquiring lock" << endl;
-                    pthread_mutex_lock(&queue_mutex);
-                    cout << "Locked acquired." << endl;
-                    cout.flush();
-                    num_threads = new_num_threads;
+                    else if(new_num_threads < num_threads) {
+                        if(new_num_threads < 1)
+                            new_num_threads = 1;
+                        cout << "Decreasing the number of threads to " << new_num_threads << endl;
+                        pthread_mutex_unlock(&queue_mutex);
+                        for(int k = new_num_threads; k < num_threads;k++) {
+                            void * status;
+                            cout << "Attempting to join thread " << k << endl;
+                            cout.flush();
+                            if(unjoined[k]) {
+                                pthread_join(threads[k], &status);
+                                unjoined[k] = false;
+                            }
+                        }
+                        cout << "Reacquiring lock" << endl;
+                        pthread_mutex_lock(&queue_mutex);
+                        cout << "Locked acquired." << endl;
+                        cout.flush();
+                        num_threads = new_num_threads;
+                    }
                 }
             }
 
