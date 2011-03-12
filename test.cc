@@ -1,11 +1,11 @@
 #include "theta_sums.h"
 #include "log.h"
-#include "zeta.h"
+#include "rs_sum.h"
 
 #include <ctime>
 #include <iostream>
 #include <iomanip>
-#include "precomputed_tables.h"
+#include "theta_sums/precomputed_tables.h"
 
 using namespace std;
 
@@ -992,7 +992,7 @@ double time_zeta_sum_stage1() {
     return elapsed_time;
 }
 
-
+/*
 int time_zeta_sum_stage3(gmp_randstate_t rand_state) {
     mpfr_t t, big_number;  
     mpfr_init2(t, 200);
@@ -1068,6 +1068,8 @@ int time_zeta_sum_stage3(gmp_randstate_t rand_state) {
 
 }
 
+*/
+
 void H_test() {
 
     cout << H_method1(58, 72.0 * I) << endl;
@@ -1078,8 +1080,56 @@ void H_test() {
     cout << H_method1(85, 80.0 * I) << endl;
 }
 
+void test1() {
+    mpfr_t a;
+    mpfr_init2(a, 200);
+    mpfr_set_str(a, "0.46666552511643095", 10, GMP_RNDN);
+
+    mpfr_t b;
+    mpfr_init2(b, 200);
+    mpfr_set_str(b, "0.18333333337945587", 10, GMP_RNDN);
+    
+    int j = 18;
+    unsigned int block_size = 17431;
+    Complex Z[19];
+    Z[0] = Complex(1,0);
+    Z[1] = Complex(-4.1202789467000038e-11,0);
+    Z[2] = Complex(2.546504789792894e-21,0);
+    Z[3] = Complex(0,0.24294252905079758);
+    Z[4] = Complex(-0,-2.502477469265138e-11);
+    Z[5] = Complex(0,2.2271555299401193e-21);
+    Z[6] = Complex(-0.029510536210798802,0);
+    Z[7] = Complex(4.8636656422072966e-12,0);
+    Z[8] = Complex(-5.7864515793819967e-22,0);
+    Z[9] = Complex(-0,-0.0023897881002322013);
+    Z[10] = Complex(0,5.4156264780535148e-13);
+    Z[11] = Complex(-0,-8.0938571022957095e-23);
+    Z[12] = Complex(0.00014514529124147794,0);
+    Z[13] = Complex(0,0);
+    Z[14] = Complex(0,0);
+    Z[15] = Complex(7.0523928268038457e-06,0);
+    Z[16] = Complex(0,0);
+    Z[17] = Complex(0,0);
+    Z[18] = Complex(2.8555435820057152e-07,0);
+    Z[18] = exp(-15);
+
+    //Complex S = compute_exponential_sums(a, b, j, block_size - 1, Z, exp(-20), 800, 0);
+    Complex S1 = compute_exponential_sums(a, b, j, block_size - 1, Z, exp(-20), 500, 0);
+    Complex S2 = compute_exponential_sums(a, b, j, block_size - 1, Z, exp(-20), 500, 1);
+
+    cout << S1 - S2 << endl;
+
+
+    //cout << "S = " << S << endl;
+    cout << "S1 = " << S1 << endl;
+
+}
 
 int main() {
+
+    test1();
+    return 0 ;
+
     unsigned int seed = time(NULL);
     //seed = 1276487827;
     //seed = 1276414014;
