@@ -2,15 +2,15 @@
 # function using the main sum data precomputed at a grid of points.
 
 from mpmath import siegeltheta, grampoint, mp
-import pymongo
-from pymongo import Connection
+#import pymongo
+#from pymongo import Connection
 
 from bisect import bisect
 from copy import copy
 
-connection = Connection()
-db = connection.zeta
-large_values_collection = db.large_values
+#connection = Connection()
+#db = connection.zeta
+#large_values_collection = db.large_values
 
 
 mp.prec = 300
