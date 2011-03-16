@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <vector>
 #include "gmpfrxx/gmpfrxx.h"
+#include <algorithm>
 
 typedef double Double;
 typedef std::complex<double> Complex;
@@ -29,48 +30,27 @@ using namespace std;
 double sinc(double x);
 double blfi_kernel(double u, double c, double epsilon1);
 
-mpfr_class siegel_theta(mpfr_class t) {
-    return (t/2) * log(t/(2 * const_pi())) - t/2 - const_pi()/8;
-
-    /*
-    mpfr_t temp;
-    mpfr_init2(temp, mpfr_get_prec(theta));
-    
-    
-    mpfr_const_pi(theta, GMP_RNDN);             // theta = pi
-    mpfr_set_ui(temp, 1u, GMP_RNDN);
-    mpfr_exp(temp, temp, GMP_RNDN);           // temp = e
-
-
-
-    mpfr_mul(theta, theta, temp, GMP_RNDN);     // theta = e * pi
-    mpfr_mul_2ui(theta, theta, 1, GMP_RNDN);    // theta = 2 e pi
-
-
-
-
-    mpfr_div(theta, t, theta, GMP_RNDN);        // theta = t/2epi
-    mpfr_log(theta, theta, GMP_RNDN);           // theta = log(t/2epi)
-    mpfr_mul(theta, theta, t, GMP_RNDN);        // theta = t log (t/2epi)
-    mpfr_div_2ui(theta, theta, 1, GMP_RNDN);    // theta = .../2
-
-    mpfr_const_pi(temp, GMP_RNDN);              //
-    mpfr_div_2ui(temp, temp, 3, GMP_RNDN);      //
-    mpfr_sub(theta, theta, temp, GMP_RNDN);     // theta -= pi/8
-
-    mpfr_clear(temp);
-    */
+bool reverse_cmp(double x, double y) {
+    return x > y;
 }
 
-mpz_class N_approx(mpfr_class t) {
-    return siegel_theta(t)/const_pi();
-    //mpfr_t theta;
-    //mpfr_init2(theta, 300);
-    //siegel_theta(theta, t);
-    //mpfr_div(theta, theta, mp_pi, GMP_RNDN);
-    //mpfr_add_ui(theta, theta, 1u, GMP_RNDN);
-    //mpfr_get_z(N, theta, GMP_RNDD);
-    //mpfr_clear(theta);
+int minus_one_power(mpz_class n) {
+    if(n % 2 == 0) {
+        return 1;
+    }
+    else
+        return -1;
+}
+
+mpfr_class siegel_theta(mpfr_class t) {
+    return (t/2) * log(t/(2 * const_pi())) - t/2 - const_pi()/8;
+}
+
+mpfr_class N_approx(mpfr_class t) {
+    mpfr_class z;
+    z = siegel_theta(t)/const_pi();
+    z = z + 1;
+    return z;
 }
 
 mpfr_class grampoint(mpz_class n) {
@@ -89,12 +69,6 @@ mpfr_class grampoint(mpz_class n) {
     mpfr_class d;
 
     target = const_pi() * n;
-    t1.set_prec(300);
-    t2.set_prec(300);
-    t3.set_prec(300);
-    theta.set_prec(300);
-    target.set_prec(300);
-    d.set_prec(300);
 
     t1 = n;
     t1 = t1/log(t1);
@@ -103,49 +77,25 @@ mpfr_class grampoint(mpz_class n) {
     target = n * const_pi();
 
 
-    //mpfr_set_z(t2, n, GMP_RNDN);
-    //mpfr_log(t1, t2, GMP_RNDN);
-    //mpfr_div(t1, t2, t2, GMP_RNDN);
-
     double epsilon = .00000000001;
 
     // we now maintain the invariant that t1 is too
     // small and t2 is too large
 
-    //mpfr_sub(d, t2, t1, GMP_RNDN);
     d = t2 - t1;
     while(d > epsilon) {
-        //cout << t1 << endl;
-        //cout << t2 << endl;
         t3 = (t1 + t2)/2;
-        //mpfr_add(t3, t1, t2, GMP_RNDN);
-        //mpfr_div_2ui(t3, t3, 1, GMP_RNDN);
-
         theta = siegel_theta(t3);
-        //siegel_theta(theta, t3);
-        //if(mpfr_cmp(theta, target) < 0) {
         if(theta < target) {
             t1 = t3;
-            //mpfr_set(t1, t3, GMP_RNDN);
         }
         else {
-            //mpfr_set(t2, t3, GMP_RNDN);
             t2 = t3;
         }
         d = t2 - t1;
-        //mpfr_sub(d, t2, t1, GMP_RNDN);
     }
 
     return (t1 + t2)/2;
-    //mpfr_add(g, t1, t2, GMP_RNDN);
-    //mpfr_div_2ui(g, g, 1, GMP_RNDN);
-
-    //mpfr_clear(t1);
-    //mpfr_clear(t2);
-    //mpfr_clear(t3);
-    //mpfr_clear(theta);
-    //mpfr_clear(d);
-    //mpfr_clear(target);
 }
 
 Complex I(0, 1);
@@ -168,11 +118,12 @@ public:
     int N;
     Complex * rs_sum;
 
+    vector<double> zeros;
+    mpz_class zero_index;
+    double g0;
+
     ZetaComputation(mpfr_class _t0, double _delta, int _N, Complex * _rs_sum) {
-        //mpfr_init2(t0, mpfr_get_prec(_t0));
-        //mpfr_set(t0, _t0, GMP_RNDN);
         
-        t0.set_prec(_t0.get_prec());
         t0 = _t0;
 
         delta = _delta;
@@ -184,18 +135,7 @@ public:
             rs_sum[n] = _rs_sum[n];
         }
 
-        //mpfr_t temp;
-        //mpfr_init2(temp, 300);
-
-        //mpfr_const_pi(temp, GMP_RNDN);
-        //mpfr_mul_2ui(temp, temp, 1, GMP_RNDN);
-
-        //mpfr_div(temp, t0, temp, GMP_RNDN);
-        //mpfr_log(temp, temp, GMP_RNDN);
-
-        //tau = .5 * mpfr_get_d(temp, GMP_RNDN);
         mpfr_class temp;
-        temp.set_prec(300);
         temp = log(t0/(2 * const_pi()));
         tau = .5 * temp.get_d();
         beta = M_PI/delta;
@@ -203,7 +143,6 @@ public:
         epsilon1 = (beta - tau)/2.0;
         alpha = tau;
 
-        //mpfr_clear(temp);
 
     }
 
@@ -237,6 +176,12 @@ public:
         return S.real();
     }
 
+    double Z(mpfr_class t) {
+        mpfr_class T;
+        T = t - t0;
+        return Z(T.get_d());
+    }
+
     double find_zero(double t1, double t2, double epsilon = .00000001) {
         // given points t1 and t2 such that Z(t1) * Z(t2) < 0,
         // return an approximation of a zero in this interval
@@ -268,8 +213,9 @@ public:
         double t1 = start;
         double t2 = start + delta;
 
-        vector<double> zeros(0);
         int count = 0;
+
+        zeros.clear();
 
         while(t2 < end) {
             if(Z(t1) * Z(t2) < 0) {
@@ -287,19 +233,120 @@ public:
         return zeros;
     }
 
-    //void calculate_N(mpz_class N, mpfr_class t) {
-    //    mpfr_class g;
-    //    mpfr_class T;
 
-    //    g.set_prec(300);
-    //    T.set_prec(300);
+    mpz_class calculate_N(mpfr_class t) {
+        mpfr_class starting_g;
+        mpfr_class g;
+        mpfr_class g2;
+        mpfr_class T;
 
-    //    T = t + t0;
-    //    N_approx(N, T);
+        mpz_class N;
+        mpz_class starting_N;
 
+        T = t + t0;
+        N = floor(N_approx(T) - 1);
+        g = grampoint(N);
+        double delta = .001;
 
+        while( minus_one_power(N) * Z(g) < .001 ) {
+            N = N + 1;
+            g = grampoint(N);
+        }
 
-    //}
+        starting_N = N;
+
+        mpfr_class S_upper_bound;
+
+        mpfr_class a = 2.067;
+        mpfr_class b = .059;
+
+        starting_g = g;
+        mpfr_class h;
+        mpfr_class h_sum;
+
+        h = 0;
+        h_sum = 0;
+        S_upper_bound = 100;
+        while(S_upper_bound > 1.95) {
+            N = N + 1;
+            g2 = grampoint(N);
+            if(g + h < g2 && minus_one_power(N) * Z(g2) > 0) {
+                h = 0;
+                g = g2;
+                S_upper_bound = (a + b * log(g) + h_sum)/(g - starting_g);
+                S_upper_bound += 1;
+                cout << "Found upper bound of " << S_upper_bound << endl;
+            }
+            else {
+                h = g + h - g2 + delta;
+                while(minus_one_power(N) * Z(g2 + h) > 0) {
+                    h = h + delta;
+                }
+                g = g2;
+                h_sum += h;
+            }
+        }
+
+        //cout << "Successfully proved that S(g) <= 0." << endl;
+
+        mpfr_class S_lower_bound;
+        h = 0;
+        h_sum = 0;
+        S_lower_bound = -100;
+        N = starting_N;
+
+        while(S_lower_bound < -1.95) {
+            N = N - 1;
+            g2 = grampoint(N);
+
+            if(g + h > g2 && minus_one_power(N) * Z(g2) > 0) {
+                h = 0;
+                g = g2;
+                S_lower_bound = (a + b * log(g) - h_sum)/(starting_g - g);
+                S_lower_bound += 1;
+                S_lower_bound = -S_lower_bound;
+                cout << "Found lower bound of " << S_lower_bound << endl;
+            }
+            else {
+                h = g + h - g2 - delta;
+                while(minus_one_power(N) * Z(g2 + h) > 0) {
+                    h = h - delta;
+                }
+                g = g2;
+                h_sum += h;
+            }
+        }
+
+        //cout << "Successfully proved that S(g) >= 0." << endl;
+
+        zero_index = starting_N + 1;
+        g = starting_g - t0;
+        g0 = g.get_d();
+
+        return starting_N + 1;
+
+    }
+
+    double calculate_S_values() {
+        double current_max = 0;
+        cout << setprecision(10);
+        mpz_class current_zero_index;
+        current_zero_index = zero_index - (lower_bound(zeros.begin(), zeros.end(), g0) - zeros.begin());
+        mpfr_class x;
+
+        for(vector<double>::iterator i = zeros.begin(); i < zeros.end(); i++) {
+            x = current_zero_index - N_approx(t0 + *i);
+            double S_value = x.get_d();
+            current_max = max(current_max, abs(S_value));
+            cout << *i << " " << S_value << endl;
+            S_value += 1;
+            current_max = max(current_max, abs(S_value));
+            cout << *i << " "  << S_value << endl;
+            current_zero_index += 1;
+        }
+
+        return current_max;
+    }
 
 };
 
@@ -376,54 +423,72 @@ double blfi_kernel(double u, double c, double epsilon_1){
 
 int main(int argc, char * argv[]) {
 
+    mpfr_class::set_dprec(300);
+
     cout << setprecision(200);
 
-    //mpfr_t g;
-    //mpfr_t theta;
-    //mpfr_init2(g, 300);
-    //mpfr_init2(theta, 300);
-    //mpz_t n;
-    //mpz_init(n);
 
-    //mpfr_init2(mp_pi, 300);
-    //mpfr_const_pi(mp_pi, GMP_RNDN);
+    bool filename_set = false;
+    const char * filename = "";
+    int list_values = 0;
+    int list_zeros = 0;
+    int list_S_values = 0;
+    int list_midpoint_values = 0;
+    double spacing = .001;
+    double start = 1;
+    double end = 39;
 
-    mpfr_class g;
-    mpz_class n;
+    while(1) {
+        enum {FILENAME = 2, ZEROS, S_OPTION, START, END, SPACING};
+        static struct option options[] = 
+            {
+                {"filename", required_argument, 0, FILENAME},
+                {"values", no_argument, &list_values, 1},
+                {"zeros", no_argument, &list_zeros, 1},
+                {"S", no_argument, &list_S_values, 1},
+                {"start", required_argument, 0, START},
+                {"end", required_argument, 0, END},
+                {"spacing", required_argument, 0, SPACING},
+                {"list_midpoint_values", no_argument, &list_midpoint_values, 1},
+                {0, 0, 0, 0}
+            }; 
 
-    g.set_prec(300);
+        int option_index = 0;
+        int c = getopt_long(argc, argv, "", options, &option_index);
+        if (c == -1)
+            break;
 
-    //while(1) {
-    //    cin >> n;
-        //mpfr_set_z(g, n, GMP_RNDN);
-        //siegel_theta(theta, g);
-    //    g = grampoint(n);
-    //    cout << g << endl;
-        //grampoint(g, n);
-        ///mpfr_get_z(n, g, GMP_RNDD);
-        //mpfr_sub_z(g, g, n, GMP_RNDN);
-        //cout << n << " + " << mpfr_get_d(g, GMP_RNDN) << endl;
-        //mpfr_get_z(n, theta, GMP_RNDD);
-        //mpfr_sub_z(theta, theta, n, GMP_RNDN);
-        //cout << n << " + " << mpfr_get_d(theta, GMP_RNDN) << endl;
-
-    //}
-
-
-    if(argc < 2) {
-        cout << "missing required input file." << endl;
-        return 1;
+        switch(options[option_index].val) {
+            case FILENAME:
+                filename_set = true;
+                filename = optarg;
+                break;
+            case SPACING:
+                spacing = atof(optarg);
+                break;
+            case START:
+                start = atof(optarg);
+                break;
+            case END:
+                end = atof(optarg);
+                break;
+                
+        }
     }
 
-    ifstream infile(argv[1]);
+    if(!filename_set) {
+        cout << "Missing input file name." << endl;
+        return 0;
+    }
+
+    ifstream infile(filename);
     
-    mpfr_class t;
-    t.set_prec(300);
+    mpfr_class t0;
     double delta;
     int N = 1000;
     complex<double> rs_sum[N];
 
-    infile >> t;
+    infile >> t0;
     infile >> delta;
 
     for(int n = 0; n < N; n++) {
@@ -432,7 +497,7 @@ int main(int argc, char * argv[]) {
 
     infile.close();
 
-    ZetaComputation Z(t, delta, N, rs_sum);
+    ZetaComputation Z(t0, delta, N, rs_sum);
 
     //cout << mpfr_get_d(t, GMP_RNDN) << endl;
     
@@ -444,7 +509,39 @@ int main(int argc, char * argv[]) {
     //    cout << Z.Z(n * delta) << endl;
     //}
     
-    Z.find_zeros(1.0, 39.0, .001, true);
+    if(list_zeros)
+        Z.find_zeros(start, end, spacing, true);
+
+    if(list_values) {
+        cout << setprecision(15);
+        double t = start;
+        while(t < end) {
+            cout << t << " " << Z.Z(t) << endl;
+            t = t + spacing;
+        }
+    }
+
+    if(list_S_values) {
+        Z.find_zeros(start, end, spacing, true);
+        Z.calculate_N(7);
+        double S = Z.calculate_S_values();
+        cout << "maximal value of S was " << S << endl;
+    }
+
+    if(list_midpoint_values) {
+        vector<double> zeros = Z.find_zeros(start, end, spacing, true);
+        vector<double> values(0);
+        double previous = zeros[0];
+        for(vector<double>::iterator i = zeros.begin() + 1; i < zeros.end(); i++) {
+            values.push_back( abs(Z.Z( (*i + previous)/2 ) ));
+            previous = *i;
+        }
+        
+        sort(values.begin(), values.end(), reverse_cmp);
+        for(vector<double>::iterator i = values.begin(); i < values.end(); i++) {
+            cout << *i << endl;
+        }
+    }
 
     return 0;
 }
