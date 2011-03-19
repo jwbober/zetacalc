@@ -114,6 +114,8 @@ public:
     double lambda;
     double epsilon1;
     double alpha;
+    double min_t;
+    double max_t;
 
     int N;
     Complex * rs_sum;
@@ -128,6 +130,9 @@ public:
 
         delta = _delta;
         N = _N;
+
+        min_t = 25 * delta;
+        max_t = (N - 25) * delta;
 
         rs_sum = new Complex[N];
 
@@ -149,6 +154,10 @@ public:
     double Z(double t) {
         // return the value of Z(t0 + _t)
         
+        if(t > max_t || t < min_t) {
+            cout << "t out of range." << endl;
+            exit(30);
+        }
 
         Complex S = 0;
 
@@ -234,7 +243,7 @@ public:
     }
 
 
-    mpz_class calculate_N(mpfr_class t) {
+    mpz_class calculate_N(mpfr_class t, bool verbose=false) {
         mpfr_class starting_g;
         mpfr_class g;
         mpfr_class g2;
@@ -246,7 +255,7 @@ public:
         T = t + t0;
         N = floor(N_approx(T) - 1);
         g = grampoint(N);
-        double delta = .001;
+        double delta = .0001;
 
         while( minus_one_power(N) * Z(g) < .001 ) {
             N = N + 1;
@@ -260,60 +269,105 @@ public:
         mpfr_class a = 2.067;
         mpfr_class b = .059;
 
+        //mpfr_class a = 2.06475173549960;
+        //mpfr_class b = .128;
+
         starting_g = g;
         mpfr_class h;
         mpfr_class h_sum;
 
-        h = 0;
+        h = -delta;
         h_sum = 0;
         S_upper_bound = 100;
+        int count = 0;
         while(S_upper_bound > 1.95) {
+            if(verbose) {
+                count++;
+                cout << "Finding point number " << count << endl;
+            }
             N = N + 1;
             g2 = grampoint(N);
-            if(g + h < g2 && minus_one_power(N) * Z(g2) > 0) {
-                h = 0;
-                g = g2;
-                S_upper_bound = (a + b * log(g) + h_sum)/(g - starting_g);
-                S_upper_bound += 1;
-                cout << "Found upper bound of " << S_upper_bound << endl;
-            }
-            else {
+            //cout << "at gram point " << g2 - t0 << endl;
+            //cout << "Z = " << Z(g2) << endl;
+            //cout << "N = " << N << endl;
+            //cout << "(-1)^N = " << minus_one_power(N) << endl;
+            //if(g + h < g2 && minus_one_power(N) * Z(g2) > 0) {
+            //    h = 0;
+            //    g = g2;
+            //    S_upper_bound = (a + b * log(g) + h_sum)/(g - starting_g);
+            //    S_upper_bound += 1;
+                //cout << "Using h = " << h << "; g + h - t0 = " << g + h - t0 << endl;
+            //    if(verbose)
+            //        cout << "Found upper bound of " << S_upper_bound << endl;
+            //}
+            //else {
+            {
                 h = g + h - g2 + delta;
-                while(minus_one_power(N) * Z(g2 + h) > 0) {
+                while(minus_one_power(N) * Z(g2 + h) < 0) {
                     h = h + delta;
+        //            if(verbose)
+        //                cout << "Trying h = " << h << endl;
                 }
                 g = g2;
                 h_sum += h;
+                if(verbose)  {
+                    cout << "Using h = " << h << "; g + h - t0 = " << g + h - t0 << endl;
+                    cout << "h_sum = " << h_sum << endl;
+                }
+                if(h <= 0) {
+                    S_upper_bound = (a + b * log(g) + h_sum)/(g - starting_g);
+                    S_upper_bound += 1;
+                    if(verbose)
+                        cout << "Found upper bound of " << S_upper_bound << endl;
+                }
             }
         }
 
         //cout << "Successfully proved that S(g) <= 0." << endl;
 
         mpfr_class S_lower_bound;
-        h = 0;
+        h = delta;
         h_sum = 0;
         S_lower_bound = -100;
         N = starting_N;
+        g = starting_g;
 
         while(S_lower_bound < -1.95) {
             N = N - 1;
             g2 = grampoint(N);
 
-            if(g + h > g2 && minus_one_power(N) * Z(g2) > 0) {
-                h = 0;
-                g = g2;
-                S_lower_bound = (a + b * log(g) - h_sum)/(starting_g - g);
-                S_lower_bound += 1;
-                S_lower_bound = -S_lower_bound;
-                cout << "Found lower bound of " << S_lower_bound << endl;
-            }
-            else {
+            //if(g + h > g2 && minus_one_power(N) * Z(g2) > 0) {
+            //    h = 0;
+            //    g = g2;
+            //    S_lower_bound = (a + b * log(g) - h_sum)/(starting_g - g);
+            //    S_lower_bound += 1;
+            //    S_lower_bound = -S_lower_bound;
+            //    if(verbose)
+            //        cout << "Found lower bound of " << S_lower_bound << endl;
+            //}
+            //else {
+            {
                 h = g + h - g2 - delta;
-                while(minus_one_power(N) * Z(g2 + h) > 0) {
+                while(minus_one_power(N) * Z(g2 + h) < 0) {
                     h = h - delta;
+                    //cout << "trying h = " << h << endl;
                 }
                 g = g2;
                 h_sum += h;
+
+                if(verbose)  {
+                    cout << "Using h = " << h << "; g + h - t0 = " << g + h - t0 << endl;
+                    cout << "h_sum = " << h_sum << endl;
+                }
+
+                if(h >= 0) {
+                    S_lower_bound = (a + b * log(g) - h_sum)/(starting_g - g);
+                    S_lower_bound += 1;
+                    S_lower_bound = -S_lower_bound;
+                    if(verbose)
+                        cout << "Found lower bound of " << S_lower_bound << endl;
+                }
+
             }
         }
 
@@ -327,7 +381,7 @@ public:
 
     }
 
-    double calculate_S_values() {
+    double calculate_S_values(bool verbose = true) {
         double current_max = 0;
         cout << setprecision(10);
         mpz_class current_zero_index;
@@ -337,11 +391,17 @@ public:
         for(vector<double>::iterator i = zeros.begin(); i < zeros.end(); i++) {
             x = current_zero_index - N_approx(t0 + *i);
             double S_value = x.get_d();
-            current_max = max(current_max, abs(S_value));
-            cout << *i << " " << S_value << endl;
+            if(abs(S_value) > abs(current_max)) {
+                current_max = S_value;
+            }
+            if(verbose)
+                cout << *i << " " << S_value << endl;
             S_value += 1;
-            current_max = max(current_max, abs(S_value));
-            cout << *i << " "  << S_value << endl;
+            if(abs(S_value) > abs(current_max)) {
+                current_max = S_value;
+            }
+            if(verbose)
+                cout << *i << " "  << S_value << endl;
             current_zero_index += 1;
         }
 
@@ -434,12 +494,20 @@ int main(int argc, char * argv[]) {
     int list_zeros = 0;
     int list_S_values = 0;
     int list_midpoint_values = 0;
+    int min_midpoint_value = 0;
+    int check_RH = 0;
+    int largest_S_value = 0;
+    double RH_start = 7.0;
+    double RH_end = 33.0;
     double spacing = .001;
     double start = 1;
     double end = 39;
+    int verbose = 1;
+    bool calculate_N = false;
+    mpfr_class point_to_calculate_N;
 
     while(1) {
-        enum {FILENAME = 2, ZEROS, S_OPTION, START, END, SPACING};
+        enum {FILENAME = 2, ZEROS, S_OPTION, START, END, SPACING, CALCULATE_N, RH_START, RH_END};
         static struct option options[] = 
             {
                 {"filename", required_argument, 0, FILENAME},
@@ -450,6 +518,13 @@ int main(int argc, char * argv[]) {
                 {"end", required_argument, 0, END},
                 {"spacing", required_argument, 0, SPACING},
                 {"list_midpoint_values", no_argument, &list_midpoint_values, 1},
+                {"check_RH", no_argument, &check_RH, 1},
+                {"RH_start", required_argument, 0, RH_START},
+                {"RH_end", required_argument, 0, RH_END},
+                {"terse", no_argument, &verbose, 0},
+                {"min_midpoint_value", no_argument, &min_midpoint_value, 1},
+                {"largest_S_value", no_argument, &largest_S_value, 1},
+                {"N", required_argument, 0, CALCULATE_N},
                 {0, 0, 0, 0}
             }; 
 
@@ -472,7 +547,16 @@ int main(int argc, char * argv[]) {
             case END:
                 end = atof(optarg);
                 break;
-                
+            case CALCULATE_N:
+                calculate_N = true;
+                point_to_calculate_N = optarg;
+                break;
+            case RH_START:
+                RH_start = atof(optarg);
+                break;
+            case RH_END:
+                RH_end = atof(optarg);
+                break;
         }
     }
 
@@ -509,6 +593,46 @@ int main(int argc, char * argv[]) {
     //    cout << Z.Z(n * delta) << endl;
     //}
     
+    if(calculate_N) {
+        mpfr_class N = Z.calculate_N(point_to_calculate_N, true);
+        cout << "N(" << Z.g0 << ") = " << N << endl;
+        return 0;
+    }
+
+    if(check_RH) {
+        Z.find_zeros(start, end, spacing, false);
+        mpz_class N1 = Z.calculate_N(RH_start, false);
+        mpfr_class x;
+        double g1 = Z.g0;
+
+        mpz_class N2 = Z.calculate_N(RH_end);
+        double g2 = Z.g0;
+
+        unsigned int count = 0;
+        for(vector<double>::iterator i = Z.zeros.begin(); i < Z.zeros.end(); i++) {
+            if( *i > g1 && *i < g2) {
+                count++;
+            }
+        }
+
+        if(count == N2 - N1) {
+            if(verbose)
+                cout << "Riemann Hypothesis OK for " << count << " zeros." << endl;
+            return 0;
+        }
+        else if(count < N2 - N1) {
+            if(verbose)
+                cout << "Missing " << N2 - N1 - count << " zeros." << endl;
+            mpz_class x;
+            x = N2 - N1 - count;
+            return x.get_si();
+        }
+        else {
+            cout << "Found too many zeros. Something is wrong." << endl;
+            return -1;
+        }
+    }
+
     if(list_zeros)
         Z.find_zeros(start, end, spacing, true);
 
@@ -528,6 +652,15 @@ int main(int argc, char * argv[]) {
         cout << "maximal value of S was " << S << endl;
     }
 
+
+    if(largest_S_value) {
+        Z.find_zeros(start, end, spacing, false);
+        Z.calculate_N(7);
+        double S = Z.calculate_S_values(false);
+        cout << S << endl;
+        return 0;
+    }
+
     if(list_midpoint_values) {
         vector<double> zeros = Z.find_zeros(start, end, spacing, true);
         vector<double> values(0);
@@ -541,7 +674,25 @@ int main(int argc, char * argv[]) {
         for(vector<double>::iterator i = values.begin(); i < values.end(); i++) {
             cout << *i << endl;
         }
+        return 0;
     }
+
+    if(min_midpoint_value) {
+        vector<double> zeros = Z.find_zeros(start, end, spacing, false);
+        double min_value = 100000;
+
+        double previous = zeros[0];
+        for(vector<double>::iterator i = zeros.begin() + 1; i < zeros.end(); i++) {
+            double v = Z.Z( (*i + previous)/2 );
+            if(abs(v) < abs(min_value))
+                min_value = v;
+        }
+        cout << min_value << endl;
+        return 0;
+    }
+
+
+
 
     return 0;
 }
