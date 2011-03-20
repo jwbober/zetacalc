@@ -300,7 +300,7 @@ will happen. In the future it will be setup so that the whole sum is computed.\n
 
 }
 
-int process_input_file(char const* filename) {
+int process_input_file(char const* filename, int Kmin) {
 
     ifstream input_file;
     input_file.open(filename);
@@ -487,7 +487,7 @@ int main(int argc, char * argv[]) {
     }
 
     if(use_input_file) {
-        return process_input_file(filename);
+        return process_input_file(filename, Kmin);
     }
 
     if(!length_set) {
