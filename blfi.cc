@@ -633,8 +633,15 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    if(list_zeros)
-        Z.find_zeros(start, end, spacing, true);
+    if(list_zeros) {
+        Z.find_zeros(start, end, spacing, verbose);
+        cout << Z.t0 << endl;
+        cout << Z.zeros.size() << endl;
+        for(vector<double>::iterator i = Z.zeros.begin(); i < Z.zeros.end(); i++) {
+            cout << *i << endl;
+        }
+    }
+
 
     if(list_values) {
         cout << setprecision(15);
