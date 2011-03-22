@@ -1,5 +1,5 @@
 #OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -fno-math-errno -funsafe-math-optimizations -fno-rounding-math -fno-signaling-nans -fcx-limited-range -g
-OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -ffast-math -g -pthread
+OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -ffast-math -g -pthread -Winline
 H_OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -g -pthread
 
 #OPTIONS = -msse2 -mfpmath=sse -Wall -g

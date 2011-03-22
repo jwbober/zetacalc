@@ -146,12 +146,16 @@ int main(int argc, char ** argv) {
     cout << setprecision(17);
 
     mpfr_class t, Delta;
-    //t = t0 + 19.5915;
-    t = t0 + 28.676;
-    Delta = 1;
+    t = t0 + 19.592;
+    //t = t0 + 22.1;
+    Delta = 3;
+
+    mpfr_class x("13066434408794883841332.2315014023");
+    cout << prime_sum_term(x, Delta, phi_hat, 100000) << endl;
 
     //test(t0, zeros, N, t, Delta, sinc, tri);
-    test(t0, zeros, N, t, Delta, phi, phi_hat, 20000);
+    test(t0, zeros, N, t, Delta, phi, phi_hat, 100000);
+    //test(t0, zeros, N, t, Delta, sinc, tri);
     
     //cout << integral_term(t, 1, sinc) << endl;
 
