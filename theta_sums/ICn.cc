@@ -218,7 +218,7 @@ Complex IC0(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, Double e
         cout << "               K = " << cache->K << endl;
         cout << "         epsilon = " << epsilon << endl;
     }
-    Double logepsilon = abs(fastlog(epsilon));
+    Double logepsilon = max(-fastlog(epsilon), 1);
     //if(b <= logepsilon * logepsilon * K_power(-2, cache)) {
     //    return IC0_method1(j, mp_a, mp_b, cache, epsilon);
     //}

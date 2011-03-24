@@ -2,15 +2,15 @@
 # function using the main sum data precomputed at a grid of points.
 
 from mpmath import siegeltheta, grampoint, mp
-import pymongo
-from pymongo import Connection
+#import pymongo
+#from pymongo import Connection
 
 from bisect import bisect
 from copy import copy
 
-connection = Connection()
-db = connection.zeta
-large_values_collection = db.large_values
+#connection = Connection()
+#db = connection.zeta
+#large_values_collection = db.large_values
 
 
 mp.prec = 300
@@ -725,54 +725,56 @@ def blah():
 def blah2(x):
     return floor(x) - 2
 
-def blah3(location):
-    work_units = os.listdir(location)
-    work_units.sort()
+def blah3(location, ncpus = 1):
+    @parallel(ncpus)
+    def f(n):
+        work_units = os.listdir(location)
+        work_units.sort()
 
-    print work_units
+        print work_units
 
-    results_created = False
+        results_created = False
 
-    filecount = 0
+        filecount = 0
 
-    for filename in work_units:
-        print "processing", os.path.join(location, filename)
-        w = open(os.path.join(location, filename), 'r')
-        first_line = w.readline()
-        t_str, start_str, length_str, N_str, delta_str, filename_str, cputime_str, realtime_str = first_line.split()
+        for filename in work_units:
+            if not filename.startswith("work"):
+                continue
+            print "processing", os.path.join(location, filename)
+            w = open(os.path.join(location, filename), 'r')
+            first_line = w.readline()
+            t_str, start_str, length_str, N_str, delta_str, filename_str, cputime_str, realtime_str = first_line.split()
 
-        t0 = RealField(300)(t_str)
-        N = Integer(N_str)
-        delta = R(delta_str)
-        if not results_created:
-            results = [C(0)] * N
-            results_created = True
+            t0 = RealField(300)(t_str)
+            N = Integer(N_str)
+            delta = R(delta_str)
+            if not results_created:
+                results = [C(0)] * N
+                results_created = True
 
-        count = 0
-        for line in w:
-            x, y = line.strip()[1:-1].split(',')
-            x = R(x)
-            y = R(y)
-            #results[count] += CC(line)
-            results[count] += C( (x,y) )
-            count = count + 1
+            count = 0
+            for line in w:
+                x, y = line.strip()[1:-1].split(',')
+                x = R(x)
+                y = R(y)
+                #results[count] += CC(line)
+                results[count] += C( (x,y) )
+                count = count + 1
 
-        w.close()
+            w.close()
 
-        filecount = filecount + 1
-        if filecount > 253:
-        #if True:
-            Z = ZetaData({"t0" : t0, "delta" : delta, "data" : results}, type="dict")
-            L = Z.Z_values_from_array()
-            P = list_plot(L, plotjoined = True)
-            #P.save("partial_sums/%08d.png" % filecount, ymax=80, ymin=-80, figsize=[30,20])
-            P.save("partial_sums/%08d.png" % filecount, figsize=[10,5])
+            filecount = filecount + 1
+            #if filecount > 253:
+            if filecount % ncpus == n:
+                Z = ZetaData({"t0" : t0, "delta" : delta, "data" : results}, type="dict")
+                L = Z.Z_values_from_array()
+                P = list_plot(L, plotjoined = True)
+                P.save("partial_sums/%08d.png" % filecount, ymax=30, ymin=-30, figsize=[15,10])
+                #P.save("partial_sums2/%08d.png" % filecount, figsize=[10,5])
+    
+    list(f(range(ncpus)))
 
-    Z = ZetaData({"t0" : t0, "delta" : delta, "data" : results}, type="dict")
-    #L = Z.Z_values_from_array()
-    #P = list_plot(L, plotjoined = True)
-    P = plot(lambda t : Z(t), 1, 39)
-    P.save("partial_sums/final.png", ymax=15, ymin=-15, figsize=[30,20])
+
 
 
 def examine_euler_product(t, X):

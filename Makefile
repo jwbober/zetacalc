@@ -1,5 +1,5 @@
 #OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -fno-math-errno -funsafe-math-optimizations -fno-rounding-math -fno-signaling-nans -fcx-limited-range -g
-OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -ffast-math -g -pthread
+OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -ffast-math -g -pthread -Winline
 H_OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -g -pthread
 
 #OPTIONS = -msse2 -mfpmath=sse -Wall -g
@@ -14,11 +14,18 @@ INCLUDEDIR = -Iinclude
 zetacalc:  build/theta_sums.o build/G_functions.o build/H_functions.o build/ICn.o build/H_and_J_integrals.o build/derivative_computations.o build/misc.o build/log.o include/rs_sum.h include/log.h build/direct_evaluation.o build/exp_sum_euler_maclaurin.o build/theta_algorithm.o build/stats.o build/w_coefficient.o build/cache.o build/zetacalc.o build/riemann_siegel_sum.o build/stage1.o build/stage2.o build/stage3.o build/log.o build/rs_misc.o
 	g++ -O3 -o zetacalc build/theta_sums.o build/direct_evaluation.o build/exp_sum_euler_maclaurin.o build/theta_algorithm.o build/G_functions.o build/H_functions.o build/ICn.o build/H_and_J_integrals.o build/derivative_computations.o build/misc.o build/rs_misc.o build/stage1.o build/stage2.o build/stage3.o build/riemann_siegel_sum.o build/log.o build/stats.o build/w_coefficient.o build/cache.o build/zetacalc.o $(LIBS)
 
-build/test.o: theta_sums/test.cc include/theta_sums.h include/log.h
-	g++ -c theta_sums/test.cc $(OPTIONS) $(INCLUDEDIR) -o build/test.o
+blfi:  build/theta_sums.o build/G_functions.o build/H_functions.o build/ICn.o build/H_and_J_integrals.o build/derivative_computations.o build/misc.o build/log.o include/rs_sum.h include/log.h build/direct_evaluation.o build/exp_sum_euler_maclaurin.o build/theta_algorithm.o build/stats.o build/w_coefficient.o build/cache.o build/zetacalc.o build/riemann_siegel_sum.o build/stage1.o build/stage2.o build/stage3.o build/log.o build/rs_misc.o build/blfi.o gmpfrxx/gmpfrxx.o
+	g++ -O3 -o blfi build/theta_sums.o build/direct_evaluation.o build/exp_sum_euler_maclaurin.o build/theta_algorithm.o build/G_functions.o build/H_functions.o build/ICn.o build/H_and_J_integrals.o build/derivative_computations.o build/misc.o build/rs_misc.o build/stage1.o build/stage2.o build/stage3.o build/riemann_siegel_sum.o build/log.o build/stats.o build/w_coefficient.o build/cache.o build/blfi.o gmpfrxx/gmpfrxx.o $(LIBS)
 
-build/main.o: main.cc include/theta_sums.h
-	g++ -c main.cc $(OPTIONS) $(INCLUDEDIR) -o build/main.o
+
+test:  build/test.o build/theta_sums.o build/G_functions.o build/H_functions.o build/ICn.o build/H_and_J_integrals.o build/derivative_computations.o build/misc.o build/log.o include/rs_sum.h include/log.h build/direct_evaluation.o build/exp_sum_euler_maclaurin.o build/theta_algorithm.o build/stats.o build/w_coefficient.o build/cache.o build/riemann_siegel_sum.o build/stage1.o build/stage2.o build/stage3.o build/log.o build/rs_misc.o
+	g++ -O3 -o test build/theta_sums.o build/direct_evaluation.o build/exp_sum_euler_maclaurin.o build/theta_algorithm.o build/G_functions.o build/H_functions.o build/ICn.o build/H_and_J_integrals.o build/derivative_computations.o build/misc.o build/rs_misc.o build/stage1.o build/stage2.o build/stage3.o build/riemann_siegel_sum.o build/log.o build/stats.o build/w_coefficient.o build/cache.o build/test.o $(LIBS)
+
+build/test.o: test.cc include/theta_sums.h include/log.h
+	g++ -c test.cc $(OPTIONS) $(INCLUDEDIR) -o build/test.o
+
+build/blfi.o: blfi.cc include/rs_sum.h
+	g++ -c blfi.cc $(OPTIONS) $(INCLUDEDIR) -o build/blfi.o
 
 build/stats.o: theta_sums/stats.cc include/theta_sums.h include/rs_sum.h
 	g++ -c theta_sums/stats.cc $(OPTIONS) $(INCLUDEDIR) -o build/stats.o
