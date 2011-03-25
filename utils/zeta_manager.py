@@ -38,9 +38,14 @@ def main():
         lockfile.close()
 
         if found_work:
-            return_code = subprocess.call(['./zeta', work_unit_new_location])
+            return_code = subprocess.call(['/home/bober/zetacalc/zetacalc', 
+                                           '--filename', work_unit_new_location,
+                                           '--number_of_threads', '16',
+                                           '--Kmin', '500',
+                                           '--use_precomputation', '/scratch/bober/'
+                                           ])
             if(return_code != 0):
-                print "problem calling ./zeta, returning work unit to 'todo'."
+                print "problem calling zetacalc, returning work unit to 'todo'."
                 os.rename(work_unit_new_location, work_unit_original_location)
             else:
                 print "successful, removing 'inprogress' file"
