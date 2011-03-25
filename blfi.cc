@@ -116,6 +116,8 @@ public:
     double alpha;
     double min_t;
     double max_t;
+    double intentional_error;
+    double intentional_error_period;
 
     int N;
     Complex * rs_sum;
@@ -148,6 +150,8 @@ public:
         epsilon1 = (beta - tau)/2.0;
         alpha = tau;
 
+        intentional_error = 0;
+        intentional_error_period = 10.0;
 
     }
 
@@ -182,7 +186,11 @@ public:
         
         mpfr_clear(temp);
 
-        return S.real();
+        double answer = S.real();
+
+        answer = answer + intentional_error * sin(2 * M_PI * t /intentional_error_period);
+
+        return answer;
     }
 
     double Z(mpfr_class t) {
@@ -504,10 +512,15 @@ int main(int argc, char * argv[]) {
     double end = 39;
     int verbose = 1;
     bool calculate_N = false;
+    int zeros_and_points = 0;
     mpfr_class point_to_calculate_N;
 
+    double intentional_error = 0.0;
+    double error_period = 10;
+
     while(1) {
-        enum {FILENAME = 2, ZEROS, S_OPTION, START, END, SPACING, CALCULATE_N, RH_START, RH_END};
+        enum {FILENAME = 2, ZEROS, S_OPTION, START, END, SPACING, CALCULATE_N, RH_START, RH_END,
+                ZEROS_AND_POINTS, ERROR, ERROR_PERIOD};
         static struct option options[] = 
             {
                 {"filename", required_argument, 0, FILENAME},
@@ -525,6 +538,9 @@ int main(int argc, char * argv[]) {
                 {"min_midpoint_value", no_argument, &min_midpoint_value, 1},
                 {"largest_S_value", no_argument, &largest_S_value, 1},
                 {"N", required_argument, 0, CALCULATE_N},
+                {"zeros-and-points", no_argument, &zeros_and_points, 1},
+                {"error", required_argument, 0, ERROR},
+                {"error_period", required_argument, 0, ERROR_PERIOD},
                 {0, 0, 0, 0}
             }; 
 
@@ -557,6 +573,12 @@ int main(int argc, char * argv[]) {
             case RH_END:
                 RH_end = atof(optarg);
                 break;
+            case ERROR:
+                intentional_error = atof(optarg);
+                break;
+            case ERROR_PERIOD:
+                error_period = atof(optarg);
+                break;
         }
     }
 
@@ -583,6 +605,9 @@ int main(int argc, char * argv[]) {
 
     ZetaComputation Z(t0, delta, N, rs_sum);
 
+    Z.intentional_error = intentional_error;
+    Z.intentional_error_period = error_period;
+
     //cout << mpfr_get_d(t, GMP_RNDN) << endl;
     
     //for(int n = 0; n < 10000; n++) {
@@ -593,6 +618,24 @@ int main(int argc, char * argv[]) {
     //    cout << Z.Z(n * delta) << endl;
     //}
     
+    if(zeros_and_points) {
+        vector<double> zeros = Z.find_zeros(start, end, spacing, true);
+        int n = 0;
+        int m = 0;
+
+        while(m < zeros.size()) {
+            if(zeros[m] < Z.delta * n) {
+                cout << zeros[m] << endl;
+                m++;
+            }
+            else {
+                cout << "------> " << Z.delta * n << endl;
+                n++;
+            }
+        }
+        return 0;
+    }
+
     if(calculate_N) {
         mpfr_class N = Z.calculate_N(point_to_calculate_N, true);
         cout << "N(" << Z.g0 << ") = " << N << endl;
@@ -693,6 +736,7 @@ int main(int argc, char * argv[]) {
             double v = Z.Z( (*i + previous)/2 );
             if(abs(v) < abs(min_value))
                 min_value = v;
+            previous = *i;
         }
         cout << min_value << endl;
         return 0;
