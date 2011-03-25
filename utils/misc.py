@@ -2,20 +2,26 @@ import sys
 import os
 import subprocess
 
+location = "/home/bober/math/experiments/theta_sums2/data/rs_sums/"
+
 def rearrange_files():
-    for filename in os.listdir("rs_sums"):
-        f = open("rs_sums/" + filename)
+    files = os.listdir(location)
+    files.sort()
+    for filename in files:
+        f = open(location + filename)
         t = float(f.readline().strip())
         delta = float(f.readline().strip())
 
         f.close()
         if delta < .03:
-            os.rename("rs_sums/" + filename, "short_ranges/" + filename)
+            os.rename(location + filename, "short_ranges/" + filename)
 
 
 def print_info():
-    for filename in os.listdir("rs_sums"):
-        f = open("rs_sums/" + filename)
+    files = os.listdir(location)
+    files.sort()
+    for filename in files:
+        f = open(location + filename)
         t = float(f.readline().strip())
         delta = float(f.readline().strip())
 
@@ -23,30 +29,36 @@ def print_info():
         print filename, t, delta
 
 def check_RH():
-    for filename in os.listdir("rs_sums"):
+    files = os.listdir(location)
+    files.sort()
+    for filename in files:
         return_value = subprocess.call([  'blfi',
-                                          '--filename', 'rs_sums/' + filename,
+                                          '--filename', location + filename,
                                           '--check_RH',
                                           '--terse' ])
 
         print filename, "\t", return_value
 
 def print_min_midpoint_values():
-    for filename in os.listdir("rs_sums"):
+    files = os.listdir(location)
+    files.sort()
+    for filename in files:
         print filename, "...\t",
         sys.stdout.flush()
         return_value = subprocess.call([  'blfi',
-                                          '--filename', 'rs_sums/' + filename,
+                                          '--filename', location + filename,
                                           '--min_midpoint_value',
                                           '--terse' ])
         sys.stdout.flush()
 
 def print_largest_S_values():
-    for filename in os.listdir("rs_sums"):
+    files = os.listdir(location)
+    files.sort()
+    for filename in files:
         print filename, "...\t",
         sys.stdout.flush()
         return_value = subprocess.call([  'blfi',
-                                          '--filename', 'rs_sums/' + filename,
+                                          '--filename', location + filename,
                                           '--largest_S_value',
                                           '--terse' ])
         sys.stdout.flush()
@@ -54,4 +66,4 @@ def print_largest_S_values():
 
 
 if __name__ == "__main__":
-    check_RH()
+    print_min_midpoint_values()

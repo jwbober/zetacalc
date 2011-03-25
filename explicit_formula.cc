@@ -44,11 +44,9 @@ mpfr_class prime_sum_term(mpfr_class t, mpfr_class Delta, mpfr_class (*fhat)(mpf
     while(p < endpoint) {
         if(mpz_probab_prime_p(p.get_mpz_t(), 10)) {
             int n = 1;
-            mpfr_class p_endpoint;
             mpfr_class logp = log(mpfr_class(p));
-            p_endpoint = logp * 2 * const_pi() * Delta;
             mpfr_class p_power(p);
-            while(n <= p_endpoint) {
+            while(p_power <= endpoint) {
                 S = S - logp * cos(t * log(p_power))/sqrt(p_power) * fhat(log(p_power)/(mpfr_class(2) * const_pi()), Delta);
 
                 n += 1;
@@ -56,7 +54,7 @@ mpfr_class prime_sum_term(mpfr_class t, mpfr_class Delta, mpfr_class (*fhat)(mpf
             }
         }
         p = p + 1;
-        if(p % 1000 == 0) {
+        if(p % 10000 == 0) {
             cout << p.get_d()/endpoint << " done with prime sum. Answer so far: " << S/const_pi() << endl;
         }
     }
@@ -83,10 +81,10 @@ mpfr_class integral_term(mpfr_class t, mpfr_class Delta, mpfr_class (*f)(mpfr_cl
     // For now we just compute a Riemann sum over a relatively
     // small interval
     
-    double length = 100;
+    double length = 50;
     mpfr_class u = t - length/2;
     mpfr_class end = t + length/2;
-    double delta = .001;
+    double delta = .002;
 
     unsigned long num_terms = length/delta;
 
@@ -110,16 +108,19 @@ mpfr_class integral_term(mpfr_class t, mpfr_class Delta, mpfr_class (*f)(mpfr_cl
 
 }
 
-void test( mpfr_class t0, double * zeros, int number_of_zeros, mpfr_class t, mpfr_class Delta, mpfr_class (*f)(mpfr_class, mpfr_class), mpfr_class (*fhat)(mpfr_class, mpfr_class), int num_terms = 0) {
+double test( mpfr_class t0, double * zeros, int number_of_zeros, mpfr_class t, mpfr_class Delta, mpfr_class (*f)(mpfr_class, mpfr_class), mpfr_class (*fhat)(mpfr_class, mpfr_class), int num_terms = 0) {
     mpfr_class fhat_term, integral, prime_sum, LHS;
     
-    fhat_term = -fhat(0, Delta) * log(const_pi()) / (2 * const_pi());
+    fhat_term = -fhat(0, Delta) * log(const_pi()) / (mpfr_class(2) * const_pi());
     integral = integral_term(t, Delta, f);
     prime_sum = prime_sum_term(t, Delta, fhat, num_terms);
     
     LHS = zeros_term(t0, zeros, number_of_zeros, t, Delta, f);
 
+    mpfr_class error = LHS - (fhat_term + integral + prime_sum);
+
     cout << LHS << " - (" << fhat_term << " + " << integral << " + " << prime_sum << ") = " << LHS - (fhat_term + integral + prime_sum) << endl;
+    return error.get_d();
 }
 
 
@@ -146,15 +147,30 @@ int main(int argc, char ** argv) {
     cout << setprecision(17);
 
     mpfr_class t, Delta;
-    t = t0 + 19.592;
-    //t = t0 + 22.1;
-    Delta = 3;
+    //t = t0 + 29.5925;
+    //t = t0 + 19.592;
+    t = t0 + 15.5;
+    Delta = 2;
 
-    mpfr_class x("13066434408794883841332.2315014023");
-    cout << prime_sum_term(x, Delta, phi_hat, 100000) << endl;
+    //mpfr_class x("13066434408794883841332.2315014023");
+    //cout << prime_sum_term(x, Delta, phi_hat, 100000) << endl;
 
     //test(t0, zeros, N, t, Delta, sinc, tri);
-    test(t0, zeros, N, t, Delta, phi, phi_hat, 100000);
+
+    int M = 100;
+    double spacing = .1;
+    double errors[M];
+
+    for(int m = 0; m < M; m++) {
+        t = t0 + 15.0 + spacing * m;
+        errors[m] = test(t0, zeros, N, t, Delta, phi, phi_hat, 100000);
+    }
+
+    for(int m = 0; m < M; m++) {
+        cout << errors[m] << endl;
+    }
+
+    //test(t0, zeros, N, t, Delta, phi, phi_hat, 10000);
     //test(t0, zeros, N, t, Delta, sinc, tri);
     
     //cout << integral_term(t, 1, sinc) << endl;
