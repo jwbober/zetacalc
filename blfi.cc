@@ -189,8 +189,21 @@ public:
         double answer = S.real();
 
         answer = answer + intentional_error * sin(2 * M_PI * t /intentional_error_period);
-
+        
         return answer;
+}
+
+    vector<double> Z_values_from_array() {
+        vector<double> L;
+        mpfr_t t;
+        mpfr_init2(t, 300);
+        mpfr_set(t, t0.get_mpfr_t(), GMP_RNDN);
+        for(int n = 0; n < N; n++) {
+            complex<double> x = 2.0 * rs_sum[n] * rs_rotation(t);
+            L.push_back(x.real());
+            mpfr_add_d(t, t, delta, GMP_RNDN);
+        }
+        return L;
     }
 
     double Z(mpfr_class t) {
@@ -505,6 +518,7 @@ int main(int argc, char * argv[]) {
     int min_midpoint_value = 0;
     int check_RH = 0;
     int largest_S_value = 0;
+    int values_from_list = 0;
     double RH_start = 7.0;
     double RH_end = 33.0;
     double spacing = .001;
@@ -538,6 +552,7 @@ int main(int argc, char * argv[]) {
                 {"min_midpoint_value", no_argument, &min_midpoint_value, 1},
                 {"largest_S_value", no_argument, &largest_S_value, 1},
                 {"N", required_argument, 0, CALCULATE_N},
+                {"values_from_list", no_argument, &values_from_list, 1},
                 {"zeros-and-points", no_argument, &zeros_and_points, 1},
                 {"error", required_argument, 0, ERROR},
                 {"error_period", required_argument, 0, ERROR_PERIOD},
@@ -642,6 +657,16 @@ int main(int argc, char * argv[]) {
         return 0;
     }
 
+    if(values_from_list) {
+        vector<double> values;
+        values = Z.Z_values_from_array();
+        for(int n = 0; n < values.size(); n++) {
+            cout << n * Z.delta << ", " << values[n] << endl;
+
+        }
+        return 0;
+    }
+    
     if(check_RH) {
         Z.find_zeros(start, end, spacing, false);
         mpz_class N1 = Z.calculate_N(RH_start, false);
@@ -690,7 +715,7 @@ int main(int argc, char * argv[]) {
         cout << setprecision(15);
         double t = start;
         while(t < end) {
-            cout << t << " " << Z.Z(t) << endl;
+            cout << t << ", " << Z.Z(t) << endl;
             t = t + spacing;
         }
     }
