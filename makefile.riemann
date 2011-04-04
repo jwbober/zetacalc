@@ -20,6 +20,9 @@ blfi:  build/theta_sums.o build/G_functions.o build/H_functions.o build/ICn.o bu
 build/test.o: theta_sums/test.cc include/theta_sums.h include/log.h
 	g++ -c theta_sums/test.cc $(OPTIONS) $(INCLUDEDIR) -o build/test.o
 
+build/blfi.o: blfi.cc include/rs_sum.h
+	g++ -c blfi.cc $(OPTIONS) $(INCLUDEDIR) -o build/blfi.o
+
 build/main.o: main.cc include/theta_sums.h
 	g++ -c main.cc $(OPTIONS) $(INCLUDEDIR) -o build/main.o
 
