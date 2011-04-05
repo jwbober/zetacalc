@@ -416,13 +416,13 @@ public:
                 current_max = S_value;
             }
             if(verbose)
-                cout << *i << " " << S_value << endl;
+                cout << *i << ", " << S_value << endl;
             S_value += 1;
             if(abs(S_value) > abs(current_max)) {
                 current_max = S_value;
             }
             if(verbose)
-                cout << *i << " "  << S_value << endl;
+                cout << *i << ", "  << S_value << endl;
             current_zero_index += 1;
         }
 
@@ -721,10 +721,11 @@ int main(int argc, char * argv[]) {
     }
 
     if(list_S_values) {
-        Z.find_zeros(start, end, spacing, true);
+        Z.find_zeros(start, end, spacing, verbose);
         Z.calculate_N(7);
         double S = Z.calculate_S_values();
-        cout << "maximal value of S was " << S << endl;
+        if(verbose)
+            cout << "maximal value of S was " << S << endl;
     }
 
 
