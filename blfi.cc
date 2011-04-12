@@ -193,6 +193,31 @@ public:
         return answer;
 }
 
+    double Zprime(double t, double h = .00000001) {
+        return (Z(t + h) - Z(t))/2.0;
+    }
+
+    double max_or_min(double t1, double t2, double epsilon = .00001) {
+        // do a binary search on the derivative, looking for zeros
+
+        double t3;
+        if(Zprime(t1) < 0) {
+            t3 = t1;
+            t1 = t2;
+            t2 = t3;
+        }
+        
+        while( abs(t2 - t1) > epsilon) {
+            t3 = (t1 + t2)/2.0;
+            if(Zprime(t3) > 0)
+                t1 = t3;
+            else
+                t2 = t3;
+        }
+
+        return (t1 + t2)/2.0;
+    }
+
     vector<double> Z_values_from_array() {
         vector<double> L;
         mpfr_t t;
@@ -221,7 +246,6 @@ public:
         }
         
         double t3;
-
         if(Z(t1) < 0) {
             t3 = t1;
             t1 = t2;
@@ -532,6 +556,8 @@ int main(int argc, char * argv[]) {
     double intentional_error = 0.0;
     double error_period = 10;
 
+    int maxmin = 0;
+
     while(1) {
         enum {FILENAME = 2, ZEROS, S_OPTION, START, END, SPACING, CALCULATE_N, RH_START, RH_END,
                 ZEROS_AND_POINTS, ERROR, ERROR_PERIOD};
@@ -556,6 +582,7 @@ int main(int argc, char * argv[]) {
                 {"zeros-and-points", no_argument, &zeros_and_points, 1},
                 {"error", required_argument, 0, ERROR},
                 {"error_period", required_argument, 0, ERROR_PERIOD},
+                {"maxmin", no_argument, &maxmin, 1},
                 {0, 0, 0, 0}
             }; 
 
@@ -633,6 +660,41 @@ int main(int argc, char * argv[]) {
     //    cout << Z.Z(n * delta) << endl;
     //}
     
+    if(maxmin) {
+
+        cout << setprecision(10) << endl;
+        double t1, t2;
+        double x1, x2;
+        t1 = start;
+        x1 = Z.Z(t1);
+        t2 = t1 + spacing;
+        x2 = Z.Z(t2);
+
+        bool increasing = false;
+        if(x2 > x1)
+            increasing = true;
+
+        double epsilon = .000001;
+        while(t2 < end) {
+            x2 = Z.Z(t2);
+            if( (increasing && x2 < x1) ) {
+                double t = Z.max_or_min(t1, t2);
+                cout << t << " " << Z.Z(t) << endl;
+                increasing = false;
+            }
+            else if ( (!increasing && x1 < x2) ) {
+                double t = Z.max_or_min(t1, t2);
+                cout << t << " " << Z.Z(t) << endl;
+                increasing = true;
+            }
+            t1 = t2;
+            t2 += spacing;
+            x1 = x2;
+
+        }
+        return 0;
+    }
+
     if(zeros_and_points) {
         vector<double> zeros = Z.find_zeros(start, end, spacing, true);
         int n = 0;

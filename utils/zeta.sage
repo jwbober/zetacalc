@@ -775,6 +775,72 @@ def blah3(location, ncpus = 1):
     list(f(range(ncpus)))
 
 
+def blah4(location, ncpus = 1):
+    import matplotlib
+    import matplotlib.pyplot as plt
+    import numpy
+
+    @parallel(ncpus)
+    def f(n):
+        work_units = os.listdir(location)
+        work_units.sort()
+        results_created = False
+
+        filecount = 0
+
+        for filename in work_units:
+            if not filename.startswith("work"):
+                continue
+            w = open(os.path.join(location, filename), 'r')
+            first_line = w.readline()
+            t_str, start_str, length_str, N_str, delta_str, filename_str, cputime_str, realtime_str = first_line.split()
+
+            t0 = RealField(300)(t_str)
+            N = Integer(N_str)
+            delta = R(delta_str)
+            if not results_created:
+                results = [C(0)] * N
+                results_created = True
+
+            count = 0
+            for line in w:
+                x, y = line.strip()[1:-1].split(',')
+                x = R(x)
+                y = R(y)
+                #results[count] += CC(line)
+                results[count] += C( (x,y) )
+                count = count + 1
+
+            w.close()
+
+            filecount = filecount + 1
+            #if filecount > 253:
+            if filecount % ncpus == n:
+                print "processing", os.path.join(location, filename)
+                sys.stdout.flush()
+                Z = ZetaData({"t0" : t0, "delta" : delta, "data" : results}, type="dict")
+                L = Z.Z_values_from_array()
+                L = numpy.array( [[float(x), float(y)] for (x,y) in L])
+
+                plt.ylim(-70, 170)
+                plt.xlim(-19, 19)
+                plt.xlabel("$t$", fontsize=30)
+                plt.ylabel(r"$Z_\alpha(T + t)$", fontsize=25)
+                title = "$T = 552166410009931288886808632346.50524$\n"
+                title += r"$\alpha = " + str(float(filecount/2001))[:6] + "$"
+                plt.title(title, fontsize=20)
+                plt.axhline(color="darkred")
+                plt.plot(L[:,0] - 20.50524, L[:,1])
+                plt.subplots_adjust(top=.85, left=.15, wspace=.1)
+                plt.savefig("partial_sums/%08d.png" % filecount)
+                plt.clf()
+                #P = list_plot(L, plotjoined = True)
+                #P.save("partial_sums/%08d.png" % filecount, ymax=30, ymin=-30, figsize=[15,10])
+                #P.save("partial_sums2/%08d.png" % filecount, figsize=[10,5])
+    
+    list(f(range(ncpus)))
+
+
 
 
 def examine_euler_product(t, X):

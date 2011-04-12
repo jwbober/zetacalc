@@ -58,3 +58,6 @@ error/*
 build/*
 zetacalc
 blfi
+*.png
+*.mp4
+*.avi
