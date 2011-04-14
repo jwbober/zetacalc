@@ -66,4 +66,4 @@ def print_largest_S_values():
 
 
 if __name__ == "__main__":
-    print_min_midpoint_values()
+    print_largest_S_values()

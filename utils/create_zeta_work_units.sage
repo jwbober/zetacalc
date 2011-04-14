@@ -10,7 +10,7 @@ def main():
     N = sys.argv[2]
     delta = sys.argv[3]
     output_location = sys.argv[4]
-    output_name = sys.argv[5]
+    output_name = sys.argv[5] + "_" + sys.argv[1]
 
     todo_location = os.path.abspath(os.path.join(output_location, output_name, 'todo'))
     inprogress_location = os.path.abspath(os.path.join(output_location, output_name, "inprogress"))

@@ -545,7 +545,7 @@ def process_incoming():
         P.save(medium_picture_name, figsize=[8,4], ymin=-5, ymax=5, dpi=200)
 
 def get_max_values():
-    data_directory = 'data/all/'
+    data_directory = '/home/bober/math/experiments/theta_sums/data/all/'
     filenames = os.listdir(data_directory)
 
     max_values = []
@@ -562,6 +562,26 @@ def get_max_values():
 
     return max_values
 
+def print_max_values(verbose=True):
+    data_directory = '/home/bober/math/experiments/theta_sums/data/all/'
+    filenames = os.listdir(data_directory)
+
+    max_values = []
+
+    for input_file in filenames:
+        datafile = data_directory + input_file
+        if(verbose):
+            print "Processing file", input_file
+        sys.stdout.flush()
+        Z = ZetaData(datafile)
+        t = ZZ(Z.t0)
+
+        L = [abs(y) for (x, y) in Z.Z_values_from_array()]
+        max_values.append((t, max(L)))
+
+    max_values.sort()
+    for x,y in max_values:
+        print x,y
 
 
 def find_candidate_large_value():
@@ -600,13 +620,12 @@ def find_candidates_for_large_value(repeat=1):
     possible_t = []
     X = var('X')
     
-    p_start = 110 
-    p_end = 150 
+    p_start = 200 
+    p_end = 250
 
     euler_product1 = 1
     euler_product2 = 1
     for p in prime_range(nth_prime(p_start) + 1):
-        print p
         euler_product1 = euler_product1 / (1 - 1/p^(1/2 + i * X))
 
     euler_product2 = euler_product1
@@ -614,13 +633,13 @@ def find_candidates_for_large_value(repeat=1):
     for p in prime_range(nth_prime(p_start) + 1, nth_prime(p_end) + 1):
         euler_product2 = euler_product2 / (1 - 1/p^(1/2 + i * X))
 
-    euler_product1 = fast_callable(euler_product1, domain=ComplexField(150), vars='X')
-    euler_product2 = fast_callable(euler_product2, domain=ComplexField(150), vars='X')
+    euler_product1 = fast_callable(euler_product1, domain=ComplexField(250), vars='X')
+    euler_product2 = fast_callable(euler_product2, domain=ComplexField(250), vars='X')
 
     for l in xrange(repeat):
         n = ZZ.random_element(p_start, p_end)
-        m = ZZ.random_element(90, 130)
-        r = ZZ.random_element(40, 50)
+        m = ZZ.random_element(160, 180)
+        r = ZZ.random_element(65, 75)
         delta = RR.random_element(.9, .9999)
 
         last_prime = nth_prime(n)
@@ -640,12 +659,12 @@ def find_candidates_for_large_value(repeat=1):
 
         B = A.LLL(delta=delta)
 
-        R = RealField(200)
+        R = RealField(300)
         for k in xrange(0, n + 1):
             t = R(abs(B[n,k])/2^r)
             v1 = euler_product1(t)
             v2 = euler_product2(t)
-            possible_t.append( (abs(v2), abs(v1), t, floor(abs(t)) - 2) )
+            possible_t.append( (RR(abs(v2)), RR(abs(v1)), RR(t), floor(abs(t)) - 20) )
         
         possible_t.sort()
         possible_t = possible_t[-500:]
@@ -655,7 +674,6 @@ def find_candidates_for_large_value(repeat=1):
         sys.stdout.flush()
 
     return possible_t
-
 
 def find_candidate_large_value2():
     #primes = [2,3,5,7,11,13,17]
@@ -839,6 +857,72 @@ def blah4(location, ncpus = 1):
                 #P.save("partial_sums2/%08d.png" % filecount, figsize=[10,5])
     
     list(f(range(ncpus)))
+
+def blah5(location = "/home/bober/math/experiments/copy_from_riemann/theta_sums3/old_zeta_work_units/100_9178358656494989336431259004785/finished/", ncpus = 1):
+    import matplotlib
+    import matplotlib.pyplot as plt
+    import numpy
+
+    @parallel(ncpus)
+    def f(n):
+        work_units = os.listdir(location)
+        work_units.sort()
+        results_created = False
+
+        filecount = 0
+
+        for filename in work_units:
+            if not filename.startswith("work"):
+                continue
+            w = open(os.path.join(location, filename), 'r')
+            first_line = w.readline()
+            t_str, start_str, length_str, N_str, delta_str, filename_str, cputime_str, realtime_str = first_line.split()
+
+            t0 = RealField(300)(t_str)
+            N = Integer(N_str)
+            delta = R(delta_str)
+            if not results_created:
+                results = [C(0)] * N
+                results_created = True
+
+            count = 0
+            for line in w:
+                x, y = line.strip()[1:-1].split(',')
+                x = R(x)
+                y = R(y)
+                #results[count] += CC(line)
+                results[count] += C( (x,y) )
+                count = count + 1
+
+            w.close()
+
+            filecount = filecount + 1
+            #if filecount > 253:
+            if filecount % ncpus == n:
+                print "processing", os.path.join(location, filename)
+                sys.stdout.flush()
+                Z = ZetaData({"t0" : t0, "delta" : delta, "data" : results}, type="dict")
+                L = Z.Z_values_from_array()
+                L = numpy.array( [[float(x), float(y)] for (x,y) in L])
+
+                plt.ylim(-40, 40)
+                plt.xlim(-10, 10)
+                plt.xlabel("$t$", fontsize=30)
+                plt.ylabel(r"$Z_\alpha(T + t)$", fontsize=25)
+                title = r"$T = \gamma_{10^{32}} = 9178358656494989336431259004805.33743...$" + '\n'
+                title += r"$\alpha = " + str(float(filecount/2001))[:6] + "$"
+                plt.title(title, fontsize=20)
+                plt.axhline(color="darkred")
+                plt.plot(L[:,0] - 20.33743, L[:,1])
+                plt.subplots_adjust(top=.85, left=.15, wspace=.1)
+                plt.savefig("1e32z_partial_sums/%08d.png" % filecount)
+                plt.clf()
+                #P = list_plot(L, plotjoined = True)
+                #P.save("partial_sums/%08d.png" % filecount, ymax=30, ymin=-30, figsize=[15,10])
+                #P.save("partial_sums2/%08d.png" % filecount, figsize=[10,5])
+    
+    list(f(range(ncpus)))
+
 
 
 
