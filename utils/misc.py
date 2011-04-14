@@ -2,7 +2,7 @@ import sys
 import os
 import subprocess
 
-location = "/home/bober/math/experiments/theta_sums2/data/rs_sums/"
+location = "/home/bober/zeta_computations/rs_sums/"
 
 def rearrange_files():
     files = os.listdir(location)
@@ -63,7 +63,51 @@ def print_largest_S_values():
                                           '--terse' ])
         sys.stdout.flush()
 
+def all_zeros():
+    output_location = "/home/bober/zeta_computations/"
+    files = os.listdir(location)
+    files.sort()
+    for filename in files:
+        print "processing", filename
+        sys.stdout.flush()
+        output_file = open(output_location + "zeros/" + filename[:-5] + "zeros", 'w')
+        return_value = subprocess.call([  'blfi',
+                                          '--filename', location + filename,
+                                          '--zeros',
+                                          '--terse' ],
+                                        stdout=output_file)
+        output_file.close()
+
+def write_S_values():
+    output_location = "/home/bober/zeta_computations/"
+    files = os.listdir(location)
+    files.sort()
+    for filename in files:
+        print "processing", filename
+        sys.stdout.flush()
+        output_file = open(output_location + "S/" + filename[:-5] + "Svalues", 'w')
+        return_value = subprocess.call([  'blfi',
+                                          '--filename', location + filename,
+                                          '--S',
+                                          '--terse' ],
+                                        stdout=output_file)
+        output_file.close()
+
+def write_Z_values():
+    output_location = "/home/bober/zeta_computations/"
+    files = os.listdir(location)
+    files.sort()
+    for filename in files:
+        print "processing", filename
+        sys.stdout.flush()
+        output_file = open(output_location + "values/" + filename[:-5] + "graph", 'w')
+        return_value = subprocess.call([  'blfi',
+                                          '--filename', location + filename,
+                                          '--values',
+                                          '--spacing', '.0004' ],
+                                        stdout=output_file)
+        output_file.close()
 
 
 if __name__ == "__main__":
-    print_largest_S_values()
+    write_Z_values()
