@@ -5,7 +5,43 @@ import fcntl
 smallest_work_unit_size = 2500000000
 default_number_of_work_units = 2000
 
+usage = r"""
+Usage: sage create_zeta_work_units.sage t0 N delta output_location priority
+    
+This script will create work unit files to manage the computation of
+zeta(1/2 + it) at N points which are spaced delta apart, starting at t0.
+The output will go in output_location and will be prepended with the
+priority argument. (Priorities are considered alphabetical, and we generally
+use three digit numbers.)
+
+An example: The 10^32nd gram point is approximately
+9178358656494989336431259004805, so to create work units for a computation
+around the 10^32nd zero, we would use something like
+
+sage create_zeta_work_units.sage 9178358656494989336431259004785 1000 .04 /home/bober/zeta_computations/work_units 400
+
+This will create files for a computation of 1000 equally spacing points in a
+window of length 40 the the 10^32 gram point in the middle. Three
+directories will be created:
+
+/home/bober/zeta_computations/work_units/400_9178358656494989336431259004785/todo
+/home/bober/zeta_computations/work_units/400_9178358656494989336431259004785/in_progress
+/home/bober/zeta_computations/work_units/400_9178358656494989336431259004785/finished
+
+and the todo directory will be filled with files
+
+work_unit0001
+work_unit0002
+work_unit0003
+[...]
+work_unit2001
+"""
+
 def main():
+    if len(sys.argv) < 6:
+        print usage
+        return -1
+
     t = RealField(200)(sys.argv[1])
     N = sys.argv[2]
     delta = sys.argv[3]
