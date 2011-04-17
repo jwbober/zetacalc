@@ -20,7 +20,7 @@ void print_zeta_stats();
 
 Complex zeta_sum(mpfr_t, Double delta, int N, Complex * S);
 Complex zeta_sum2(mpfr_t, Double delta, int N, Complex * S);
-Complex partial_zeta_sum(mpz_t start, mpz_t length, mpfr_t t, double delta, int N, Complex * S, string number_of_threads_filename, int Kmin);
+Complex partial_zeta_sum(mpz_t start, mpz_t length, mpfr_t t, double delta, int N, Complex * S, string number_of_threads_filename, int Kmin, int verbose=1);
 Complex zeta_sum_mpfr(mpfr_t);
 Complex zeta_sum_basic(mpfr_t);
 
@@ -28,10 +28,10 @@ Complex zeta(mpfr_t t);
 Complex hardy_Z(mpfr_t, Complex &R);
 Complex hardy_Z(mpfr_t t0, Double delta, int N, Complex * S);
 
-Complex zeta_sum_stage1(mpz_t N, mpfr_t t, Double delta, int M, Complex * S);
-Complex zeta_sum_stage1_version2(mpz_t start, mpz_t length, mpfr_t t, Double delta, int M, Complex * S);
-Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex * S);
-Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex * S, int Kmin = 0);
+Complex zeta_sum_stage1(mpz_t N, mpfr_t t, Double delta, int M, Complex * S, int verbose = 1);
+Complex zeta_sum_stage1_version2(mpz_t start, mpz_t length, mpfr_t t, Double delta, int M, Complex * S, int verbose = 1);
+Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex * S, int verbose = 1);
+Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex * S, int verbose = 1, int Kmin = 0);
 Complex zeta_block_stage1(mpz_t v, unsigned int K, mpfr_t t, Double delta, int M, Complex * S);
 Complex zeta_block_stage2(mpz_t n, unsigned int N, mpfr_t t, Double delta, int M, Complex * S);
 Complex zeta_block_stage3(mpz_t n, unsigned int N, mpfr_t t, Complex Z[30], Double delta, int M, Complex * S, int Kmin = 0);

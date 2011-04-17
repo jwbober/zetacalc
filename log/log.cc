@@ -61,7 +61,7 @@ void create_exp_itlogn_table(mpfr_t t) {
     Double tt = mpfr_get_d(t, GMP_RNDN);
     table_precision = (unsigned int)( log2(tt) + .5 * log2(log(tt/(2 * PI)))) + 56;
 
-    cout << "Using table_precision = " << table_precision << endl;
+    //cout << "Using table_precision = " << table_precision << endl;
 
     // The number of entries in our table will be equal to the precision
     // that we are using. We add 1 to this, and won't use the 0th entry.

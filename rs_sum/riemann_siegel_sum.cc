@@ -92,7 +92,7 @@ void stage_3_bound(mpz_t v, mpfr_t t) {
     mpfr_clear(x);
 }
 
-Complex partial_zeta_sum(mpz_t start, mpz_t length, mpfr_t t, Double delta, int N, Complex * S, string number_of_threads_filename, int Kmin) {
+Complex partial_zeta_sum(mpz_t start, mpz_t length, mpfr_t t, Double delta, int N, Complex * S, string number_of_threads_filename, int Kmin, int verbose) {
     //
     // Evaluate the sum \sum_{n=start}^{start + length - 1} exp(i(t + k delta)log n)/sqrt(n)
     // for 0 <= k < N in whatever way seems best possible. The answers will be put into S,
@@ -142,10 +142,12 @@ Complex partial_zeta_sum(mpz_t start, mpz_t length, mpfr_t t, Double delta, int 
         mpz_set(n1, start);
     }
 
-    cout << "For t = " << mpfr_get_d(t, GMP_RNDN) << ": " << endl;
-    cout << "   Using stage1 up to n = " << n1 << endl;
-    cout << "   Using stage2 up to n = " << n2 << endl;
-    cout << "   Using stage3 up to n = " << n3 << endl;
+    if(verbose) {
+        cout << "For t = " << mpfr_get_d(t, GMP_RNDN) << ": " << endl;
+        cout << "   Using stage1 up to n = " << n1 << endl;
+        cout << "   Using stage2 up to n = " << n2 << endl;
+        cout << "   Using stage3 up to n = " << n3 << endl;
+    }
 
     mpz_sub(N1, n1, start);
     mpz_sub(N2, n2, n1);        // N2 and N3 hold the lengths of the sums for stage 2 and stage 3
@@ -153,16 +155,19 @@ Complex partial_zeta_sum(mpz_t start, mpz_t length, mpfr_t t, Double delta, int 
 
     create_exp_itlogn_table(t);
 
-    zeta_sum_stage1_version2(start, N1, t, delta, N, S1);
-    cout << "Done with stage 1. Sum was: " << S1[0] << endl;
+    zeta_sum_stage1_version2(start, N1, t, delta, N, S1, verbose);
+    if(verbose)
+        cout << "Done with stage 1. Sum was: " << S1[0] << endl;
 
-    zeta_sum_stage2(n1, N2, t, delta, N, S2);
-    cout << "Done with stage 2. Sum was: " << S2[0] << endl;
+    zeta_sum_stage2(n1, N2, t, delta, N, S2, verbose);
+    if(verbose)
+        cout << "Done with stage 2. Sum was: " << S2[0] << endl;
     
     //create_exp_itlogn_table(t);
 
-    zeta_sum_stage3(n2, N3, t, delta, N, S3, Kmin);
-    cout << "Done with stage 3. Sum was: " << S3[0] << endl;
+    zeta_sum_stage3(n2, N3, t, delta, N, S3, verbose, Kmin);
+    if(verbose)
+        cout << "Done with stage 3. Sum was: " << S3[0] << endl;
 
     mpz_clear(n1);
     mpz_clear(n2);

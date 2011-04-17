@@ -26,7 +26,7 @@ extern string NUM_THREADS_FILE;
 
 const int stage1_block_size = 10000;
 
-Complex zeta_sum_stage1_version2(mpz_t start, mpz_t length, mpfr_t t, Double delta, int M, Complex * S) {
+Complex zeta_sum_stage1_version2(mpz_t start, mpz_t length, mpfr_t t, Double delta, int M, Complex * S, int verbose) {
     //
     // Compute the sums S(start, length, t + delta m) for m = 0, 1, ..., M - 1
     // and put the results in S[0], S[1], ..., S[M - 1]
@@ -82,7 +82,8 @@ Complex zeta_sum_stage1_version2(mpz_t start, mpz_t length, mpfr_t t, Double del
     time_t end_time = time(NULL);
 
     time_t elapsed_time = end_time - start_time;
-    cout << "Spent " << elapsed_time << " seconds in stage 1." << endl;
+    if(verbose)
+        cout << "Spent " << elapsed_time << " seconds in stage 1." << endl;
 
     return S[0];
 }
@@ -130,7 +131,7 @@ Complex zeta_block_stage1(mpz_t v, unsigned int K, mpfr_t t, Double delta, int M
     return S[0];
 }
 
-Complex zeta_sum_stage1(mpz_t N, mpfr_t t, Double delta, int M, Complex * S) {
+Complex zeta_sum_stage1(mpz_t N, mpfr_t t, Double delta, int M, Complex * S, int verbose) {
     // THIS FUNCTION SHOULD NO LONGER BE USED, AND SHOULD BE REMOVED.
     //
     // Compute and return the sum
@@ -194,7 +195,8 @@ Complex zeta_sum_stage1(mpz_t N, mpfr_t t, Double delta, int M, Complex * S) {
     time_t end_time = time(NULL);
 
     time_t elapsed_time = end_time - start_time;
-    cout << "Spent " << elapsed_time << " seconds in stage 1." << endl;
+    if(verbose)
+        cout << "Spent " << elapsed_time << " seconds in stage 1." << endl;
 
     return S[0];
 }

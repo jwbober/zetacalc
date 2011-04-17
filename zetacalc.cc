@@ -389,9 +389,11 @@ int main(int argc, char * argv[]) {
 
     double delta = .05;
     int N = 20;
+    int repeat = 1;
 
     int Z_flag = 0;
     int zeta_flag = 0;
+    int verbose = 1;
 
     mpfr_t t;
     mpfr_init2(t, 250);
@@ -406,7 +408,7 @@ int main(int argc, char * argv[]) {
     mpz_set_str(start, "1", 10);
 
     while (1) {
-        enum {KMIN = 2, T, START, LENGTH, DELTA, DOPRECOMPUTATION, USEPRECOMPUTATION, FILENAME, NUMTHREADS, N_OPTION, STAGE3_START, OUTPUT};
+        enum {KMIN = 2, T, START, LENGTH, DELTA, DOPRECOMPUTATION, USEPRECOMPUTATION, FILENAME, NUMTHREADS, N_OPTION, STAGE3_START, OUTPUT, REPEAT};
 
         static struct option options[] = 
             {
@@ -424,6 +426,8 @@ int main(int argc, char * argv[]) {
                 {"N", required_argument, 0, N_OPTION},
                 {"stage3_start", required_argument, 0, STAGE3_START},
                 {"output", required_argument, 0, OUTPUT},
+                {"repeat", required_argument, 0, REPEAT},
+                {"terse", no_argument, &verbose, 0},
                 {0, 0, 0, 0}
             };
 
@@ -473,7 +477,9 @@ int main(int argc, char * argv[]) {
             case OUTPUT:
                 output_filename = optarg;
                 break;
-
+            case REPEAT:
+                repeat = atoi(optarg);
+                break;
         }
     }
 
@@ -490,26 +496,30 @@ int main(int argc, char * argv[]) {
         return process_input_file(filename, Kmin);
     }
 
-    if(!length_set) {
-        mpfr_t z;
-        mpfr_init2(z, 250);
-        mpfr_const_pi(z, GMP_RNDN);
-        mpfr_mul_2ui(z, z, 1, GMP_RNDN);
-        mpfr_div(z, t, z, GMP_RNDN);
-        mpfr_sqrt(z, z, GMP_RNDN);
-        mpfr_get_z(length, z, GMP_RNDD);
-    }
+    for(int k = 0; k < repeat; k++) {
+        if(!length_set) {
+            mpfr_t z;
+            mpfr_init2(z, 250);
+            mpfr_const_pi(z, GMP_RNDN);
+            mpfr_mul_2ui(z, z, 1, GMP_RNDN);
+            mpfr_div(z, t, z, GMP_RNDN);
+            mpfr_sqrt(z, z, GMP_RNDN);
+            mpfr_get_z(length, z, GMP_RNDD);
+            mpfr_clear(z);
+        }
 
-    complex<double> S[N];
+        complex<double> S[N];
 
-    partial_zeta_sum(start, length, t, delta, N, S, "", Kmin);
+        partial_zeta_sum(start, length, t, delta, N, S, "", Kmin, verbose);
 
-    if(Z_flag) {
-        compute_Z_from_rs_sum(t, delta, N, S, S);
-    }
+        if(Z_flag) {
+            compute_Z_from_rs_sum(t, delta, N, S, S);
+        }
 
-    for(int n = 0; n < N; n++) {
-        cout << S[n] << endl;
+        for(int n = 0; n < N; n++) {
+            cout << delta * n + k * delta * N << " " << S[n].real() << " " << S[n].imag() << endl;
+        }
+        mpfr_add_d(t, t, delta * N, GMP_RNDN);
     }
 
     return 0;

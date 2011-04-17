@@ -334,7 +334,7 @@ Complex zeta_block_stage2(mpz_t n, unsigned int N, mpfr_t t, Double delta, int M
     return S[0];
 }
 
-Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex * S) {
+Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex * S, int verbose) {
     //
     // Compute and return the sum
     //
@@ -394,7 +394,8 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
                 clock_t current_cpu_time = clock();
                 time_t elapsed_wall_time = current_wall_time = start_wall_time;
                 double elapsed_cpu_time = ((double)current_cpu_time - (double)last_cpu_time)/CLOCKS_PER_SEC;
-                cout << "In stage2, completed " << k << " large blocks out of " << number_of_blocks << ". Spent " << elapsed_wall_time << " seconds so far and " << elapsed_cpu_time << " cpu seconds this block. " << endl;
+                if(verbose)
+                    cout << "In stage2, completed " << k << " large blocks out of " << number_of_blocks << ". Spent " << elapsed_wall_time << " seconds so far and " << elapsed_cpu_time << " cpu seconds this block. " << endl;
                 last_cpu_time = current_cpu_time;
             }
         }
@@ -512,8 +513,10 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
                 time_t elapsed_wall_time = current_wall_time - start_wall_time;
                 double elapsed_cpu_time = ((double)current_cpu_time - (double)last_cpu_time)/CLOCKS_PER_SEC;
                 total_cpu_time += elapsed_cpu_time;
-                cout << "In stage2, completed " << k << " large blocks out of " << number_of_blocks << "." << endl;
-                cout << "        In stage2 thus far: " << elapsed_wall_time << " real seconds; " << total_cpu_time << " cpu seconds; " << elapsed_cpu_time << "cpu seconds this block. " << endl;
+                if(verbose) {
+                    cout << "In stage2, completed " << k << " large blocks out of " << number_of_blocks << "." << endl;
+                    cout << "        In stage2 thus far: " << elapsed_wall_time << " real seconds; " << total_cpu_time << " cpu seconds; " << elapsed_cpu_time << "cpu seconds this block. " << endl;
+                }
                 last_cpu_time = current_cpu_time;
                 
                 if(use_num_threads_file) {
@@ -530,7 +533,8 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
                     if(new_num_threads > num_threads) {
                         if(new_num_threads > MAX_THREADS)
                             new_num_threads = MAX_THREADS;
-                        cout << "Increasing the number of threads to " << new_num_threads << endl;
+                        if(verbose)
+                            cout << "Increasing the number of threads to " << new_num_threads << endl;
                         // We actually need to spawn new threads now. First we check to see how many blocks
                         // are remaining. If it is less than the number of new threads we should
                         // spawn, we actually do nothing. (Assuming that MAX_THREADS isn't very large
@@ -558,7 +562,8 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
                     else if(new_num_threads < num_threads) {
                         if(new_num_threads < 1)
                             new_num_threads = 1;
-                        cout << "Decreasing the number of threads to " << new_num_threads << endl;
+                        if(verbose)
+                            cout << "Decreasing the number of threads to " << new_num_threads << endl;
                         pthread_mutex_unlock(&queue_mutex);
                         for(int k = new_num_threads; k < num_threads;k++) {
                             void * status;
@@ -569,10 +574,13 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
                                 unjoined[k] = false;
                             }
                         }
-                        cout << "Reacquiring lock" << endl;
+                        if(verbose)
+                            cout << "Reacquiring lock" << endl;
                         pthread_mutex_lock(&queue_mutex);
-                        cout << "Locked acquired." << endl;
-                        cout.flush();
+                        if(verbose) {
+                            cout << "Lock acquired." << endl;
+                            cout.flush();
+                        }
                         num_threads = new_num_threads;
                     }
                 }
@@ -636,7 +644,8 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
 
     time_t end_wall_time = time(NULL);
     time_t elapsed_wall_time = end_wall_time - start_wall_time;
-    cout << "Spent " << elapsed_wall_time << " seconds in stage 2." << endl;
+    if(verbose)
+        cout << "Spent " << elapsed_wall_time << " seconds in stage 2." << endl;
 
     return S[0];
 
