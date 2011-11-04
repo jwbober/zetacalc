@@ -207,8 +207,8 @@ Complex zeta_block_stage2_basic(mpz_t v, unsigned int *K, mpfr_t t, Double epsil
 
     Double s = 1;
     for(int l = 1; l <= number_of_sqrt_terms; l++) {
-        s = s * (-.5/vv);
-        b[l] = s/l;
+        s = s * (-1.0/vv);       // RECENTLY FIXED. VERIFY.
+        b[l] = .5 * s/l;
     }
 
     for(unsigned int k = 0; k < block_size; k++) {

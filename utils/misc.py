@@ -2,7 +2,7 @@ import sys
 import os
 import subprocess
 
-location = "/home/bober/zeta_computations/rs_sums/"
+location = "/home/bober/math/zeta_computations/rs_sums/"
 
 def rearrange_files():
     files = os.listdir(location)
@@ -79,7 +79,7 @@ def all_zeros():
         output_file.close()
 
 def write_S_values():
-    output_location = "/home/bober/zeta_computations/"
+    output_location = "/home/bober/math/zeta_computations/"
     files = os.listdir(location)
     files.sort()
     for filename in files:
@@ -94,7 +94,7 @@ def write_S_values():
         output_file.close()
 
 def write_Z_values():
-    output_location = "/home/bober/zeta_computations/"
+    output_location = "/home/bober/math/zeta_computations/"
     files = os.listdir(location)
     files.sort()
     for filename in files:
@@ -108,6 +108,23 @@ def write_Z_values():
                                         stdout=output_file)
         output_file.close()
 
+def write_max_info():
+    output_location = "/home/bober/math/zeta_computations/"
+    files = os.listdir(location)
+    files.sort()
+    output_file = open(output_location + "max_values_temp", 'a')
+    for filename in files:
+        print "processing", filename
+        sys.stdout.flush()
+        return_value = subprocess.call([  'blfi',
+                                          '--filename', location + filename,
+                                          '--maxmin',
+                                          '--terse'],
+                                        stdout=output_file)
+        sys.stdout.flush()
 
+    outfile_file.close()
 if __name__ == "__main__":
-    write_Z_values()
+    #write_max_info()
+    #write_Z_values()
+    print_largest_S_values()

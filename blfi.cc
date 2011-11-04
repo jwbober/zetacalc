@@ -182,7 +182,7 @@ public:
 
         mpfr_add_d(temp, t0.get_mpfr_t(), t, GMP_RNDN);
 
-        S = 2.0 * S * rs_rotation(temp);
+        S = 2.0 * S * rs_rotation(temp) + rs_remainder(temp);
         
         mpfr_clear(temp);
 
@@ -191,7 +191,40 @@ public:
         answer = answer + intentional_error * sin(2 * M_PI * t /intentional_error_period);
         
         return answer;
-}
+    }
+
+    complex<double> zeta(double t) {
+        if(t > max_t || t < min_t) {
+            cout << "t out of range." << endl;
+            exit(30);
+        }
+
+        Complex S = 0;
+
+        double c = 20 * M_PI * epsilon1/beta;
+
+        for(int n = ceil(t/delta) - 19; n <= ceil(t/delta) + 18; n++) {
+            double u = n * delta - t;
+            
+            Complex z = rs_sum[n] * exp(-I * alpha * u) * sinc(lambda * u) * blfi_kernel(u, c, epsilon1);
+            S = S + z;
+
+        }
+
+        S = S * lambda/beta;
+
+        mpfr_t temp;
+        mpfr_init2(temp, 300);
+
+        mpfr_add_d(temp, t0.get_mpfr_t(), t, GMP_RNDN);
+
+        S = 2.0 * S * rs_rotation(temp) + rs_remainder(temp);
+        S = S.real() * rs_rotation(temp);
+        
+        mpfr_clear(temp);
+
+        return S;
+    }
 
     double Zprime(double t, double h = .00000001) {
         return (Z(t + h) - Z(t))/2.0;
@@ -661,8 +694,11 @@ int main(int argc, char * argv[]) {
     //}
     
     if(maxmin) {
+        double tmax = 0;
+        double xmax = 0;
 
-        cout << setprecision(10) << endl;
+
+        cout << setprecision(10);
         double t1, t2;
         double x1, x2;
         t1 = start;
@@ -679,12 +715,26 @@ int main(int argc, char * argv[]) {
             x2 = Z.Z(t2);
             if( (increasing && x2 < x1) ) {
                 double t = Z.max_or_min(t1, t2);
-                cout << t << " " << Z.Z(t) << endl;
+                complex<double> x = Z.zeta(t);
+                if(abs(x) > xmax) {
+                    tmax = t;
+                    xmax = abs(x);
+                }
+                if(verbose) {
+                    cout << abs(x) << " " << atan(x.imag()/x.real()) << endl;
+                }
                 increasing = false;
             }
             else if ( (!increasing && x1 < x2) ) {
                 double t = Z.max_or_min(t1, t2);
-                cout << t << " " << Z.Z(t) << endl;
+                complex<double> x = Z.zeta(t);
+                if(abs(x) > xmax) {
+                    tmax = t;
+                    xmax = abs(x);
+                }
+                if(verbose) {
+                    cout << abs(x) << " " << atan(x.imag()/x.real()) << endl;
+                }
                 increasing = true;
             }
             t1 = t2;
@@ -692,6 +742,9 @@ int main(int argc, char * argv[]) {
             x1 = x2;
 
         }
+        complex<double> z = Z.zeta(tmax);
+        if(!verbose)
+            cout << filename << " " << tmax << " " << Z.Z(tmax) << " " << z << endl;
         return 0;
     }
 
