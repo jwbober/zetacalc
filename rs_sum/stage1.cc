@@ -48,7 +48,7 @@ Complex zeta_sum_stage1_version2(mpz_t start, mpz_t length, mpfr_t t, Double del
         S[l] = 0;
     }
 
-    Complex S2[M];
+    Complex * S2 = new Complex[M];
 
     const unsigned int block_size = 10000;
 
@@ -84,6 +84,8 @@ Complex zeta_sum_stage1_version2(mpz_t start, mpz_t length, mpfr_t t, Double del
     time_t elapsed_time = end_time - start_time;
     if(verbose)
         cout << "Spent " << elapsed_time << " seconds in stage 1." << endl;
+    
+    delete [] S2;
 
     return S[0];
 }
@@ -155,7 +157,7 @@ Complex zeta_sum_stage1(mpz_t N, mpfr_t t, Double delta, int M, Complex * S, int
         S[l] = 0;
     }
 
-    Complex S2[M];
+    Complex * S2 = new Complex[M];
 
     const unsigned int block_size = 10000;
 
@@ -197,6 +199,8 @@ Complex zeta_sum_stage1(mpz_t N, mpfr_t t, Double delta, int M, Complex * S, int
     time_t elapsed_time = end_time - start_time;
     if(verbose)
         cout << "Spent " << elapsed_time << " seconds in stage 1." << endl;
+
+    delete [] S2;
 
     return S[0];
 }

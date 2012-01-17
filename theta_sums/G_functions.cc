@@ -317,7 +317,6 @@ Complex G_I(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
 
 }
 
-
 Complex G_I_over_twopi(Complex alpha, int n, int j, Double epsilon, int method) {
     // We compute the integral int_0^1 g(t),
     // where g(t) = (t + n)^j exp(2 pi i alpha t + 2 pi i b t^2)
@@ -397,11 +396,6 @@ Complex G_I_over_twopi(Complex alpha, int n, int j, Double epsilon, int method) 
     }
 
 }
-
-
-
-
-
 
 Complex G_method1(Complex alpha, Complex b, int n, int j, Double epsilon) {
     if(n > 0) {
@@ -509,7 +503,6 @@ Complex G_method1_R(Complex alpha, Double b, int n, int j, Double epsilon) {
     return S;
 }
 
-
 Complex G_method1_I(Complex alpha, Double b, int n, int j, Double epsilon) {
     //
     // specialized for b purely imaginary. b has an implicit I in front
@@ -561,7 +554,6 @@ Complex G_method1_I(Complex alpha, Double b, int n, int j, Double epsilon) {
     return S;
 }
 
-
 Complex G_method1_I_over_twopi(Complex alpha, int n, int j, Double epsilon) {
     //
     // specialized for b purely imaginary. b has an implicit I in front
@@ -612,17 +604,12 @@ Complex G_method1_I_over_twopi(Complex alpha, int n, int j, Double epsilon) {
     return S;
 }
 
-
-
-
-
 inline Double POW(Double a, Double b) {
     if(a == 0 && b == 0) {
         return 1;
     }
     return pow(a, b);
 }
-
 
 inline Complex g(Complex alpha, Complex b, Double n, Double j, Double t) {
     return POW(t + n, j) * EXP(2 * PI * I * t * (alpha + b * t) );
@@ -754,8 +741,8 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
     int r = 1;
 
 
-    Complex p1[bernoulli_range + j];            // below p will need to be as big as 2r + j
-    Complex p2[bernoulli_range + j];            // for increasing r. If 2r ever gets as large
+    Complex p1[bernoulli_range + max_j];            // below p will need to be as big as 2r + j
+    Complex p2[bernoulli_range + max_j];            // for increasing r. If 2r ever gets as large
                                                 // as bernoulli_range, then the computation
                                                 // will fail anyway, so the biggest p
                                                 // that makes sense is of size bernoulli_range + j.
@@ -1050,8 +1037,8 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
     int r = 1;
 
 
-    Complex p1[bernoulli_range + j];            // below p will need to be as big as 2r + j
-    Complex p2[bernoulli_range + j];            // for increasing r. If 2r ever gets as large
+    Complex p1[bernoulli_range + max_j];            // below p will need to be as big as 2r + j
+    Complex p2[bernoulli_range + max_j];            // for increasing r. If 2r ever gets as large
                                                 // as bernoulli_range, then the computation
                                                 // will fail anyway, so the biggest p
                                                 // that makes sense is of size bernoulli_range + j.
@@ -1217,8 +1204,8 @@ Complex G_via_Euler_MacLaurin_I(Complex alpha, Double b, int n, int j, Double ep
     int r = 1;
 
 
-    Complex p1[bernoulli_range + j];            // below p will need to be as big as 2r + j
-    Complex p2[bernoulli_range + j];            // for increasing r. If 2r ever gets as large
+    Complex p1[bernoulli_range + max_j];            // below p will need to be as big as 2r + j
+    Complex p2[bernoulli_range + max_j];            // for increasing r. If 2r ever gets as large
                                                 // as bernoulli_range, then the computation
                                                 // will fail anyway, so the biggest p
                                                 // that makes sense is of size bernoulli_range + j.
@@ -1297,8 +1284,6 @@ Complex G_via_Euler_MacLaurin_I(Complex alpha, Double b, int n, int j, Double ep
     return S;
 
 }
-
-
 
 Complex G_via_Euler_MacLaurin_I_over_twopi(Complex alpha, int n, int j, Double epsilon) {
     // We compute the integral int_0^1 g(t),
@@ -1385,8 +1370,8 @@ Complex G_via_Euler_MacLaurin_I_over_twopi(Complex alpha, int n, int j, Double e
     int r = 1;
 
 
-    Complex p1[bernoulli_range + j];            // below p will need to be as big as 2r + j
-    Complex p2[bernoulli_range + j];            // for increasing r. If 2r ever gets as large
+    Complex p1[bernoulli_range + max_j];            // below p will need to be as big as 2r + j
+    Complex p2[bernoulli_range + max_j];            // for increasing r. If 2r ever gets as large
                                                 // as bernoulli_range, then the computation
                                                 // will fail anyway, so the biggest p
                                                 // that makes sense is of size bernoulli_range + j.

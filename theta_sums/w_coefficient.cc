@@ -90,7 +90,7 @@ void compute_subsum_coefficients(Complex * v2, Complex * v, const theta_cache * 
     }
     sqrt_b_powers[N + 1] = sqrt_b_powers[N] * sqrt_b_inverse;
 
-    Complex inner_sums[j + 1];
+    Complex inner_sums[max_j + 1];
     for(int k = 0; k <= j; k++) {
         Complex S = 0.0;
         int l;

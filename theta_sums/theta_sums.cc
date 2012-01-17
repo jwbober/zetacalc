@@ -84,7 +84,7 @@ Complex compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex
    
     Complex S = (Complex)0;
 
-    Complex v2[j + 1];
+    Complex v2[max_j + 1];
 
     if(conjugate) {
         for(int l = 0; l <= j; l++) {

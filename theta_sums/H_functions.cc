@@ -1,3 +1,20 @@
+// This file contains various functions to compute the integral
+//
+//      int_0^1 t^j exp(-2 pi alpha t) dt
+//
+// We have a few different methods to compute this depeding on
+// the range of input. The simplest method is perhaps to use an
+// exact expression for the antiderivative of the integrand,
+// but for certain ranges of input there can be some bad cancellation
+// in the sum that comes up, so this does not always work well.
+//
+// Currently we also employ a method which uses the taylor
+// series expansion for exp(-2 pi alpha t) and then integrates
+// term-by-term and a continued fraction based method which
+// was taken from lcalc.
+//
+
+
 #include "theta_sums.h"
 #include <iostream>
 
@@ -5,10 +22,196 @@
 
 using namespace std;
 
-inline Complex H_method2(int j, Complex alpha, Double epsilon);
-Complex H_method5(int j, Complex alpha, Double epsilon);
+inline double real(double x) {
+    return x;
+}
+inline double imag(double x) {
+    return 0;
+}
+inline double norm(double x) {
+    return x * x;
+}
+template<typename T> Complex H(int j, T alpha, Double epsilon);
+template Complex H<Complex>(int j, Complex alpha, Double epsilon);
+template Complex H<double>(int j, double alpha, Double epsilon);
 
-Complex H(int j, Complex alpha, Double epsilon) {
+template<typename T> Complex H_method1(int j, T alpha);
+inline Complex H_method1_I(int j, Double alpha);
+template<typename T> inline T H_method2(int j, T alpha, Double epsilon);
+template<typename T> T H_method4(int j, T alpha, Double epsilon);
+
+template <typename T> Complex H_method1(int j, T alpha) {
+    if(stats::stats)
+        stats::H_method1++;
+    // In this case we compute an "exact" value using the antiderivative of the integrand.
+    // 
+
+    if(real(alpha) == 0) {
+        return H_method1_I(j, imag(alpha));
+    }
+
+    T S = (T)0.0;
+    Double j_factorial = factorial(j);
+    T alpha_power = (T)1;
+    for(int v = 0; v < j + 1; v++) {
+        if(v > 0) {
+    //        v_factorial *= v;
+            alpha_power *= alpha;
+        }
+        T z = alpha_power * two_pi_over_factorial_power(v);  //two_pi_alpha_power/factorial(v);
+        if(verbose::H >= 2) {
+            cout << v << ": " << alpha_power << " * " << two_pi_over_factorial_power(v) << " = " << z << endl;
+        }
+        S = S + z;
+    }
+    if(verbose::H >= 2) {
+        cout << "In H_method1(): after summing, S = " << S << endl;
+    }
+    S = S * EXP(-2 * PI * alpha);
+    if(verbose::H >= 2) {
+        cout << "In H_method1(): after multiplying by exponential, S = " << S << endl;
+    }
+    S = (Double)1.0 - S;
+    alpha_power *= alpha;
+    //S = S * j_factorial/(alpha_power * two_pi_power(j+1));
+    S = S * j_factorial;
+    S = S/two_pi_power(j+1);
+    S = S/alpha_power;
+    if(verbose::H >= 2) {
+        cout << "In H_method1(): after multiplying by j! term..., S = " << S << endl;
+    }
+
+    if(verbose::H) {
+        cout << "Computed H_method1(" << j << ", " << alpha << ") = " << S << endl;
+    }
+    return S;
+}
+
+inline Complex H_method1_I(int j, Double alpha) {
+    // In this case we compute an "exact" value using the antiderivative of the integrand.
+    // 
+    // Specialized for imaginary alpha. Here alpha has an implicit I multiplying it.
+    Complex S = 0.0;
+    Double j_factorial = factorial(j);
+    Double alpha_power = 1.0;
+    for(int v = 0; v < j + 1; v++) {
+        if(v > 0) {
+    //        v_factorial *= v;
+            alpha_power *= alpha;
+        }
+        Double z = alpha_power * two_pi_over_factorial_power(v);  //two_pi_alpha_power/factorial(v);
+        S = S + I_power(v) * z;
+    }
+    //S = S * exp(-2 * PI * alpha);
+    S = S * Complex( cos(-2 * PI * alpha), sin(-2 * PI * alpha) );
+    S = (Double)1.0 - S;
+    alpha_power *= alpha;
+    S = S * j_factorial/(I_power(j + 1) * alpha_power * two_pi_power(j+1));
+
+    if(verbose::H) {
+        cout << "Computed H_method1(" << j << ", " << alpha << ") = " << S << endl;
+    }
+
+    return S;
+}
+
+template<typename T> inline T H_method2(int j, T alpha, Double epsilon) {
+    // When alpha is very small, using the antiderivative can lead to bad
+    // cancellation and loss of precision, so we use the taylor series
+    // expansion for exp(2 pi alpha t) instead, and integrate term by term
+    // using antiderivatives.
+
+    // The taylor expansion gives
+    //
+    // H(j, alpha) = sum_{m=0}^\infty (-2 pi alpha)^m / (m! (j + m + 1) )
+    //
+    //int N = max(ceil(-log(epsilon)), ceil(2 * PI * alpha_0 * E * E));; // the number of terms we will use in the taylor expansion
+
+    if(stats::stats)
+        stats::H_method2++;
+
+
+    T S = 0.0;
+    
+    Double error = epsilon + 1.0;
+    int m = 0;
+    T alpha_power = 1.0;
+    while(error > epsilon/2.0) {
+        if(m > 0) {
+            alpha_power *= -alpha;
+        }
+        T z = two_pi_over_factorial_power(m) * alpha_power / Double(j + m + 1);
+        S = S + z;
+        error = abs(z);
+        m++;
+    }
+
+    return S;
+}
+
+template<typename T> T H_method4(int j, T alpha, Double epsilon) {
+    // Compute H(j, alpha) using a continued fraction expansion
+    //
+    // This code is largely copied from lcalc.
+   
+    if(stats::stats)
+        stats::H_method4++;
+
+    T P1 = 1.0;
+    T P2 = (T)(j + 1.0);
+    T P3 = 0.0;
+    
+    T Q1 = 0.0;
+    T Q2 = 1.0;
+    T Q3 = 0.0;
+    
+    T u = PI * alpha;
+    Double z = j + 1;
+    T w = 2.0 * PI * alpha;
+
+    int n=0;
+    Double error = epsilon + 1;
+    while( (error > epsilon || n < 3) && n < 1000000) {
+        n++;
+        P3=(z+n)*P2-(z+(n-1)*.5)*w*P1;
+        Q3=(z+n)*Q2-(z+(n-1)*.5)*w*Q1;
+
+        P1=P2;P2=P3;
+        Q1=Q2;Q2=Q3;
+
+        n++;
+        P3=(z+n)*P2+(Double)n*u*P1;
+        Q3=(z+n)*Q2+(Double)n*u*Q1;
+
+        P1=P2;P2=P3;
+        Q1=Q2;Q2=Q3;
+
+        //to prevent overlow
+        if(n%8==0&&(real(P2)>1.e50||real(P2)<-1.e50||imag(P2)>1.e50||imag(P2)<-1.e50)){
+            P1=P1*(Double)(1.e-50);
+            P2=P2*(Double)(1.e-50);
+            Q1=Q1*(Double)(1.e-50);
+            Q2=Q2*(Double)(1.e-50);
+
+        }
+
+        error = abs( ((P1 * Q2) - (P2 * Q1))/(Q1 * Q2) );
+
+    }
+
+    T g=P2/Q2;
+
+    if(n>999999){
+         cout << "Mofu. Continued fraction for g(z,w) failed to converge. z = "
+         << z << "  w = " << w << endl;
+         //exit(1);
+    }
+
+    g = exp(-w)/g;
+    return g;
+}
+
+template<typename T> Complex H(int j, T alpha, Double epsilon) {
     //
     // Compute the integral int_0^1 t^j exp(-2 pi alpha t) dt
     // We have three different methods to compute this depending
@@ -18,10 +221,6 @@ Complex H(int j, Complex alpha, Double epsilon) {
     if((j + 1) * epsilon > 1.0) {
         return 0.0;
     }
-
-//    if(abs(alpha) < 5) {
-//        return exp(-alpha);
-//    }
 
     if(stats::stats) {
         const Double D = 50.0;
@@ -68,152 +267,14 @@ Complex H(int j, Complex alpha, Double epsilon) {
    
 }
 
-
-inline Complex H_method1(int j, Double alpha) {
-    // In this case we compute an "exact" value using the antiderivative of the integrand.
-    // 
-    // Specialized for real alpha.
-    Double S = 0.0;
-    Double j_factorial = factorial(j);
-    Double alpha_power = 1.0;
-    for(int v = 0; v < j + 1; v++) {
-        if(v > 0) {
-    //        v_factorial *= v;
-            alpha_power *= alpha;
-        }
-        Double z = alpha_power * two_pi_over_factorial_power(v);  //two_pi_alpha_power/factorial(v);
-        S = S + z;
-    }
-    S = S * exp(-2 * PI * alpha);
-    S = (Double)1.0 - S;
-    alpha_power *= alpha;
-    S = S * j_factorial/(alpha_power * two_pi_power(j+1));
-
-    if(verbose::H) {
-        cout << "Computed H_method1(" << j << ", " << alpha << ") = " << S << endl;
-    }
-
-    return S;
-}
-
-inline Complex H_method1_I(int j, Double alpha) {
-    // In this case we compute an "exact" value using the antiderivative of the integrand.
-    // 
-    // Specialized for imaginary alpha. Here alpha has an implicit I multiplying it.
-    Complex S = 0.0;
-    Double j_factorial = factorial(j);
-    Double alpha_power = 1.0;
-    for(int v = 0; v < j + 1; v++) {
-        if(v > 0) {
-    //        v_factorial *= v;
-            alpha_power *= alpha;
-        }
-        Double z = alpha_power * two_pi_over_factorial_power(v);  //two_pi_alpha_power/factorial(v);
-        S = S + I_power(v) * z;
-    }
-    //S = S * exp(-2 * PI * alpha);
-    S = S * Complex( cos(-2 * PI * alpha), sin(-2 * PI * alpha) );
-    S = (Double)1.0 - S;
-    alpha_power *= alpha;
-    S = S * j_factorial/(I_power(j + 1) * alpha_power * two_pi_power(j+1));
-
-    if(verbose::H) {
-        cout << "Computed H_method1(" << j << ", " << alpha << ") = " << S << endl;
-    }
-
-    return S;
-}
-
-
-
-
-
-Complex H_method1(int j, Complex alpha) {
-    if(stats::stats)
-        stats::H_method1++;
-    // In this case we compute an "exact" value using the antiderivative of the integrand.
-    // 
-
-    if(imag(alpha) == 0) {
-        return H_method1(j, real(alpha));
-    }
-    if(real(alpha) == 0) {
-        return H_method1_I(j, imag(alpha));
-    }
-
-    Complex S = (Complex)0.0;
-    Double j_factorial = factorial(j);
-    Complex alpha_power = (Complex)1;
-    for(int v = 0; v < j + 1; v++) {
-        if(v > 0) {
-    //        v_factorial *= v;
-            alpha_power *= alpha;
-        }
-        Complex z = alpha_power * two_pi_over_factorial_power(v);  //two_pi_alpha_power/factorial(v);
-        if(verbose::H >= 2) {
-            cout << v << ": " << alpha_power << " * " << two_pi_over_factorial_power(v) << " = " << z << endl;
-        }
-        S = S + z;
-    }
-    if(verbose::H >= 2) {
-        cout << "In H_method1(): after summing, S = " << S << endl;
-    }
-    S = S * EXP(-2 * PI * alpha);
-    if(verbose::H >= 2) {
-        cout << "In H_method1(): after multiplying by exponential, S = " << S << endl;
-    }
-    S = (Double)1.0 - S;
-    alpha_power *= alpha;
-    //S = S * j_factorial/(alpha_power * two_pi_power(j+1));
-    S = S * j_factorial;
-    S = S/two_pi_power(j+1);
-    S = S/alpha_power;
-    if(verbose::H >= 2) {
-        cout << "In H_method1(): after multiplying by j! term..., S = " << S << endl;
-    }
-
-    if(verbose::H) {
-        cout << "Computed H_method1(" << j << ", " << alpha << ") = " << S << endl;
-    }
-
-    return S;
-}
-
-inline Complex H_method2(int j, Complex alpha, Double epsilon) {
-    // When alpha is very small, using the antiderivative can lead to bad
-    // cancellation and loss of precision, so we use the taylor series
-    // expansion for exp(2 pi alpha t) instead, and integrate term by term
-    // using antiderivatives.
-
-    // The taylor expansion gives
-    //
-    // H(j, alpha) = sum_{m=0}^\infty (-2 pi alpha)^m / (m! (j + m + 1) )
-    //
-    //int N = max(ceil(-log(epsilon)), ceil(2 * PI * alpha_0 * E * E));; // the number of terms we will use in the taylor expansion
-
-    if(stats::stats)
-        stats::H_method2++;
-
-
-    Complex S = (Complex)0;
-    
-    Double error = epsilon + 1.0;
-    int m = 0;
-    Complex alpha_power = (Complex)1;
-    while(error > epsilon/2.0) {
-        if(m > 0) {
-            alpha_power *= -alpha;
-        }
-        Complex z = two_pi_over_factorial_power(m) * alpha_power / Double(j + m + 1);
-        S = S + z;
-        error = abs(z);
-        m++;
-    }
-
-    return S;
-}
+//
+// The following are old methods that are no longer used, but kept around
+// in case we want to revisit them.
+//
 
 Complex H_method3(int j, Complex alpha, Double epsilon) {
+    //
+    // THIS IS CURRENTLY UNUSED.
     //
     // We use a change of variables to rewrite the integral, and compute it as
     //
@@ -229,7 +290,7 @@ Complex H_method3(int j, Complex alpha, Double epsilon) {
 
     Complex S = (Complex)0;
 
-    Complex H_table[j + 1];
+    Complex H_table[max_j + 1];
     for(int m = 0; m <= j; m++) {
         H_table[m] = H_method2(m, alpha/(Double)M, j * epsilon);
     }
@@ -258,175 +319,10 @@ Complex H_method3(int j, Complex alpha, Double epsilon) {
     S = S/(Double)pow((Double)M,j + 1);
     return S;
 }
-
-
-inline Complex H_method4(int j, Double alpha, Double epsilon) {
-    // Compute H(j, alpha) using a continued fraction expansion
-    //
-    // This code is largely copied from lcalc.
-    //
-    // Specialized for real alpha.
-   
-    Double P1 = (Double)1;
-    Double P2 = (Double)(j + 1);
-    Double P3 = 0.0;
-
-    Double Q1 = (Double)0;
-    Double Q2 = (Double)1;
-    Double Q3 = (Double)0;
-    
-    Double u = PI * alpha;
-    Double z = j + 1;
-    Double w = (Double)2 * PI * alpha;
-    //ttype P1=1.,P2=z,P3,Q1=0.,Q2=1.,Q3;
-    //ttype u=.5*w;
-    //ttype t1,t2;
-
-    int n=0;
-    Double error = epsilon + 1;
-    while( (error > epsilon || n < 3) && n < 1000000) {
-        n++;
-        P3=(z+n)*P2-(z+(n-1)*.5)*w*P1;
-        Q3=(z+n)*Q2-(z+(n-1)*.5)*w*Q1;
-
-        //t1=z+n;
-        //t2=(z+(n-1)*.5)*w;
-        //P3=t1*P2-t2*P1;
-        //Q3=t1*Q2-t2*Q1;
-
-        P1=P2;P2=P3;
-        Q1=Q2;Q2=Q3;
-
-        n++;
-        P3=(z+n)*P2+(Double)n*u*P1;
-        Q3=(z+n)*Q2+(Double)n*u*Q1;
-        //t1=t1+1; t2=n*u;
-        //P3=t1*P2+t2*P1;
-        //Q3=t1*Q2+t2*Q1;
-
-        P1=P2;P2=P3;
-        Q1=Q2;Q2=Q3;
-
-        //cout << P2/Q2 << " " << norm(Q2*P1-P2*Q1) / norm(Q2*P1*tolerance) <<endl;
-
-        //to prevent overlow
-        if(n%8==0&&(abs(P2)>1.e50||abs(P2)<-1.e50)){
-            P1=P1*(Double)(1.e-50);
-            P2=P2*(Double)(1.e-50);
-            Q1=Q1*(Double)(1.e-50);
-            Q2=Q2*(Double)(1.e-50);
-
-        }
-
-        error = abs( ((P1 * Q2) - (P2 * Q1))/(Q1 * Q2) );
-
-        //cout << P2 << "   "  << Q2 << P2/Q2 << endl;
-        //cout << P2/Q2 << endl;
-
-    }
-
-    Double g=P2/Q2;
-
-    //cout<< "using cfrac for comp inc " << t << " " << n << endl;
-
-    if(n>999999){
-         cout << "Mofu. Continued fraction for g(z,w) failed to converge. z = "
-         << z << "  w = " << w << endl;
-         //exit(1);
-    }
-
-    g = exp(-w)/g;
-    return g;
-}
-
-
-
-
-Complex H_method4(int j, Complex alpha, Double epsilon) {
-    // Compute H(j, alpha) using a continued fraction expansion
-    //
-    // This code is largely copied from lcalc.
-   
-    if(stats::stats)
-        stats::H_method4++;
-
-    if(imag(alpha) == 0) {
-        return H_method4(j, real(alpha), epsilon);
-    }
-
-    Complex P1 = (Double)1;
-    Complex P2 = (Double)(j + 1);
-    Complex P3 = (Complex)0;
-
-    Complex Q1 = (Complex)0;
-    Complex Q2 = (Double)1;
-    Complex Q3 = (Complex)0;
-    
-    Complex u = PI * alpha;
-    Double z = j + 1;
-    Complex w = (Double)2 * PI * alpha;
-    //ttype P1=1.,P2=z,P3,Q1=0.,Q2=1.,Q3;
-    //ttype u=.5*w;
-    //ttype t1,t2;
-
-    int n=0;
-    Double error = epsilon + 1;
-    while( (error > epsilon || n < 3) && n < 1000000) {
-        n++;
-        P3=(z+n)*P2-(z+(n-1)*.5)*w*P1;
-        Q3=(z+n)*Q2-(z+(n-1)*.5)*w*Q1;
-
-        //t1=z+n;
-        //t2=(z+(n-1)*.5)*w;
-        //P3=t1*P2-t2*P1;
-        //Q3=t1*Q2-t2*Q1;
-
-        P1=P2;P2=P3;
-        Q1=Q2;Q2=Q3;
-
-        n++;
-        P3=(z+n)*P2+(Double)n*u*P1;
-        Q3=(z+n)*Q2+(Double)n*u*Q1;
-        //t1=t1+1; t2=n*u;
-        //P3=t1*P2+t2*P1;
-        //Q3=t1*Q2+t2*Q1;
-
-        P1=P2;P2=P3;
-        Q1=Q2;Q2=Q3;
-
-        //cout << P2/Q2 << " " << norm(Q2*P1-P2*Q1) / norm(Q2*P1*tolerance) <<endl;
-
-        //to prevent overlow
-        if(n%8==0&&(real(P2)>1.e50||real(P2)<-1.e50||imag(P2)>1.e50||imag(P2)<-1.e50)){
-            P1=P1*(Double)(1.e-50);
-            P2=P2*(Double)(1.e-50);
-            Q1=Q1*(Double)(1.e-50);
-            Q2=Q2*(Double)(1.e-50);
-
-        }
-
-        error = abs( ((P1 * Q2) - (P2 * Q1))/(Q1 * Q2) );
-
-        //cout << P2 << "   "  << Q2 << P2/Q2 << endl;
-        //cout << P2/Q2 << endl;
-
-    }
-
-    Complex g=P2/Q2;
-
-    //cout<< "using cfrac for comp inc " << t << " " << n << endl;
-
-    if(n>999999){
-         cout << "Mofu. Continued fraction for g(z,w) failed to converge. z = "
-         << z << "  w = " << w << endl;
-         //exit(1);
-    }
-
-    g = exp(-w)/g;
-    return g;
-}
-
 Complex H_method5(int j, Complex alpha, Double epsilon) {
+    //
+    // THIS IS CURRENTLY UNUSED.
+    //
     const int S = 20;
     const int D = 5;
     const int N = S * D;

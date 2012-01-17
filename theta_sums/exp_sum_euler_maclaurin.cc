@@ -226,7 +226,7 @@ Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, in
         }
 
 
-        Complex Z[j + 1];
+        Complex Z[max_j + 1];
         for(int l = 0; l <= j; l++) {
             Complex z = 0;
             for(int s = l; s <= j; s++) {

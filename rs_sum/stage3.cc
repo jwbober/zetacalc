@@ -264,7 +264,7 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
     }
 
 
-    Complex S2[M];
+    Complex * S2 = new Complex[M];
     for(int l = 0; l < M; l++) {
         S[l] = 0.0;
         S2[l] = 0.0;
@@ -343,7 +343,10 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
         pthread_cond_init(&queue_nonempty_signaler, NULL);
         
         stage3_data_t thread_data[MAX_THREADS];
-        Complex S2[MAX_THREADS][M];
+        Complex * S2[MAX_THREADS];
+        for(int m = 0; m < MAX_THREADS; m++) {
+            S2[m] = new Complex[M];
+        }
 
         // start by spawning a bunch of threads
         //
@@ -571,6 +574,7 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
     if(verbose)
         cout << "Spent " << elapsed_wall_time << " seconds in stage 3." << endl;
 
+    delete [] S2;
 
     return S[0];
 

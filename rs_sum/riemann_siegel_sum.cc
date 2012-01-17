@@ -125,9 +125,9 @@ Complex partial_zeta_sum(mpz_t start, mpz_t length, mpfr_t t, Double delta, int 
     stage_2_bound(n2, t);
     mpz_add(n3, start, length);
 
-    Complex S1[N];
-    Complex S2[N];
-    Complex S3[N];
+    Complex * S1 = new Complex[N];
+    Complex * S2 = new Complex[N];
+    Complex * S3 = new Complex[N];
 
     if(mpz_cmp(n2, n3) > 0) {      // if n2 > n3, set n2 = n3
         mpz_set(n2, n3);
@@ -180,6 +180,10 @@ Complex partial_zeta_sum(mpz_t start, mpz_t length, mpfr_t t, Double delta, int 
         S[l] = S1[l] + S2[l] + S3[l];
     }
 
+    delete [] S1;
+    delete [] S2;
+    delete [] S3;
+
     return S[0];
 }
 
@@ -225,9 +229,9 @@ Complex zeta_sum(mpfr_t t, Double delta, int N, Complex * S) {
     stage_2_bound(n2, t);
     stage_3_bound(n3, t);
 
-    Complex S1[N];
-    Complex S2[N];
-    Complex S3[N];
+    Complex * S1 = new Complex[N];
+    Complex * S2 = new Complex[N];
+    Complex * S3 = new Complex[N];
 
     if(mpz_cmp(n2, n3) > 0) {      // if n2 > n3, set n2 = n3
         mpz_set(n2, n3);
@@ -264,6 +268,10 @@ Complex zeta_sum(mpfr_t t, Double delta, int N, Complex * S) {
     for(int l = 0; l < N; l++) {
         S[l] = S1[l] + S2[l] + S3[l];
     }
+
+    delete [] S1;
+    delete [] S2;
+    delete [] S3;
 
     return S[0];
 }

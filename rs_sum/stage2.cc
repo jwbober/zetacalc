@@ -381,7 +381,7 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
     // right now we don't handle the case where the number of blocks is less than the number of threads,
     // and we just do a single threaded run
     if(num_threads == 1 || mpz_cmp_si(number_of_blocks, num_threads) < 0) {
-        Complex S2[M];
+        Complex * S2 = new Complex[M];
         for(mpz_set_ui(k, 0u); mpz_cmp(k, number_of_blocks) < 0; mpz_add_ui(k, k, 1u)) {
             mpz_add_ui(v, v, block_size);
             zeta_block_stage2(v, block_size, t, delta, M, S2);
@@ -405,6 +405,7 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
         for(int l = 0; l < M; l++) {
             S[l] += S2[l];
         }
+        delete [] S2;
     }
     else {
 
@@ -422,7 +423,10 @@ Complex zeta_sum_stage2(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
         pthread_cond_init(&queue_nonempty_signaler, NULL);
         
         stage2_data_t thread_data[MAX_THREADS];
-        Complex S2[MAX_THREADS][M];
+        Complex * S2[MAX_THREADS];
+        for(int m = 0; m < MAX_THREADS; m++) {
+            S2[m] = new Complex[M];
+        }
 
 
         // start by spawning a bunch of threads

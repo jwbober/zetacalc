@@ -562,7 +562,7 @@ Complex hardy_Z(mpfr_t t0, Double delta, int N, Complex * S) {
     // Compute the hardy_Z function at t0, t0 + delta, ... t0 + (N - 1)delta and set R to the rotation
     // factor so that zeta(.5 + it) = R * Z(t)
     //
-    Complex main_sum[N];
+    Complex * main_sum = new Complex[N];
     Complex rotation_factor;
     Double remainder_terms;
 
@@ -578,6 +578,8 @@ Complex hardy_Z(mpfr_t t0, Double delta, int N, Complex * S) {
         S[l] = 2 * real(rotation_factor * main_sum[l]) + remainder_terms;
         mpfr_add_d(t, t, delta, GMP_RNDN);
     }
+
+    delete [] main_sum;
 
     return S[0];
 }

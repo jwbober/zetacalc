@@ -92,7 +92,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 
     Complex S1 = 0;
 
-    Complex Z[j + 1];
+    Complex Z[max_j + 1];
     for(int l = 0; l <= j; l++) {
         Complex z = 0;
         for(int s = l; s <= j; s++) {
@@ -121,8 +121,8 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
         cout << endl;
     }
 
-    Double Z_epsilon[j + 1];
-    Double V_epsilon[j + 1];
+    Double Z_epsilon[max_j + 1];
+    Double V_epsilon[max_j + 1];
     {
         Double x = 1.0/(12 * (j + 1.0));
         for(int l = 0; l <= j; l++) {
@@ -178,7 +178,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 
         IC1c_term *= C1;
 
-        Complex Z2[j + 1];
+        Complex Z2[max_j + 1];
         for(int l = 0; l <= j; l++) {
             Complex z = 0;
             for(int s = l; s <= j; s++) {
@@ -278,7 +278,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     mpfr_div_2ui(b1, b1, 1, GMP_RNDN);
     mpfr_neg(b1, b1, GMP_RNDN);
 
-    Complex v2[j+1];
+    Complex v2[max_j+1];
     compute_subsum_coefficients(v2, v, cache);
 
 
@@ -462,7 +462,7 @@ Complex compute_exponential_sums_using_theta_algorithm2(mpfr_t mp_a, mpfr_t mp_b
 
     Complex S1 = 0;
 
-    Complex Z[j + 1];
+    Complex Z[max_j + 1];
     for(int l = 0; l <= j; l++) {
         Complex z = 0;
         for(int s = l; s <= j; s++) {
@@ -491,8 +491,8 @@ Complex compute_exponential_sums_using_theta_algorithm2(mpfr_t mp_a, mpfr_t mp_b
         cout << endl;
     }
 
-    Double Z_epsilon[j + 1];
-    Double V_epsilon[j + 1];
+    Double Z_epsilon[max_j + 1];
+    Double V_epsilon[max_j + 1];
     {
         Double x = 1.0/(12 * (j + 1.0));
         for(int l = 0; l <= j; l++) {
@@ -547,7 +547,7 @@ Complex compute_exponential_sums_using_theta_algorithm2(mpfr_t mp_a, mpfr_t mp_b
 
         IC1c_term *= C1;
 
-        Complex Z2[j + 1];
+        Complex Z2[max_j + 1];
         for(int l = 0; l <= j; l++) {
             Complex z = 0;
             for(int s = l; s <= j; s++) {
@@ -596,7 +596,7 @@ Complex compute_exponential_sums_using_theta_algorithm2(mpfr_t mp_a, mpfr_t mp_b
 
     Complex JBulk_term2 = 0;
 
-    Complex v3[j+1];
+    Complex v3[max_j+1];
     for(int l = 0; l < j; l++) {
         v3[l] = (Double)minus_one_power(l) * I_power(l + 1) * v[l];
     }
@@ -642,7 +642,7 @@ Complex compute_exponential_sums_using_theta_algorithm2(mpfr_t mp_a, mpfr_t mp_b
     mpfr_div_2ui(b1, b1, 1, GMP_RNDN);
     mpfr_neg(b1, b1, GMP_RNDN);
 
-    Complex v2[j+1];
+    Complex v2[max_j+1];
     compute_subsum_coefficients(v2, v, cache);
 
 

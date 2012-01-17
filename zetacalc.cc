@@ -143,7 +143,7 @@ void compute_hardy_on_unit_interval(mpfr_t t) {
     mpfr_sub(t0, t0, tmp, GMP_RNDN);
 
     int N = (int)(1.0/delta) + 500;
-    Complex main_sum[N];
+    Complex * main_sum = new Complex[N];
 
     cout << "initially computing zeta at " << N << " points." << endl;
 
@@ -173,6 +173,7 @@ void compute_hardy_on_unit_interval(mpfr_t t) {
     outfile << "]" << endl;
 
     outfile.close();
+    delete [] main_sum;
 }
 
 void * F0_thread(void * bound ) {
@@ -228,7 +229,7 @@ void do_computation() {
 
     int N = 500;
     Double delta = .01;
-    Complex main_sum_values[N];
+    Complex * main_sum_values = new Complex[N];
 
     ofstream logfile;
     logfile.open("zeta_logfile");
@@ -280,6 +281,8 @@ void do_computation() {
         datafile.close();
         mpz_clear(tz);
     }
+
+    delete [] main_sum_values;
 }
 
 void usage() {
@@ -345,7 +348,7 @@ int process_input_file(char const* filename, int Kmin) {
     cout << delta << endl;
     cout << output_filename << endl;
 
-    Complex S[N];
+    Complex * S = new Complex[N];
     partial_zeta_sum(start, length, t, delta, N, S, "",  Kmin);
 
     ofstream output_file;
@@ -369,6 +372,7 @@ int process_input_file(char const* filename, int Kmin) {
     for(int k = 0; k < N; k++) {
          output_file << S[k] << endl;
     }
+    delete [] S;
     return 0;
 
 }
@@ -496,6 +500,8 @@ int main(int argc, char * argv[]) {
         return process_input_file(filename, Kmin);
     }
 
+    complex<double> * S = new Complex[N];
+
     for(int k = 0; k < repeat; k++) {
         if(!length_set) {
             mpfr_t z;
@@ -508,7 +514,6 @@ int main(int argc, char * argv[]) {
             mpfr_clear(z);
         }
 
-        complex<double> S[N];
 
         partial_zeta_sum(start, length, t, delta, N, S, "", Kmin, verbose);
 
@@ -521,6 +526,8 @@ int main(int argc, char * argv[]) {
         }
         mpfr_add_d(t, t, delta * N, GMP_RNDN);
     }
+
+    delete [] S;
 
     return 0;
 

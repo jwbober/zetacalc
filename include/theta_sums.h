@@ -25,6 +25,7 @@ const bool FAKE_EULER_MACLAURIN = false;
 
 const int Kmin = 800;
 const int mpfr_Kmin = 2000;
+const int max_j = 30;
 //const int mpfr_Kmin = 2000;
 
 
@@ -273,11 +274,18 @@ Complex ExpABK(mpfr_t A, mpfr_t B, int K);
 
 
 inline Complex EXP(Complex z) {                                                 //--------------------------------------------
-    stats::exp++;                                                               // This is just here for counting purposes.
+    if(stats::stats)                                                            //
+        stats::exp++;                                                           // This is just here for counting purposes.
     return std::exp(z);                                                         // There is pretty much no overhead in using it,
 }                                                                               // and commenting out the first line of this
                                                                                 // function will get rid of any overhead at all.
                                                                                 // ---------------------------------------------
+inline double EXP(double z) {
+    if(stats::stats)
+        stats::exp++;
+    return std::exp(z);
+}
+
 
 inline bool check_condition(bool condition, char * message) {              //----------------------------------------------
     if(!condition) {                                                            //
@@ -289,11 +297,11 @@ inline bool check_condition(bool condition, char * message) {              //---
 
                                                                                 //----------------------------------------------
                                                                                 //  Functions to compute the integral
-Complex H(int j, Complex alpha, Double epsilon);                                //    / 1 
-Complex H_method1(int j, Complex alpha);                                        //    |   j
+template<typename T> Complex H(int j, T alpha, Double epsilon);                 //    / 1 
+template<typename T> Complex H_method1(int j, T alpha);                         //    |   j
 //inline Complex H_method2(int j, Complex alpha, Double epsilon);               //    |  t  exp(- 2 pi alpha) dt
-Complex H_method3(int j, Complex alpha, Double epsilon);                        //    |
-Complex H_method4(int j, Complex alpha, Double epsilon);                        //    / 0
+//Complex H_method3(int j, Complex alpha, Double epsilon);                      //    |
+template<typename T> T H_method4(int j, T alpha, Double epsilon);               //    / 0
                                                                                 //  (Defined in H_functions.cc)
                                                                                 //----------------------------------------------
 

@@ -1127,9 +1127,6 @@ void test1() {
 
 int main() {
 
-    test1();
-    return 0 ;
-
     unsigned int seed = time(NULL);
     //seed = 1276487827;
     //seed = 1276414014;
@@ -1149,156 +1146,13 @@ int main() {
     gmp_randseed_ui(rand_state, seed);
 
     cout << setprecision(17);
-    //test_zeta_sum_stage1(rand_state);
 
-    //test_exp_itlogn(rand_state);
+    test_theta_algorithm_EM_case(20, 10000, pow(2, -30));
+    test_theta_algorithm_EM_case(100, 1000, pow(2, -50));
+    test_theta_algorithm_EM_case(100, 1000, pow(2, -30));
 
-    //return 0;
-
-    //build_F0_cache(11, 6, 25, 11000, exp(-20));
-    //build_F1_cache(181, 51, 25, exp(-30));
-    //build_F1_cache(181, 51, 25, exp(-30));
-    //build_F1_cache(361, 101, 25, exp(-30));
-    
-    //build_F0_cache(11, 6, 25, 2800, exp(-25));
-    //build_F0_cache(11, 6, 25, 10500, exp(-25));
-    //build_F1_cache(1801, 501, 30, exp(-30));
-    //build_F2_cache(10500, 11, 11, 6, exp(-30));
-    //build_IC7_cache(600, 200, 25, exp(-30));
-
-    build_F1_cache(61, 51, 20, exp(-30), "caches/");
-    build_F0_cache(11, 6, 25, 11000, exp(-25), "caches/");
-    //build_F1_cache(181, 51, 30, exp(-30));
-    build_F2_cache(11000, 11, 11, 6, exp(-30), "caches/");
-    build_IC7_cache(600, 200, 25, exp(-30), "caches/");
-
-    //build_F0_cache(5, 4, 25, 50, exp(-30));
-    //build_F0_cache(10, 20, 25, 20000, exp(-30));
-    //build_F0_cache(10, 100, 25, 30000, exp(-30));
-    //build_F1_cache(30, 2000, 30, exp(-30));
-    //build_F2_cache(30000, 10, 10, 100, exp(-30));
-    //build_IC7_cache(600, 200, 25, exp(-30));
-
-    //time_zeta_sum_stage3(rand_state);
-
-    //test3();
-
-    //test_specific_inputs(-3.79326471769869, 0.000369601256708863, 1726, 16, exp(-30));
-    //test_specific_inputs(-8.01233758126029, 0.00151760844655872, 339, 15, exp(-36));
-    int K = 30000;
-    Double b = (36 * 36 + 1000)/ (30000.0 * 30000.0);
-    Double a = -2 * b * K;
-
-    
-    //K = 61;
-    //b = 1/(8 * K);
-    //a = .49;
-
-    a = .80263398159418;
-    b = 6.01723246090917;
-    K = 5813;
-
-    a = 0.2115681902677;
-    a = 0.7515681902677;
-    a = 0.22;
-    b = 0.00750425709434452;
-    b = 0.0075;
-    K = 201;
-    K = 186;
-    int j = 19;
-//compute_exponential_sums() called with a = 0.462984559807454, b = 8.62172660502867e-06, K = 10300, j = 13, epsilon = 8.88178419700125e-16
-
-    a = 0.462984559807454;
-    b = 8.62172660502867e-06;
-    K = 10300;
-    j = 13;
-
-
-    a = 0.896067520089479;
-    b = 0.00054575118798739;
-    j = 15;
-    K = 489;
-
-    a = 0.81720095212441;
-    b = 1.61006127354104e-05; j = 9; K = 10094;
-
-    a = 6.4375082293699997; b = -6.9832637240100954; j = 16; K = 8383;
-
-    a = 2.8761590052750705; b = 9.0024296282801899; j = 19; K = 234; // in this example the coefficients of the subsum get really big, and we
-                                                                     // lose some precision if the coefficients of the original sum
-                                                                     // were all the same size.
-    
-    b = .00245;
-
-    a = -7.7368794371080023, b = -3.1673489944857307, j = 2, K = 474;
-    
-    a = 0.052528253780923899, b = 2.9356077194412081e-06, j = 0, K = 100235;
-
-    //test_specific_inputs(a, b, K, j, pow(2, -50));
-    //test_specific_inputs(a, b, K, j, pow(2, -60));
-    //test_specific_inputs(a, b, K, j, pow(2, -70));
-    //test_specific_inputs(a, b, K, j, pow(2, -80));
-
-    //print_stats();
-    //exit(0);
-
-    //test_specific_inputs(.0000001, .0000000001, 10000, 0, pow(2, -30));
-
-
-    //test_theta_algorithm_EM_case(20, 10000, pow(2, -30));
-    //test_theta_algorithm_EM_case(100, 1000, pow(2, -50));
-    //test_theta_algorithm_EM_case(100, 1000, pow(2, -30));
-    //test_theta_algorithm_EM_case(20, 100000, pow(2, -50));
-    //test_theta_algorithm_EM_case(100, 517, pow(2, -30));
-
-    //cout << H_method1(50, 1000.0 * I) << endl;
-    //cout << H(50, 1000.0 * I, exp(-30)) << endl;
-
-    
-    //time_theta_algorithm_varying_Kmin(15, 40000, 30000, pow(2, -22));
-    //time_theta_algorithm_zeta_case_varying_Kmin(15, 50000, 30000, pow(2, -20));
-    //time_theta_algorithm_zeta_case_fixed_Kmin(15, 50000, 40000, 900, pow(2, -20));
-
-
-    //test_specific_inputs(0.809496893458765, 9.61035310379055e-06, 10311, 0, pow(2, -50));
-
-    //test_theta_algorithm(10, 5000);
-    //test_theta_algorithm(10, 3000);
-    //test_theta_algorithm(10, 1000);
-    //test_theta_algorithm(20, 1023);
-    //test_theta_algorithm(5, 10231);
-    //test_theta_algorithm(5, 20231);
-    //test_theta_algorithm(50, 5013);
-    
-    double times[19];
-
-    times[1] = time_theta_algorithm(1, 10000, 50000);
-    times[2] = time_theta_algorithm(2, 10000, 50000);
-    times[3] = time_theta_algorithm(3, 10000, 50000);
-    times[4] = time_theta_algorithm(4, 10000, 50000);
-    times[5] = time_theta_algorithm(5, 10000, 50000);
-    times[6] = time_theta_algorithm(6, 10000, 50000);
-    times[7] = time_theta_algorithm(7, 10000, 50000);
-    times[8] = time_theta_algorithm(8, 10000, 50000);
-    times[9] = time_theta_algorithm(9, 10000, 50000);
-    times[10] = time_theta_algorithm(10, 10000, 50000);
-    times[11] = time_theta_algorithm(11, 10000, 50000);
-    times[12] = time_theta_algorithm(12, 10000, 50000);
-    times[13] = time_theta_algorithm(13, 10000, 50000);
-    times[14] = time_theta_algorithm(14, 10000, 50000);
-    times[15] = time_theta_algorithm(15, 10000, 50000);
-    times[16] = time_theta_algorithm(16, 10000, 50000);
-    times[17] = time_theta_algorithm(17, 10000, 50000);
-    times[18] = time_theta_algorithm(18, 10000, 50000);
-
-    for(int k = 1; k <= 18; k++) {
-        cout << k << ", " << times[k] << endl;
-    }
-
-    exit(0);
-
-    //test_theta_algorithm(1, 1000000, pow(2, -30));
-    //test_theta_algorithm(1, 1000000, pow(2, -50));
+    test_theta_algorithm(10, 5000);
+    test_theta_algorithm(10, 3000);
 
     test_theta_algorithm(100, 517, pow(2, -30));
     test_theta_algorithm(100, 517, pow(2, -40));;
@@ -1308,69 +1162,16 @@ int main() {
     test_theta_algorithm(50, 1432, pow(2, -40));
     test_theta_algorithm(500, 123, pow(2, -30));
     test_theta_algorithm(500, 123, pow(2, -40));
-    //test_theta_algorithm(10, 10000, pow(2, -40));
-    
-    /*
-    test_theta_algorithm(10, 10000, pow(2, -30));
-    test_theta_algorithm(10, 10000, pow(2, -50));
-    test_theta_algorithm(10, 8000, pow(2, -30));
-    test_theta_algorithm(10, 8000, pow(2, -50));
-    test_theta_algorithm(15, 20000, pow(2, -30));
-    test_theta_algorithm(15, 20000, pow(2, -50));
     test_theta_algorithm(5, 40000, pow(2, -30));
     test_theta_algorithm(5, 40000, pow(2, -50));
     test_theta_algorithm(2, 100000, pow(2, -30));
     test_theta_algorithm(2, 100000, pow(2, -50));
-    test_theta_algorithm(100, 1000, pow(2, -30));
-    test_theta_algorithm(100, 1000, pow(2, -50));
  
     test_theta_algorithm_EM_case(10, 10000, pow(2, -30));
     test_theta_algorithm_EM_case(10, 10000, pow(2, -50));
     
     test_theta_algorithm_EM_case(3, 100000, pow(2, -30));
     test_theta_algorithm_EM_case(3, 100000, pow(2, -50));
-    
-    test_theta_algorithm_EM_case(20, 1000, pow(2, -30));
-    test_theta_algorithm_EM_case(20, 1000, pow(2, -50));
-    test_theta_algorithm_EM_case(100, 517, pow(2, -30));
-    test_theta_algorithm_EM_case(100, 517, pow(2, -50));;
-    test_theta_algorithm_EM_case(20, 5432, pow(2, -30));
-    test_theta_algorithm_EM_case(20, 5432, pow(2, -50));
-    test_theta_algorithm_EM_case(50, 1432, pow(2, -30));
-    test_theta_algorithm_EM_case(50, 1432, pow(2, -50));
-    test_theta_algorithm_EM_case(500, 123, pow(2, -30));
-    test_theta_algorithm_EM_case(500, 123, pow(2, -50));
-    */
-
-
-
-    //time_theta_algorithm_varying_Kmin(10, 20010, 10000, exp(-14));
-    
-
-    //int new_seed = 1278263575;
-    //srand(new_seed);
-    //time_theta_algorithm_EM_case(10, 20010, 1000, exp(-14));
-
-    //test2();
-
-    print_stats();
-
-    //free_F1_cache();
-
-    //test_fastlog2();
-    //test_fastlog();
-    //time_theta_algorithm(18, 10010);
-    //test_exp_itlogn(rand_state);
-    //time_exp_itlogn();
-    //time_exp_itlogn_mpfr();
-    //time_zeta_sum_stage1();
-    //test_zeta_sum_stage2(rand_state);
-    test_zeta_sum_stage3(rand_state);
-    //test_zeta_sum();
-    //time_theta_algorithm_varying_Kmin(10, 10010, 10000);
-    //time_theta_algorithm_varying_Kmin(18, 10010, 10000);
-    //time_theta_algorithm_varying_Kmin(18, 2010, 10000);
-    //time_zeta_sum_stage3(rand_state);
 
     cout << "Used random seed " << seed << endl;
     gmp_randclear(rand_state);
