@@ -183,87 +183,6 @@ inline Double root_2pi_b_power(int l, const theta_cache * cache) {
 theta_cache * build_theta_cache(mpfr_t mp_a, mpfr_t mp_b, int j, int K);
 void free_theta_cache(theta_cache * cache);
 
-namespace verbose {
-    const int IC0 = 0;
-    const int IC1 = 0;
-    const int IC1c = 0;
-    const int IC6 = 0;
-    const int IC7 = 0;
-    const int IC7star = 0;
-    const int IC9E = 0;
-    const int compute_exponential_sum = 0;
-    const int S1 = 0;
-    const int S2 = 0;
-    const int G = 0;
-    const int H = 0;
-
-    const int direct_evaluation = 0;
-
-    const int J_Integral_0 = 0;
-    const int J_Integral_1 = 0;
-    const int J_Integral_2 = 0;
-
-    const int JBulk = 0;
-}
-
-namespace stats {
-    const bool stats = false;
-    extern int H_method1;
-    extern int H_method2;
-    extern int H_method3;
-    extern int H_method4;
-
-    extern int H_function_big;
-    extern int H_function_small;
-
-    extern int G_method1;
-    extern int G_method2;
-    
-    extern int G_itwopi_method1;
-    extern int G_itwopi_method2;
-
-    extern int G_R_method1;
-    extern int G_R_method2;
-
-    extern int exp;
-
-    extern int exponential_sum_called;
-    extern int exponential_sum_euler_maclaurin;
-    extern int exponential_sum_taylor_expansion;
-
-    extern int H_Integral_0;
-    extern int H_Integral_2;
-    extern int J_Integral_0;
-    extern int J_Integral_1;
-    extern int J_Integral_2;
-
-    extern int J_Integral_0_taylor_expansion;
-    extern int J_Integral_1_taylor_expansion;
-    extern int J_Integral_2_taylor_expansion;
-
-    extern int J_Integral_0_zero;
-    extern int J_Integral_1_zero;
-    extern int J_Integral_2_zero;
-
-    extern int J_Integral_0_terms_used;
-    extern int J_Integral_1_terms_used;
-    extern int J_Integral_2_terms_used;
-
-    extern int IC7;
-    extern int IC7zero;
-    
-    extern int IC7_taylor_expansion;
-    extern int IC7_terms_used;
-
-    extern int IC0;
-    extern int IC0_method1;
-    extern int IC0_method2;
-    extern int IC0_method3;
-    extern int IC0_method4;
-}
-
-void print_stats();
-
 Complex ExpA(mpfr_t A, int K);
 Complex ExpAK(mpfr_t A, int K);
 Complex ExpB(mpfr_t B, int K);
@@ -274,15 +193,12 @@ Complex ExpABK(mpfr_t A, mpfr_t B, int K);
 
 
 inline Complex EXP(Complex z) {                                                 //--------------------------------------------
-    if(stats::stats)                                                            //
-        stats::exp++;                                                           // This is just here for counting purposes.
+                                                                                // This is just here for counting purposes.
     return std::exp(z);                                                         // There is pretty much no overhead in using it,
 }                                                                               // and commenting out the first line of this
                                                                                 // function will get rid of any overhead at all.
                                                                                 // ---------------------------------------------
 inline double EXP(double z) {
-    if(stats::stats)
-        stats::exp++;
     return std::exp(z);
 }
 
@@ -310,8 +226,8 @@ template<typename T> T H_method4(int j, T alpha, Double epsilon);               
                                                                                 //  Functions to compute the integral         
                                                                                 //    / 1
                                                                                 //    |
-Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method = 0);  //
-Complex G_R(Complex alpha, Double b, int n, int j, Double epsilon, int method = 0);  //
+//Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method = 0);  //
+Complex G(Complex alpha, Double b, int n, int j, Double epsilon, int method = 0);  //
 Complex G_I(Complex alpha, Double b, int n, int j, Double epsilon, int method = 0);  //
 Complex G_I_over_twopi(Complex alpha, int n, int j, Double epsilon, int method = 0);  //
 Complex G_method1(Complex alpha, Complex b, int n, int j, Double epsilon);  //
@@ -325,28 +241,17 @@ Complex G_via_Euler_MacLaurin_I(Complex alpha, Double b, int n, int j, Double ep
                                                                                 //----------------------------------------------
 
 Complex H_Integral_0(int j, Double a, int M, Double epsilon);                   //----------------------------------------------
-Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon, bool use_cache = true);  //
-Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon, bool use_cache = true);  //
+Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon);  //
+Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon);  //
 Complex H_Integral_2(int j, Double a1, Double a2, Double epsilon);              //
-Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double epsilon, bool use_cache = true);// Various integrals.
+Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double epsilon);// Various integrals.
 
-void build_F0_cache(long number_of_a, long number_of_b, long max_j, long max_M, Double epsilon, string cache_directory);
-void build_F1_cache(long a_per_unit_interval, long b_per_unit_interval, long max_j, Double epsilon, string cache_directory);
-void build_F1_cache(string cache_directory);
-void build_F2_cache(long max_a1, long number_of_a1, long number_of_a2, long number_of_b, Double epsilon, string cache_directory);
-void free_F0_cache();
-void free_F1_cache();
-void free_F2_cache();
-                
 Complex JBulk2(Double a, Double b, int j, int M, int K, theta_cache * cache, Complex * Z, Double * epsilon);                
 
 inline Complex JBulk(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon) {         //                         
     Double x = epsilon/2;
     Complex A = J_Integral_0(a, b, j, M, K, cache, x);
     Complex B = J_Integral_1(a, b, j, M, K, cache, x);
-    if(verbose::JBulk) {
-        cout << "JBulk returning " << A << " + " << B << " = " << A + B << endl;
-    }
     return A + B;
     //return J_Integral_0(a, b, j, M, K, cache, epsilon/2)                                          // See H_and_J_integrals.cc
     //                                    + J_Integral_1(a, b, j, M, K, cache, epsilon/2);       //
@@ -381,15 +286,13 @@ Complex IC5(int K, int j, Double a, Double b, const theta_cache * cache, Double 
 Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, const theta_cache * cache, Double epsilon);     //      
 Complex IC7(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon);                  //
 Complex IC7_method1(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon, int L);                  //
-Complex IC7star(Double a, int j, Double epsilon, bool use_cache = true);                  //
+Complex IC7star(Double a, int j, Double epsilon);                  //
 Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache);                            //
 Complex IC9E(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon);                 //
 inline Complex IC9H(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon);          //
                                                                                 //  (Defined in ICn.cc, unless defined inline below)
                                                                                 //
                                                                                 //
-
-void build_IC7_cache(int a_per_unit_interval, Double max_a, int max_j, Double epsilon, string cache_directory); //max_a should be passed as about sqrt(K) to compute sums of length K
 
 inline Complex IC3(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon) {
     // needs a <= 0

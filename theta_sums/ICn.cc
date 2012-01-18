@@ -15,30 +15,18 @@
 #include <fcntl.h>
 
 using namespace std;
-
 inline Complex IC0_method1(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, Double epsilon) {
     MPFR_DECL_INIT(mp_a2, mpfr_get_prec(mp_a));
     MPFR_DECL_INIT(mp_b2, mpfr_get_prec(mp_a));
     MPFR_DECL_INIT(tmp, mpfr_get_prec(mp_a));
     MPFR_DECL_INIT(tmp2, mpfr_get_prec(mp_a));
-    if(stats::stats)
-        stats::IC0_method1++;
 
-    if(verbose::IC0) {
-        cout << "IC0() using method 1. " << endl;
-    }
 
-    if(verbose::IC0 >= 2) {
-        cout << "In ICO(), 'really small b' case:" << endl;
-    }
 
     int K = cache->K;
 
     //int N = to_int(ceil(std::max ((Double)2.0, sqrt(2.0) * abs(fastlog(epsilon)) ) ));
     int N = to_int(ceil(std::max ((Double)2.0, sqrt(2.0 * cache->b * (Double)K * (Double)K) ) ));
-    if(verbose::IC0 >= 2) {
-        cout << "N = " << N << endl;
-    }
 
     //cout << "K: " << K << endl;
     //cout << "N: " << N << endl;
@@ -70,14 +58,7 @@ inline Complex IC0_method1(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * 
     mpfr_sub(mp_b2, mp_b2, tmp, GMP_RNDN);      // mp_b2 = {bK^2/N^2}
 
     Double a2_mod1 = mpfr_get_d(mp_a2, GMP_RNDN);
-    Double b2_mod1 = mpfr_get_d(mp_b2, GMP_RNDN);
 
-    //cout << "a2 mod 1: " << a2_mod1 << endl;
-    //cout << "b2 mod 1: " << b2_mod1 << endl;
-
-    //mpfr_clear(mp_a2);
-    //mpfr_clear(mp_b2);
-    //mpfr_clear(tmp);
 
     Complex S = (Complex)0;
 
@@ -87,52 +68,24 @@ inline Complex IC0_method1(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * 
     Double new_epsilon = epsilon * N_to_the_j * K_power(-1, cache);
 
     for(int n = 0; n < N; n++) {
-        //Complex C = exp((Double)2 * PI * I * (Double)n * (a2_mod1 + b2_mod1 * (Double)n));
         mpfr_mul_si(tmp, mp_b2, n * n, GMP_RNDN);
         mpfr_mul_si(tmp2, mp_a2, n, GMP_RNDN);
         mpfr_add(tmp, tmp, tmp2, GMP_RNDN);
         mpfr_frac(tmp, tmp, GMP_RNDN);
         Double x = mpfr_get_d(tmp, GMP_RNDN);
-        //Double x = b2_mod1 * n * n;
-        //Double exp_quadratic_term = 2 * PI * x;
-        //Complex C = Complex( cos(exp_linear_term + exp_quadratic_term), sin(exp_linear_term + exp_quadratic_term) );
         Complex C = Complex( cos(2 * PI * x), sin(2 * PI * x) );
-        //Complex z = G_method1_R(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
         Complex z;
-        z = G_R(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
-        //Complex z = G_method1(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
-        //Complex z2 = G_via_Euler_MacLaurin(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
-        //Complex z = G_via_Euler_MacLaurin(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
-        //Complex z = G_via_Euler_MacLaurin(a2 + (Double) 2 * (Double)n * b2, b2, n, j, epsilon * N_to_the_j/K);
-
-        //S = S + C * z;
-        if(verbose::IC0 >= 2) {
-//                cout << n << ": " << z << endl;
-            cout << n << ": " << K * pow(N, -(j+1)) * C * z << endl;
-            cout << "   G returned " << z << endl;
-            //cout << "   G_via_EulerMaclaurin returned " << z2 << endl;
-            //cout << "   difference was << " << z - z2 << endl;
-        }
-        //S = S + C * z * (Double)K * pow(N, -(j+1));
+        z = G(a2 + (Double) 2 * (Double)n * b2, b2, n, j, new_epsilon);
         S = S + C * z;
         exp_linear_term += 2 * PI * a2_mod1;
     }
     S *= K * pow(N, -(j + 1));
-    if(verbose::IC0 >= 2) {
-        cout << "IC0 returning S = " << S << endl;
-    }
+
 
     return S;
 }
 
 inline Complex IC0_method2(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, Double epsilon) {
-    if(verbose::IC0) {
-        cout << "IC0() using method 2. " << endl;
-    }
-
-    if(stats::stats)
-        stats::IC0_method2++;
-
     Double a = cache->a;
     Double b = cache->b;
     int K = cache->K;
@@ -141,50 +94,21 @@ inline Complex IC0_method2(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * 
     Complex B = IC6(K, j, a, b, mp_a, cache, epsilon/4);
     Complex C = IC5(K, j, a, b, cache, epsilon/4);
     Complex D = IC1(K, j, a, b, cache, epsilon/4);
-    if(verbose::IC0) {
-        std::cout << "   IC1:" << D << std::endl;
-        std::cout << "   IC5:" << C << std::endl;
-        std::cout << "   IC6:" << B << std::endl;
-        std::cout << "   IC8:" << A << std::endl;
-    }
-    if(verbose::IC0 >= 2) {
-        cout << "IC0 returning S = " << A - B - C - D << endl;
-    }
     // Really here we are computing IC2 - IC1...
     return A - B - C - D;
 }
 
 inline Complex IC0_method3(int j, const theta_cache * cache, Double epsilon) {
-    if(verbose::IC0) {
-        cout << "IC0() using method 3. " << endl;
-    }
-
-    if(stats::stats)
-        stats::IC0_method3++;
-
     int K = cache->K;
     Double a = cache->a;
     Double b = cache->b;
     
     Complex A = IC3(K, j, a, b, cache, epsilon/2);
     Complex B = IC4(K, j, a, b, I * cache->ExpABK, cache, epsilon/2);
-    if(verbose::IC0) {
-        std::cout << "   IC3:" << A << std::endl;
-        std::cout << "   IC4:" << B << std::endl;
-    }
-    if(verbose::IC0 >= 2) {
-        cout << "IC0 returning S = " << A - B << endl;
-    }
     return A - B;
 }
 
 Complex IC0_method4(int j, const theta_cache * cache, Double epsilon) {
-    if(verbose::IC0) {
-        cout << "IC0() using method 4. " << endl;
-    }
-
-    if(stats::stats)
-        stats::IC0_method4++;
 
     int K = cache->K;
     Double a = cache->a;
@@ -192,13 +116,6 @@ Complex IC0_method4(int j, const theta_cache * cache, Double epsilon) {
 
     Complex A = IC3c(K, j, a, b, cache, epsilon/2);
     Complex B = IC4c(K, j, a, b, I*cache->ExpABK, cache, epsilon/2);
-    if(verbose::IC0) {
-        std::cout << "   IC3c:" << A << std::endl;
-        std::cout << "   IC4c:" << B << std::endl;
-    }
-    if(verbose::IC0 >= 2) {
-        cout << "IC0 returning S = " << A - B << endl;
-    }
     return A - B;
 }
 
@@ -207,17 +124,6 @@ Complex IC0(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, Double e
     Double b = cache->b;
     int K = cache->K;
 
-    if(stats::stats)
-        stats::IC0++;
-
-    if(verbose::IC0 >= 1) {
-        cout << "IC0 called with:   " << endl;
-        cout << "               a = " << cache->a << endl;
-        cout << "               b = " << cache->b << endl;
-        cout << "               j = " << j << endl;
-        cout << "               K = " << cache->K << endl;
-        cout << "         epsilon = " << epsilon << endl;
-    }
     Double logepsilon = max(-fastlog(epsilon), 1);
     //if(b <= logepsilon * logepsilon * K_power(-2, cache)) {
     //    return IC0_method1(j, mp_a, mp_b, cache, epsilon);
@@ -262,32 +168,10 @@ Complex IC1(int K, int j, Double a, Double b, const theta_cache * cache, Double 
         Double z = binomial_coefficient(j, r);
         Complex y = IC7(K, r, a + 2 * b * K, b, cache, epsilon /(2.0 * z * (j + 1)));
         S = S + z * I_power(r) * y;
-        if(verbose::IC1) {
-            cout << r << ": IC7(" << a + 2 * b * K << ", " << b << ", " << r << ", " << K << ") returned " << y << endl;
-        }
     }
 
     if( a + 2 * b * K <= - LOG(epsilon * sqrt(b))/((Double)2 * PI * K) + 1) {
         Complex C12 = I * cache->ExpBK_inverse * exp(-2 * PI * (a + 2 * b * K) * K);
-
-        /*
-        Complex S2 = 0;
-        for(int r = 0; r <= j; r++) {
-            Double z = binomial_coefficient(j, r) * pow(2 * PI * b, (Double)(-(r+1)) / 2.0) * pow(K, -r);
-            //S2 = S2 + z * I_power(r) * G((a + 2 * b * K)/sqrt(2 * PI * b) + I * (Double)2 * sqrt(b) * (Double)K/sqrt(2 * PI), (Double)1/(2 * PI), 0, r, sqrt(2 * PI * b) * epsilon/(abs(C12) * (Double)2 * z * (j + 1)));
-            Complex y = G((a + 2 * b * K)/sqrt(2 * PI * b) + I * sqrt(2 * b) * (Double)K/sqrt(PI), (Double)1/(2 * PI), 0, r, epsilon/(abs(C12) * (Double)2 * z * (j + 1)));
-            S2 = S2 + z * I_power(r) * y;
-            if(verbose::IC1) {
-                cout << r << ": G( " << (a + 2 * b * K)/sqrt(2 * PI * b) + I * sqrt(2 * b) * (Double)K/sqrt(PI) << ", " << (Double)1/(2 * PI) << ", 0, " << r << ") returned " << y << endl;
-                cout << r << ": z * G * C11 * C12 = " << z * y * C11 * C12 << endl;
-            }
-        }
-        S2 = S2 * C12;
-        if(verbose::IC1) {
-            cout << "S2 = " << S2 << endl;
-        }
-        S = S + S2;
-        */
 
         Complex S2 = 0;
         for(int l = 0; l <= j; l++) {
@@ -301,16 +185,10 @@ Complex IC1(int K, int j, Double a, Double b, const theta_cache * cache, Double 
             //cout << l << ": " << y * pow( 2* PI * b, -(l + 1.0)/2.0) << endl;
         }
         S2 *= C12;
-        if(verbose::IC1) {
-            cout << "S2 = " << S2 << endl;
-        }
         S = S + S2;
     }
 
     S *= C11;
-
-    if(verbose::IC1)
-        cout << "Returning IC1(" << a << ", " << b << ", " << j << ", " << K << " = " << S << endl;
 
     return S;
 }
@@ -323,21 +201,9 @@ Complex IC1c(int K, int j, Double a, Double b, Complex C8, const theta_cache * c
     //
     // requires that 2bK >= 1
 
-    if(verbose::IC1c) {
-        cout << "Inside IC1c:C8 = " << C8 << endl;
-        cout << "            a  = " << a << endl;
-        cout << "            b  = " << b << endl;
-        cout << "            K  = " << K << endl;
-        cout << "            j  = " << j << endl;
-        cout << "      epsilon  = " << epsilon << endl;
-    }
     Complex S = (Complex)0;
 
     int L = min(K, max(0, to_int(ceil(-LOG(epsilon) - 2 * PI * a * (Double)K/(4 * PI * b * K)) ) ));
-
-    if(verbose::IC1c) {
-        cout << "            L = " << L << endl;
-    }
 
     for(int l = 0; l <= j; l++) {
         Complex S1 = 0;
@@ -347,9 +213,6 @@ Complex IC1c(int K, int j, Double a, Double b, Complex C8, const theta_cache * c
                     * G(a + (Double)2.0 * I * b * (Double)K + (Double)2.0 * b * (Double)n, b, n, l, epsilon * exp(4 * PI * b * K * (Double)n + 2 * PI * a * K) * z, 0);
         }
         S1 = S1 * minus_I_power(l)/z;
-        if(verbose::IC1c) {
-            cout << "Term " << l << ": " << S1 << endl;
-        }
         S = S + S1;
     }
 
@@ -360,21 +223,8 @@ Complex IC1c(int K, int j, Double a, Double b, Complex C8, const theta_cache * c
 
     S *= EXP(-2 * PI * a * K);
     S *= C8;
-
-    if(verbose::IC1c) {
-        cout << "Computed IC1c(";
-        cout << K << ", ";
-        cout << j << ", ";
-        cout << a << ", ";
-        cout << b << ") = ";
-        cout << S << endl;
-    }
-
     return S;
 }
-
-
-
 
 // IC2 not defined anywhere
 
@@ -435,13 +285,6 @@ Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, const theta_cache * c
     Double y = max(-LOG(epsilon * sqrt(2 * PI) * b) - (Double)2 * PI * (Double)K*(a + (Double)2 * b * (Double)K), (Double)0);
 
     int L = to_int(ceil(min(sqrt(y), y/x)));
-
-    if(verbose::IC6) {
-        cout << "In IC6, using L = " << L << endl;
-        cout << "              x = " << x << endl;
-        cout << "              y = " << y << endl;
-    }
-
     Complex z1 = 1.0/ExpA(mp_a, K);
 
     //Complex z = (Double)1/sqrt(2 * PI * b) * exp(I * PI/(Double)4 + 2 * PI*(I - (Double)1) * a * (Double)K - 4 * PI * b * (Double)K * Double(K));
@@ -463,10 +306,7 @@ Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, const theta_cache * c
 
         for(int n = 0; n < L; n++) {
             Complex w1 = exp(2 * PI * alpha * (Double)n + 2 * PI * beta * (Double)n * (Double)n);
-            Complex w2 = G(-I * alpha - (Double)2 * I * beta * (Double)n, -I * beta, n, r, epsilon * z2/(abs(z) * abs(w1)));
-            if(verbose::IC6) {
-                cout << "For n = " << n << ", z * w1 * w2 = " << z * w1 * w2 << endl;
-            }
+            Complex w2 = G_I(-I * alpha - (Double)2 * I * beta * (Double)n, -beta, n, r, epsilon * z2/(abs(z) * abs(w1)));
             S1 = S1 + z * w1 * w2;
         }
         S1 = S1/z2;
@@ -491,22 +331,6 @@ Complex IC7(int K, int j, Double a, Double b, const theta_cache * cache, Double 
     //  (3) a >= 0
 
     //assert(a <= 1);
-
-
-    if(stats::stats)
-        stats::IC7++;
-
-    if(FAKE_IC7)
-        return 0.0;
-
-    if(verbose::IC7) {
-        cout << "Entering IC7() with " << endl;
-        cout << "         K = " << K << endl;
-        cout << "         j = " << j << endl;
-        cout << "         a = " << a << endl;
-        cout << "         b = " << b << endl;
-        cout << "   epsilon = " << epsilon << endl;
-    }
 
     Double z;
     int L;
@@ -569,10 +393,7 @@ Complex IC7_method1(int K, int j, Double a, Double b, const theta_cache * cache,
     if(K == -1) {
         //Double two_pi_b_power = pow(2 * PI * b, ((Double)j + 1.0)/2);
         Double two_pi_b_power = root_2pi_b_power(j + 1, cache);
-        if(verbose::IC7 >= 2) {
-            cout << "Computing IC7() = " << C9 << " * " << root_2pi_b_power(-(j + 1), cache) << " S " << endl;
-            cout << "S == 0" << endl;
-        }
+
         {
             Double one_over_L = 1.0/L;
             Complex alpha = C10 * a * root_2pi_b_power(-1, cache);
@@ -595,12 +416,6 @@ Complex IC7_method1(int K, int j, Double a, Double b, const theta_cache * cache,
                 alpha = alpha + I/PI;
                 y = y * y1;
                 
-                if(verbose::IC7 >= 2) {
-
-                    cout << "S += " << z << "; (S == " << S << ")" << endl;
-                }
-
-
             }
         }
 
@@ -610,12 +425,6 @@ Complex IC7_method1(int K, int j, Double a, Double b, const theta_cache * cache,
     else {
         K_to_the_j = K_power(j, cache);
         //Double two_pi_b_power = pow(2 * PI * b, ((Double)j + 1.0)/2);
-
-        if(verbose::IC7 >= 2) {
-            cout << "Computing IC7() = " << C9 << " * " << root_2pi_b_power(-(j + 1), cache) << " S " << endl;
-            cout << "S == 0" << endl;
-        }
-
 
         Double two_pi_b_power = root_2pi_b_power(j + 1, cache);
         {
@@ -643,9 +452,6 @@ Complex IC7_method1(int K, int j, Double a, Double b, const theta_cache * cache,
                 S = S + z;
                 alpha = alpha + I/PI;
                 y = y * y1;
-                if(verbose::IC7 >= 2) {
-                    cout << "S += " << z << "; (S == " << S << ")" << endl;
-                }
 
             }
         }
@@ -653,9 +459,6 @@ Complex IC7_method1(int K, int j, Double a, Double b, const theta_cache * cache,
 
         S = S * C9 * K_power(-j, cache) * root_2pi_b_power(-(j + 1), cache);
     }
-    if(verbose::IC7)
-        cout << "IC7() returning " << S << endl;
-
     return S;
 
 
@@ -663,229 +466,7 @@ Complex IC7_method1(int K, int j, Double a, Double b, const theta_cache * cache,
 
 }
 
-static struct {
-    int a_per_unit_interval;
-    int number_of_a;
-    int max_j;
-    Complex * values;
-    double a_spacing;
-} IC7_cache;
-
-static bool IC7_cache_initialized = false;
-
-void build_IC7_cache(int a_per_unit_interval, Double max_a, int max_j, Double epsilon, string cache_directory) {
-    int number_of_a = max_a * a_per_unit_interval + 1;
-    
-    IC7_cache.number_of_a = number_of_a;
-    IC7_cache.a_per_unit_interval = a_per_unit_interval;
-    IC7_cache.max_j = max_j;
-    IC7_cache.a_spacing = 1.0/a_per_unit_interval;
-
-
-    Double memory_used = number_of_a * (max_j + 1) * 16;
-
-
-    clock_t start_time = clock();
-
-    cout << "Building IC7 cache." << endl;
-    cout << "    Total memory used for this cache will be " << memory_used/1000000.0 << " million bytes." << endl;
-
-    if(FAKE_PRECOMPUTATION) {
-        IC7_cache_initialized = true;
-        return;
-    }
-
-
-
-    int filesize = 0;
-    bool using_mmap = false;
-
-    if(cache_directory != "") {
-        ifstream info_file;
-        info_file.open( (cache_directory + "IC7_cache_info").c_str() );
-
-        if(info_file) {
-            int x;
-            info_file >> x;
-            if(x < max_a) {
-                cout << "IC7_cache mismatch" << endl;
-                cout << "The cache has max_a = " << x << endl;
-                cout << "need max_a >= " << max_a << endl;
-                exit(0);
-            }
-            else if(x > max_a) {
-                max_a = x;
-            }
-            info_file >> x;
-            if(x != a_per_unit_interval) {
-                cout << "IC7_cache mismatch" << endl;
-                cout << "The cache has a_per_unit_interval = " << x << endl;
-                cout << "Expected: " << a_per_unit_interval << endl;
-                exit(0);
-            }
-
-            info_file >> x;
-            if(x < max_j) {
-                cout << "IC7_cache mismatch" << endl;
-                cout << "The cache has max_j = " << x << endl;
-                cout << "Need max_j >= " << max_j << endl;
-                exit(0);
-            }
-            else if(x > max_j) {
-                max_j = x;
-            }
-
-            //  These values may have changed after we increased max_j and max_a
-            //  because of the information stored on disk, so we compute them again.
-
-            number_of_a = max_a * a_per_unit_interval + 1;
-            
-            IC7_cache.number_of_a = number_of_a;
-            IC7_cache.a_per_unit_interval = a_per_unit_interval;
-            IC7_cache.max_j = max_j;
-            IC7_cache.a_spacing = 1.0/a_per_unit_interval;
-
-            int fd = open( (cache_directory + "IC7_cache_data").c_str(), O_RDONLY );
-            struct stat sb;
-            fstat(fd, &sb);
-            IC7_cache.values = (Complex * )(mmap (0, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0));
-            cout << "using IC7_cache from file." << endl;
-            close(fd);
-            IC7_cache_initialized = true;
-            return;
-        }
-        else {
-            info_file.close();
-            ofstream info_outfile;
-            info_outfile.open( (cache_directory + "IC7_cache_info").c_str() );
-            info_outfile << max_a << endl;
-            info_outfile << a_per_unit_interval << endl;
-            info_outfile << max_j << endl;
-            info_outfile.close();
-
-            // We create a new file to be memory mapped.
-            int fd;
-            fd = open( (cache_directory + "IC7_cache_data").c_str() , O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
-            //filesize = sizeof(Complex) * number_of_a * number_of_b * ( max_j + 1 );
-            filesize = sizeof(Complex) * ( number_of_a * (max_j + 1) );
-            lseek(fd, filesize - 1, SEEK_SET);
-            int result = write(fd, "", 1);
-            if(result == -1) {
-                cout << "Error creating new memory mapped file." << endl;
-            }
-            IC7_cache.values = (Complex *)(mmap(0, filesize, PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0));
-            cout << "creating new memory mapped file for IC7_cache." << endl;
-            using_mmap = true;
-        }
-    }
-    else {
-        IC7_cache.values = new Complex[number_of_a * (max_j + 1)];
-    }
-
-
-
-
-
-    Double a = 0;
-    Double a_increment = 1.0/a_per_unit_interval;
-
-
-    Double percent_done = 0.0;
-    Double old_percent_done = 0.0;
-
-    for(int n = 0; n < number_of_a; n++) {
-        percent_done = (Double)n/(number_of_a);
-        if(old_percent_done + .005 < percent_done) {
-            cout <<  "    " << percent_done * 100 << " percent done with IC7." << endl;
-            old_percent_done = percent_done;
-        }
-
-        for(int j = 0; j <= max_j; j++) {
-            IC7_cache.values[n * (max_j + 1) + j] = IC7star(a, j, epsilon, false);
-        }
-        a += a_increment;
-    }
-
-    clock_t end_time = clock();
-
-    double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
-    cout << "Total time to build IC7 cache: " << elapsed_time << " seconds." << endl;
-
-    if(using_mmap) {
-        msync(IC7_cache.values, filesize, MS_ASYNC);
-    }
-
-    IC7_cache_initialized = true;
-}
-
-void free_IC7_cache() {
-    IC7_cache_initialized = false;
-}
-
-inline Complex get_cached_IC7star_value(int a_index, int j) {
-    if(a_index < IC7_cache.number_of_a && j <= IC7_cache.max_j) {
-        if(FAKE_PRECOMPUTATION) {
-            return 0.0;
-        }
-        else {
-            return IC7_cache.values[a_index * (IC7_cache.max_j + 1) + j];
-        }
-    }
-    else {
-        cout << "Warning. IC7 cache called with values out of range." << endl;
-        cout << "a_index = " << a_index << ", j = " << j << endl;
-        return 0.0/0.0;
-    }
-}
-
-Complex IC7star(Double a, int j, Double epsilon, bool use_cache) {
-    if(verbose::IC7star) {
-        cout << "Entering IC7star() with " << endl;
-        cout << "         j = " << j << endl;
-        cout << "         a = " << a << endl;
-        cout << "   epsilon = " << epsilon << endl;
-    }
-
-    if(use_cache && IC7_cache_initialized) {
-        int a0_index = round(IC7_cache.a_per_unit_interval * a);
-        Double a0 = (Double)a0_index / (Double)IC7_cache.a_per_unit_interval;
-
-        if(a0_index < IC7_cache.number_of_a) {
-            if(stats::stats) {
-                stats::IC7_taylor_expansion++;
-            }
-
-            int l = 0;
-            Double error = 2 * epsilon;
-
-            Double a_minus_a0_power = 1.0;
-            
-            Complex S = 0;
-            int number_of_terms = 0;
-            while(error > epsilon) {
-                Double z = minus_one_power(l) * two_pi_over_factorial_power(l) * a_minus_a0_power;
-                error = abs(z) * .5 * gamma_s_over_2(j + l + 1);
-
-                //S = S + z * exp_minus_i_pi4(l) * IC7star(a0, j + l, epsilon, false);
-                S = S + z * exp_minus_i_pi4(l) * get_cached_IC7star_value(a0_index, j + l);
-
-                l++;
-                a_minus_a0_power *= (a - a0);
-                if(stats::stats) {
-                    number_of_terms++;
-                }
-            }
-
-            if(stats::stats) {
-                stats::IC7_terms_used += number_of_terms;
-            }
-
-            //cout << l << " ";
-
-            return S;
-        }
-    }
-
+Complex IC7star(Double a, int j, Double epsilon) {
     Complex C10(sqrt(2.0)/2.0, sqrt(2.0)/2.0);
 
     Double z;
@@ -893,7 +474,6 @@ Complex IC7star(Double a, int j, Double epsilon, bool use_cache) {
     
     //z = sqrt( 2 * max(0.0, - (fastlog(epsilon) + (j + 1.0)/2.0 * fastlog(b))));
     z = sqrt( 2 * max(0, -fastlog(epsilon)) );
-    
     if(j > z) {
         L = j + 1;
     }
@@ -902,10 +482,6 @@ Complex IC7star(Double a, int j, Double epsilon, bool use_cache) {
     }
     
     L = max(0, L);
-
-    if(verbose::IC7star) {
-        cout << "In IC7star(): L = " << L << endl;
-    }
 
     if(L == 0) {
         return 0.0;
@@ -931,9 +507,7 @@ Complex IC7star(Double a, int j, Double epsilon, bool use_cache) {
             //z = G( alpha, I/( (Double)2 * PI), n, j, newepsilon/abs(z3));
             z = G_I_over_twopi(alpha, n, j, newepsilon/abs(z3));
             z = z * z3;
-            if(verbose::IC7star >= 2) {
-                cout << z << endl;
-            }
+
             S = S + z;
             alpha = alpha + I/PI;
             y = y * y1;
@@ -943,7 +517,6 @@ Complex IC7star(Double a, int j, Double epsilon, bool use_cache) {
     return S;
 
 }
-
 
 /*
 Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b, theta_cache * cache) {
@@ -974,21 +547,12 @@ Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b, theta_cache * cache) {
 }
 */
 
-
 Complex IC9E(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon) {
     //
     // Compute the integral int_0^\infty exp(-2 pi(a - ia + 2bK + 2ibK)t - 4 pi b t^2) dt
     // for a and b positive, and 2bK >= 1
     //
     
-    if(verbose::IC9E) {
-        cout << "IC9E() called with: " << endl;
-        cout << "               K = " << K << endl;
-        cout << "               j = " << j << endl;
-        cout << "               a = " << a << endl;
-        cout << "               b = " << b << endl;
-        cout << "         epsilon = " << epsilon << endl;
-    }
     
     int L = to_int(ceil(-LOG(epsilon)/(2 * PI *(a + 2 * b * K)) ));
     L = max(0, L);
@@ -999,14 +563,11 @@ Complex IC9E(int K, int j, Double a, Double b, const theta_cache * cache, Double
     for(Double n = (Double)0; n <= L-1; n = n + 1) {
         
         Complex z2 = exp(-2 * PI * (n * c + (Double)2 * b * n * n));
-        Complex z = G( I*(c + (Double)4 * b * n), (Double)2 * I * b, n, j, epsilon * K_to_the_j/((Double)L * abs(z2)));
+        Complex z = G_I( I*(c + (Double)4 * b * n), 2 * b, n, j, epsilon * K_to_the_j/((Double)L * abs(z2)));
         z = z * z2;
         S = S + z;
     }
     S = S * K_power(-j, cache);
-    if(verbose::IC9E) {
-        cout << "IC9E returning: " << S << endl;
-    }
     return S;
 }
 

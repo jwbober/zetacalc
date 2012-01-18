@@ -43,7 +43,14 @@ using namespace std;
 Complex G_method1_I_over_twopi(Complex alpha, int n, int j, Double epsilon);
 Complex G_via_Euler_MacLaurin_I_over_twopi(Complex alpha, int n, int j, Double epsilon);
 
-Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
+
+
+Complex G_depracated(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
+    //
+    // OLD METHOD NO LONGER USED, SINCE b is ALWAYS EITHER REAL OR PURELY
+    // IMAGINARY.
+    //
+    
     // We compute the integral int_0^1 g(t),
     // where g(t) = (t + n)^j exp(2 pi i alpha t + 2 pi i b t^2)
     //
@@ -58,14 +65,6 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
     //
     // alpha is typically complex, however.
 
-    if(verbose::G) {
-        cout << "G() called with:  " << endl;
-        cout << "          alpha = " << alpha << endl;
-        cout << "              b = " << b << endl;
-        cout << "              n = " << n << endl;
-        cout << "              j = " << j << endl;
-        cout << "        epsilon = " << epsilon << endl;
-    }
 
 
     //if(imag(b) == 0) {
@@ -79,9 +78,6 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
 
     //if(epsilon >= pow((Double)n + 1, (Double)j)) {
     if(fastlog2(epsilon) > j * fastlog2(n+1)) {
-        if(verbose::G) {
-            cout << "in G: epsilon >= 1, so returning 0" << endl;
-        }
         return (Complex)0;
     }
 
@@ -99,29 +95,18 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
         //if(abs(alpha) < 1.5) {
         if(norm_alpha < 2.25) {
             method = 2;
-            if(stats::stats)
-                stats::G_method2++;
         }
         //else if( (1.5 <= abs(alpha)) && (abs(alpha) <= 2.5) && abs(b) > .024) {
         else if( (2.25 <= norm_alpha) && (norm_alpha <= 6.25) && norm_b > .000576) {
             method = 2;
-            if(stats::stats)
-                stats::G_method2++;
         }
         //else if( (abs(alpha) >= 2.5) && (abs(alpha) - 2.0)/10.0 < abs(b)) {
         else if( (norm_alpha >= 6.25) && (norm_alpha - 4.0) < 100 * norm_b) {
             method = 2;
-            if(stats::stats)
-                stats::G_method2++;
         }
         else {
             method = 1;
-            if(stats::stats)
-                stats::G_method1++;
         }
-    }
-    if(verbose::G) {
-        cout << "  In G(), using method " << method << endl;
     }
 
     if(method == 2) {
@@ -146,7 +131,7 @@ Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
 
 }
 
-Complex G_R(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
+Complex G(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
     // We compute the integral int_0^1 g(t),
     // where g(t) = (t + n)^j exp(2 pi i alpha t + 2 pi i b t^2)
     //
@@ -167,20 +152,9 @@ Complex G_R(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
 
     check_condition(imag(alpha) >= 0, "In function G(), Imag(alpha) should be nonnegative, but it isn't");
 
-    if(verbose::G) {
-        cout << "G() called with:  " << endl;
-        cout << "          alpha = " << alpha << endl;
-        cout << "              b = " << b << endl;
-        cout << "              n = " << n << endl;
-        cout << "              j = " << j << endl;
-        cout << "        epsilon = " << epsilon << endl;
-    }
 
     //if(epsilon >= pow((Double)n + 1, (Double)j)) {
     if(fastlog(epsilon) > j * fastlog(n+1) + j) {
-        if(verbose::G) {
-            cout << "in G: epsilon >= 1, so returning 0" << endl;
-        }
         return (Complex)0;
     }
 
@@ -198,27 +172,18 @@ Complex G_R(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
         //if(abs(alpha) < 1.5) {
         if(norm_alpha < 2.25) {
             method = 2;
-            if(stats::stats)
-                stats::G_R_method2++;
         }
         //else if( (1.5 <= abs(alpha)) && (abs(alpha) <= 2.5) && abs(b) > .024) {
         else if( (2.25 <= norm_alpha) && (norm_alpha <= 6.25) && abs(b) > .024) {
             method = 2;
-            if(stats::stats)
-                stats::G_R_method2++;
         }
         //else if( (abs(alpha) >= 2.5) && (abs(alpha) - 2.0)/10.0 < abs(b)) {
         else if( (norm_alpha >= 6.25) && (norm_alpha - 4.0) < 100 * norm_b) {
             method = 2;
-            if(stats::stats)
-                stats::G_R_method2++;
         }
         else {
             method = 1;
         }
-    }
-    if(verbose::G) {
-        cout << "  In G(), using method " << method << endl;
     }
 
     if(method == 2) {
@@ -252,20 +217,9 @@ Complex G_I(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
 
     check_condition(imag(alpha) >= 0, "In function G(), Imag(alpha) should be nonnegative, but it isn't");
 
-    if(verbose::G) {
-        cout << "G() called with:  " << endl;
-        cout << "          alpha = " << alpha << endl;
-        cout << "              b = " << b << endl;
-        cout << "              n = " << n << endl;
-        cout << "              j = " << j << endl;
-        cout << "        epsilon = " << epsilon << endl;
-    }
 
     //if(epsilon >= pow((Double)n + 1, (Double)j)) {
     if(fastlog(epsilon) > j * fastlog(n+1)) {
-        if(verbose::G) {
-            cout << "in G: epsilon >= 1, so returning 0" << endl;
-        }
         return (Complex)0;
     }
 
@@ -283,29 +237,18 @@ Complex G_I(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
         //if(abs(alpha) < 1.5) {
         if(norm_alpha < 2.25) {
             method = 2;
-            if(stats::stats)
-                stats::G_method2++;
         }
         //else if( (1.5 <= abs(alpha)) && (abs(alpha) <= 2.5) && abs(b) > .024) {
         else if( (2.25 <= norm_alpha) && (norm_alpha <= 6.25) && norm_b > .000576) {
             method = 2;
-            if(stats::stats)
-                stats::G_method2++;
         }
         //else if( (abs(alpha) >= 2.5) && (abs(alpha) - 2.0)/10.0 < abs(b)) {
         else if( (norm_alpha >= 6.25) && (norm_alpha - 4.0) < 100 * norm_b) {
             method = 2;
-            if(stats::stats)
-                stats::G_method2++;
         }
         else {
             method = 1;
-            if(stats::stats)
-                stats::G_method1++;
         }
-    }
-    if(verbose::G) {
-        cout << "  In G(), using method " << method << endl;
     }
 
     if(method == 2) {
@@ -338,20 +281,8 @@ Complex G_I_over_twopi(Complex alpha, int n, int j, Double epsilon, int method) 
 
     check_condition(imag(alpha) >= 0, "In function G(), Imag(alpha) should be nonnegative, but it isn't");
 
-    if(verbose::G) {
-        cout << "G() called with:  " << endl;
-        cout << "          alpha = " << alpha << endl;
-        cout << "              b = " << 1.0/(2 * PI) << endl;
-        cout << "              n = " << n << endl;
-        cout << "              j = " << j << endl;
-        cout << "        epsilon = " << epsilon << endl;
-    }
-
     //if(epsilon >= pow((Double)n + 1, (Double)j)) {
     if(fastlog(epsilon) > j * fastlog(n+1) + j) {
-        if(verbose::G) {
-            cout << "in G: epsilon >= 1, so returning 0" << endl;
-        }
         return (Complex)0;
     }
 
@@ -368,24 +299,16 @@ Complex G_I_over_twopi(Complex alpha, int n, int j, Double epsilon, int method) 
         //if(abs(alpha) < 1.5) {
         if(norm_alpha <= 6.25) {
             method = 2;
-            if(stats::stats)
-                stats::G_itwopi_method2++;
         }
         //else if( (abs(alpha) >= 2.5) && (abs(alpha) - 2.0)/10.0 < abs(b)) {
         else if(norm_alpha - 4.0 < 25/(PI * PI)) {
             method = 2;
-            if(stats::stats)
-                stats::G_itwopi_method2++;
         }
         else {
             method = 1;
-            if(stats::stats)
-                stats::G_itwopi_method1++;
         }
     }
-    if(verbose::G) {
-        cout << "  In G(), using method " << method << endl;
-    }
+
 
     if(method == 2) {
         return G_via_Euler_MacLaurin_I_over_twopi(alpha, n, j, epsilon);
@@ -423,9 +346,6 @@ Complex G_method1(Complex alpha, Complex b, int n, int j, Double epsilon) {
     Double error = epsilon + 1;
     int r = 0;
     Complex Ib_power = (Complex)1;
-    if(verbose::G >= 2) {
-        cout << "  In G(), using taylor expansion." << endl;
-    }
     while(error > epsilon/2) {
         if(r > 0) {
             Ib_power *= (I * b);
@@ -433,9 +353,6 @@ Complex G_method1(Complex alpha, Complex b, int n, int j, Double epsilon) {
         Complex s = Ib_power * two_pi_over_factorial_power(r);
         Complex s2 = H(j + 2 * r, -I * alpha, epsilon/(2 * abs(s) * (Double)N));
         Complex z = s * s2;
-        if(verbose::G >= 2) {
-            cout << "  Term " << r << " in expansion is " << s << " * " << s2 << " = " << z << endl;
-        }
         S = S + z;
         r++;
         error = abs(s/(Complex)max( PI * abs(alpha) / (r + 1.0 + j/2),  (Double)(2.0 * r + 1.0 + j)));
@@ -460,9 +377,6 @@ Complex G_method1_R(Complex alpha, Double b, int n, int j, Double epsilon) {
         return S;
     }
 
-    if(stats::stats)
-        stats::G_R_method1++;
-
     // At this point we assume that n == 0
 
     if(b == 0) {
@@ -478,9 +392,6 @@ Complex G_method1_R(Complex alpha, Double b, int n, int j, Double epsilon) {
     int r = 0;
     //Complex Ib_power = (Complex)1;
     Double b_power = 1.0;
-    if(verbose::G >= 2) {
-        cout << "  In G(), using taylor expansion." << endl;
-    }
     while(error > epsilon/2) {
         if(r > 0) {
             //Ib_power *= (I * b);
@@ -492,9 +403,6 @@ Complex G_method1_R(Complex alpha, Double b, int n, int j, Double epsilon) {
         Double s = b_power * two_pi_over_factorial_power(r);
         Complex s2 = H(j + 2 * r, -I * alpha, epsilon/(2 * abs(s) * (Double)N));
         Complex z = I_power(r) * s * s2;
-        if(verbose::G >= 2) {
-            cout << "  Term " << r << " in expansion is " << s << " * " << s2 << " = " << z << endl;
-        }
         S = S + z;
         r++;
         error = abs(s/max( PI * abs(alpha) / (r + 1.0 + j/2),  (Double)(2.0 * r + 1.0 + j)));
@@ -532,9 +440,6 @@ Complex G_method1_I(Complex alpha, Double b, int n, int j, Double epsilon) {
     Double error = epsilon + 1;
     int r = 0;
     Double Ib_power = 1.0;
-    if(verbose::G >= 2) {
-        cout << "  In G(), using taylor expansion." << endl;
-    }
     while(error > epsilon/2) {
         if(r > 0) {
             Ib_power *= (-b);
@@ -542,9 +447,6 @@ Complex G_method1_I(Complex alpha, Double b, int n, int j, Double epsilon) {
         Double s = Ib_power * two_pi_over_factorial_power(r);
         Complex s2 = H(j + 2 * r, -I * alpha, epsilon/(2 * abs(s) * (Double)N));
         Complex z = s * s2;
-        if(verbose::G >= 2) {
-            cout << "  Term " << r << " in expansion is " << s << " * " << s2 << " = " << z << endl;
-        }
         S = S + z;
         r++;
         error = abs(s/max( PI * abs(alpha) / (r + 1.0 + j/2),  (Double)(2.0 * r + 1.0 + j)));
@@ -579,9 +481,6 @@ Complex G_method1_I_over_twopi(Complex alpha, int n, int j, Double epsilon) {
     Double error = epsilon + 1;
     int r = 0;
     //Double Ib_power = 1.0;
-    if(verbose::G >= 2) {
-        cout << "  In G(), using taylor expansion." << endl;
-    }
     while(error > epsilon/2) {
         //if(r > 0) {
         //    Ib_power *= (-b);
@@ -592,9 +491,6 @@ Complex G_method1_I_over_twopi(Complex alpha, int n, int j, Double epsilon) {
         Double s = minus_one_power(r) / factorial(r);
         Complex s2 = H(j + 2 * r, -I * alpha, epsilon/(2 * abs(s) * (Double)N));
         Complex z = s * s2;
-        if(verbose::G >= 2) {
-            cout << "  Term " << r << " in expansion is " << s << " * " << s2 << " = " << z << endl;
-        }
         S = S + z;
         r++;
         error = abs(s/max( PI * abs(alpha) / (r + 1.0 + j/2),  (Double)(2.0 * r + 1.0 + j)));
@@ -637,9 +533,6 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
     int N = to_int(ceil(  ( abs(alpha) + abs((Double)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
     N = 2 * max(N, 1);
 
-    if(verbose::G >= 2) {
-        cout << "In G(), using " << N << " sample points in Euler-Maclaurin summation." << endl;
-    }
 
     /*
     Double two_n_to_the_j = 1;
@@ -777,10 +670,6 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
         }
     }
 
-    if(verbose::G >= 2) {
-        cout << "Before computing correction terms, S = " << S << endl;
-        cout << "In G(), starting to compute correction terms in Euler-Maclaurin summation." << endl;
-    }
 
     if(imag(b) == 0) {
         while(4 * error > epsilon * epsilon) {
@@ -795,9 +684,6 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
             Complex derivative_at_1 = (Complex)0;
             for(int k = 0; k <= 2 * r - 1 + j; k++) {
                 derivative_at_1 = derivative_at_1 + p[k];
-                if(verbose::G >= 2) {
-                    cout << k << "th term in computing derivative at 1: " << p[k] << endl;
-                }
             }
             derivative_at_1 *= exp(2 * PI * I * (alpha + real(b)));
             Complex derivative_at_0 = p[0];
@@ -807,12 +693,6 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
 
             S = S - z;
             error = norm(z);
-            if(verbose::G >= 2) {
-                cout << "   Correction term " << r << " has size: " << error << endl;
-                cout << "      derivative at 0 = " << derivative_at_0 << endl;
-                cout << "      derivative at 1 = " << derivative_at_1 << endl;
-                cout << "                 N^2r = " << N_power << endl;
-            }
             r = r + 1;
             ptmp = p;
             p = p_prev;
@@ -841,12 +721,6 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
 
             S = S - z;
             error = norm(z);
-            if(verbose::G >= 2) {
-                cout << "   Correction term " << r << " has size: " << error << endl;
-                cout << "      derivative at 0 = " << derivative_at_0 << endl;
-                cout << "      derivative at 1 = " << derivative_at_1 << endl;
-                cout << "                 N^2r = " << N_power << endl;
-            }
             r = r + 1;
             ptmp = p;
             p = p_prev;
@@ -875,12 +749,6 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
 
             S = S - z;
             error = norm(z);
-            if(verbose::G >= 2) {
-                cout << "   Correction term " << r << " has size: " << error << endl;
-                cout << "      derivative at 0 = " << derivative_at_0 << endl;
-                cout << "      derivative at 1 = " << derivative_at_1 << endl;
-                cout << "                 N^2r = " << N_power << endl;
-            }
             r = r + 1;
             ptmp = p;
             p = p_prev;
@@ -888,11 +756,6 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
         }
     }
 
-    if(verbose::G) {
-        Complex z = G_method1(alpha, b, n, j, epsilon);
-        cout << "In G(), using Euler-Maclaurin computed G(" << alpha << ", " << b << ", " << n << ", " << j << ", " << epsilon << ") = " << S << endl;
-        cout << "Using method 1, " << z << endl;
-    }
 
     return S;
 
@@ -923,9 +786,6 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
     int N = to_int(ceil(  ( abs(alpha) + abs(2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
     N = 2 * max(N, 1);
 
-    if(verbose::G >= 2) {
-        cout << "In G(), using " << N << " sample points in Euler-Maclaurin summation." << endl;
-    }
 
     /*
     Double two_n_to_the_j = 1;
@@ -1073,9 +933,6 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
         }
     }
 
-    if(verbose::G >= 2) {
-        cout << "In G(), starting to compute correction terms in Euler-Maclaurin summation." << endl;
-    }
 
     while(4 * error > epsilon * epsilon) {
         if(r > 1) {
@@ -1101,21 +958,12 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
 
         S = S - z;
         error = norm(z);
-        if(verbose::G >= 2) {
-            cout << "   Correction term " << r << " has size: " << error << endl;
-            cout << "      derivative at 0 = " << derivative_at_0 << endl;
-            cout << "      derivative at 1 = " << derivative_at_1 << endl;
-            cout << "                 N^2r = " << N_power << endl;
-        }
         r = r + 1;
         ptmp = p;
         p = p_prev;
         p_prev = ptmp;
     }
 
-    if(verbose::G) {
-        cout << "In G(), using Euler-Maclaurin computed G(" << alpha << ", " << b << ") = " << S << endl;
-    }
 
     return S;
 
@@ -1148,9 +996,6 @@ Complex G_via_Euler_MacLaurin_I(Complex alpha, Double b, int n, int j, Double ep
     int N = to_int(ceil(  ( abs(alpha) + abs((Double)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
     N = 2 * max(N, 1);
 
-    if(verbose::G >= 2) {
-        cout << "In G(), using " << N << " sample points in Euler-Maclaurin summation." << endl;
-    }
 
     /*
     Double two_n_to_the_j = 1;
@@ -1240,9 +1085,6 @@ Complex G_via_Euler_MacLaurin_I(Complex alpha, Double b, int n, int j, Double ep
         }
     }
 
-    if(verbose::G >= 2) {
-        cout << "In G(), starting to compute correction terms in Euler-Maclaurin summation." << endl;
-    }
 
     while(4 * error > epsilon * epsilon) {
         if(r > 1) {
@@ -1265,21 +1107,12 @@ Complex G_via_Euler_MacLaurin_I(Complex alpha, Double b, int n, int j, Double ep
 
         S = S - z;
         error = norm(z);
-        if(verbose::G >= 2) {
-            cout << "   Correction term " << r << " has size: " << error << endl;
-            cout << "      derivative at 0 = " << derivative_at_0 << endl;
-            cout << "      derivative at 1 = " << derivative_at_1 << endl;
-            cout << "                 N^2r = " << N_power << endl;
-        }
         r = r + 1;
         ptmp = p;
         p = p_prev;
         p_prev = ptmp;
     }
 
-    if(verbose::G) {
-        cout << "In G(), using Euler-Maclaurin computed G(" << alpha << ", I" << b << ") = " << S << endl;
-    }
 
     return S;
 
@@ -1310,9 +1143,6 @@ Complex G_via_Euler_MacLaurin_I_over_twopi(Complex alpha, int n, int j, Double e
     int N = to_int(ceil(  ( abs(alpha) + 1/PI + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
     N = 2 * max(N, 1);
 
-    if(verbose::G >= 2) {
-        cout << "In G(), using " << N << " sample points in Euler-Maclaurin summation." << endl;
-    }
 
     /*
     Double two_n_to_the_j = 1;
@@ -1410,9 +1240,6 @@ Complex G_via_Euler_MacLaurin_I_over_twopi(Complex alpha, int n, int j, Double e
     Double N_power = 1;
     Double N_power_multiplier = 1.0/(N * N);
 
-    if(verbose::G >= 2) {
-        cout << "In G(), starting to compute correction terms in Euler-Maclaurin summation." << endl;
-    }
 
 
     while(4 * error > epsilon * epsilon) {
@@ -1438,20 +1265,10 @@ Complex G_via_Euler_MacLaurin_I_over_twopi(Complex alpha, int n, int j, Double e
 
         S = S - z;
         error = norm(z);
-        if(verbose::G >= 2) {
-            cout << "   Correction term " << r << " has size: " << error << endl;
-            cout << "      derivative at 0 = " << derivative_at_0 << endl;
-            cout << "      derivative at 1 = " << derivative_at_1 << endl;
-            cout << "                 N^2r = " << N_power << endl;
-        }
         r = r + 1;
         ptmp = p;
         p = p_prev;
         p_prev = ptmp;
-    }
-
-    if(verbose::G) {
-        cout << "In G(), using Euler-Maclaurin computed G(" << alpha << ", I/(2pi)" <<  ") = " << S << endl;
     }
 
     return S;

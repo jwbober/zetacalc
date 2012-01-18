@@ -382,7 +382,7 @@ void test3() {
 }
 
 void test_specific_inputs(Double a, Double b, int K, int j, Double epsilon, int Kmin = 0) {
-    Complex v[j + 1];
+    Complex * v = new Complex[j + 1];
     for(int l = 0; l <= j; l++) {
         v[l] = 1.0/(l * l * l * l + 1);
     }
@@ -393,11 +393,12 @@ void test_specific_inputs(Double a, Double b, int K, int j, Double epsilon, int 
     Complex error = S1 - S2;
     cout << "a = " << a << ", b = " << b << ", j = " << j << ", K = " << K << ": log2(error) = " << log2(abs(error)) << "; error = " << error << ", answer = " << S2 << endl;
 
+    delete [] v;
 }
 
 
 double time_theta_algorithm(int j, int K, int number_of_tests = 1000) {
-    Complex v[j + 1];
+    Complex * v = new Complex[j + 1];
     for(int k = 0; k <= j; k++) {
         v[j] = 1.0/(k * k * k * k * k * k + 1);
         cout << v[j] << endl;
@@ -430,12 +431,14 @@ double time_theta_algorithm(int j, int K, int number_of_tests = 1000) {
     double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
     cout << "Number of seconds for this run was " << elapsed_time << endl;
 
+    delete [] v;
+
     return elapsed_time;
     
 }
 
 double time_theta_algorithm_varying_Kmin(int j, int approx_K, int number_of_tests, Double epsilon) {
-    Complex v[j + 1];
+    Complex * v = new Complex[j + 1];
     for(int k = 0; k <= j; k++) {
         v[k] = 1.0/(k*k*k*k*k*k*k*k + 1);
     }
@@ -467,13 +470,15 @@ double time_theta_algorithm_varying_Kmin(int j, int approx_K, int number_of_test
         cout << "Number of seconds with Kmin = " << Kmin << " was " << elapsed_time << endl;
     }
 
+    delete [] v;
+
     return 1.0;
     
 }
 
 
 double time_theta_algorithm_zeta_case_varying_Kmin(int j, int approx_K, int number_of_tests, Double epsilon) {
-    Complex v[j + 1];
+    Complex * v = new Complex[j + 1];
     for(int k = 0; k <= j; k++) {
         v[k] = pow(2 * PI/3.0, k/3) * pow(2, -k)/factorial(k/3);
     }
@@ -505,12 +510,14 @@ double time_theta_algorithm_zeta_case_varying_Kmin(int j, int approx_K, int numb
         cout << "Number of seconds with Kmin = " << Kmin << " was " << elapsed_time << endl;
     }
 
+    delete [] v;
+
     return 1.0;
     
 }
 
 double time_theta_algorithm_zeta_case_fixed_Kmin(int j, int approx_K, int number_of_tests, int Kmin, Double epsilon) {
-    Complex v[j + 1];
+    Complex * v = new Complex[j + 1];
     for(int k = 0; k <= j; k++) {
         v[k] = pow(2 * PI/3.0, k/3) * pow(2, -k)/factorial(k/3);
     }
@@ -537,6 +544,8 @@ double time_theta_algorithm_zeta_case_fixed_Kmin(int j, int approx_K, int number
     double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
     cout << "Number of seconds with Kmin = " << Kmin << " was " << elapsed_time << endl;
 
+    delete [] v;
+
     return 1.0;
     
 }
@@ -547,7 +556,7 @@ double time_theta_algorithm_zeta_case_fixed_Kmin(int j, int approx_K, int number
 
 
 double time_theta_algorithm_EM_case(int j, int K, int number_of_tests, Double epsilon) {
-    Complex v[j + 1];
+    Complex * v = new Complex[j + 1];
     for(int k = 0; k <= j; k++) {
         v[k] = 1.0/(k*k + 1);
     }
@@ -569,6 +578,8 @@ double time_theta_algorithm_EM_case(int j, int K, int number_of_tests, Double ep
     clock_t end_time = clock();
     double elapsed_time = (double)(end_time - start_time)/(double)CLOCKS_PER_SEC;
     cout << "Number of seconds was " << elapsed_time << endl;
+
+    delete [] v;
 
     return elapsed_time;
     

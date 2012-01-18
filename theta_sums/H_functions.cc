@@ -41,8 +41,6 @@ template<typename T> inline T H_method2(int j, T alpha, Double epsilon);
 template<typename T> T H_method4(int j, T alpha, Double epsilon);
 
 template <typename T> Complex H_method1(int j, T alpha) {
-    if(stats::stats)
-        stats::H_method1++;
     // In this case we compute an "exact" value using the antiderivative of the integrand.
     // 
 
@@ -59,31 +57,16 @@ template <typename T> Complex H_method1(int j, T alpha) {
             alpha_power *= alpha;
         }
         T z = alpha_power * two_pi_over_factorial_power(v);  //two_pi_alpha_power/factorial(v);
-        if(verbose::H >= 2) {
-            cout << v << ": " << alpha_power << " * " << two_pi_over_factorial_power(v) << " = " << z << endl;
-        }
         S = S + z;
     }
-    if(verbose::H >= 2) {
-        cout << "In H_method1(): after summing, S = " << S << endl;
-    }
     S = S * EXP(-2 * PI * alpha);
-    if(verbose::H >= 2) {
-        cout << "In H_method1(): after multiplying by exponential, S = " << S << endl;
-    }
     S = (Double)1.0 - S;
     alpha_power *= alpha;
     //S = S * j_factorial/(alpha_power * two_pi_power(j+1));
     S = S * j_factorial;
     S = S/two_pi_power(j+1);
     S = S/alpha_power;
-    if(verbose::H >= 2) {
-        cout << "In H_method1(): after multiplying by j! term..., S = " << S << endl;
-    }
 
-    if(verbose::H) {
-        cout << "Computed H_method1(" << j << ", " << alpha << ") = " << S << endl;
-    }
     return S;
 }
 
@@ -108,9 +91,6 @@ inline Complex H_method1_I(int j, Double alpha) {
     alpha_power *= alpha;
     S = S * j_factorial/(I_power(j + 1) * alpha_power * two_pi_power(j+1));
 
-    if(verbose::H) {
-        cout << "Computed H_method1(" << j << ", " << alpha << ") = " << S << endl;
-    }
 
     return S;
 }
@@ -126,10 +106,6 @@ template<typename T> inline T H_method2(int j, T alpha, Double epsilon) {
     // H(j, alpha) = sum_{m=0}^\infty (-2 pi alpha)^m / (m! (j + m + 1) )
     //
     //int N = max(ceil(-log(epsilon)), ceil(2 * PI * alpha_0 * E * E));; // the number of terms we will use in the taylor expansion
-
-    if(stats::stats)
-        stats::H_method2++;
-
 
     T S = 0.0;
     
@@ -153,10 +129,6 @@ template<typename T> T H_method4(int j, T alpha, Double epsilon) {
     // Compute H(j, alpha) using a continued fraction expansion
     //
     // This code is largely copied from lcalc.
-   
-    if(stats::stats)
-        stats::H_method4++;
-
     T P1 = 1.0;
     T P2 = (T)(j + 1.0);
     T P3 = 0.0;
@@ -222,47 +194,20 @@ template<typename T> Complex H(int j, T alpha, Double epsilon) {
         return 0.0;
     }
 
-    if(stats::stats) {
-        const Double D = 50.0;
-        if( norm(alpha) > D * D ) {
-        //    cout << alpha << endl;
-            stats::H_function_big++;
-        }
-        else {
-            stats::H_function_small++;
-        }
-    }
-
     const Double alpha_0 = 1/(2*PI);
-
-    if(verbose::H) {
-        cout << "Function H() called with: " << endl;
-        cout << "                      j = " << j << endl;
-        cout << "                  alpha = " << alpha << endl;
-        cout << "                epsilon = " << epsilon << endl;
-    }
 
     Double norm_alpha = norm(alpha);
 
     //if(abs(alpha) < alpha_0) {
     if(norm_alpha < alpha_0 * alpha_0) {
-        if(verbose::H) {
-            cout << "   In function H(), using method 2" << endl;
-        }
-        return H_method2(j, alpha, epsilon);
+            return H_method2(j, alpha, epsilon);
     }
     //else if(abs(2 * PI * alpha) > j/2) {
     else if(4 * PI * PI * norm_alpha > j * j / 4) {
-        if(verbose::H) {
-            cout << "   In function H(), using method 1" << endl;
-        }
-        return H_method1(j,  alpha);
+            return H_method1(j,  alpha);
     }
     else {
-        if(verbose::H) {
-            cout << "   In function H(), using method 3" << endl;
-        }
-        return H_method4(j, alpha, epsilon);
+            return H_method4(j, alpha, epsilon);
     }
    
 }
@@ -283,8 +228,6 @@ Complex H_method3(int j, Complex alpha, Double epsilon) {
     // Here, in the inner sum, alpha/M will always be small enough that H(j-r, alpha/M) is computed
     // with method 2.
     //
-    if(stats::stats)
-        stats::H_method3++;
 
     int M = to_int(ceil(abs(2 * PI * alpha)));
 

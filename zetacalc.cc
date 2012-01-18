@@ -176,53 +176,6 @@ void compute_hardy_on_unit_interval(mpfr_t t) {
     delete [] main_sum;
 }
 
-void * F0_thread(void * bound ) {
-    build_F0_cache(10, 100, 30, (long)(bound), exp(-30), precomputation_location);
-    pthread_exit(NULL);
-}
-void * F1_thread(void * unused) {
-    build_F1_cache(30, 200, 30, exp(-30), precomputation_location);
-    pthread_exit(NULL);
-}
-void * F2_thread(void * bound) {
-    build_F2_cache((long)(bound), 10, 10, 100, exp(-30), precomputation_location);
-    pthread_exit(NULL);
-}
-void * IC7_thread(void * bound) {
-    build_IC7_cache(200, (long)bound, 35, exp(-30), precomputation_location);
-    pthread_exit(NULL);
-}
-
-void do_precomputation(mpfr_t t) {
-    mpz_t v;
-    mpz_init(v);
-
-    stage_3_bound(v, t);
-    int largest_block_size = stage_3_block_size(mpz_get_d(v), mpfr_get_d(t, GMP_RNDN)) + 500;
-
-    cout << "Doing a precomputation for block sizes up to " << largest_block_size << endl;
-
-    pthread_t thread0, thread1, thread2, thread3;
-
-    pthread_create(&thread0, NULL, F0_thread, (void *)(largest_block_size/2));
-    pthread_create(&thread1, NULL, F1_thread, (void *)(largest_block_size/2));
-    pthread_create(&thread2, NULL, F2_thread, (void *)(largest_block_size/2));
-    pthread_create(&thread3, NULL, IC7_thread, (void *)( (int)(sqrt(largest_block_size)) ));
-
-    void * status;
-    pthread_join(thread0, &status);
-    pthread_join(thread1, &status);
-    pthread_join(thread2, &status);
-    pthread_join(thread3, &status);
-    
-    //build_F0_cache(10, 100, 30, largest_block_size/2, exp(-30));
-    //build_F1_cache(30, 200, 30, exp(-30));
-    //build_F2_cache(largest_block_size/2, 10, 10, 100, exp(-30));
-    //build_IC7_cache((int)sqrt(largest_block_size), 200, 35, exp(-30));
-
-    mpz_clear(v);
-}
-
 void do_computation() {
     mpfr_t t;
     mpfr_init2(t, 150);
@@ -386,8 +339,6 @@ int main(int argc, char * argv[]) {
     int Kmin = 0;
     char const* filename = NULL;
 
-    bool do_precomp = false;
-    bool use_precomputation = false;
     bool length_set = false;
     bool use_input_file = false;
 
@@ -423,8 +374,6 @@ int main(int argc, char * argv[]) {
                 {"delta", required_argument, 0, DELTA},
                 {"Z", no_argument, &Z_flag, 1},
                 {"zeta", no_argument, &zeta_flag, 1},
-                {"do_precomputation", required_argument, 0, DOPRECOMPUTATION},
-                {"use_precomputation", required_argument, 0, USEPRECOMPUTATION},
                 {"filename", required_argument, 0, FILENAME},
                 {"number_of_threads", required_argument, 0, NUMTHREADS},
                 {"N", required_argument, 0, N_OPTION},
@@ -457,14 +406,6 @@ int main(int argc, char * argv[]) {
             case DELTA:
                 delta = atof(optarg);
                 break;
-            case DOPRECOMPUTATION:
-                do_precomp = true;
-                precomputation_location = optarg;
-                break;
-            case USEPRECOMPUTATION:
-                use_precomputation = true;
-                precomputation_location = optarg;
-                break;
             case FILENAME:
                 filename = optarg;
                 use_input_file = true;
@@ -485,15 +426,6 @@ int main(int argc, char * argv[]) {
                 repeat = atoi(optarg);
                 break;
         }
-    }
-
-    if(do_precomp) {
-        do_precomputation(t);
-        return 0;
-    }
-
-    if(use_precomputation) {
-        do_precomputation(t);
     }
 
     if(use_input_file) {

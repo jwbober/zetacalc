@@ -126,11 +126,6 @@ Complex initial_zeta_sum_mpfr(mpz_t M, mpfr_t t) {
                                                         // represent the largest integer that will occur
                                                         // in the summation.
     
-    if(verbose::initial_zeta_sum_mpfr) {
-        cout << "In initial_zeta_sum_mpfr using " << mod_precision << " bits of precision for computation." << endl;
-    }
-
-    //int precision = mpfr_get_prec(t);
     
     mpfr_t nn, twopi;
     mpfr_init2(nn, n_precision);
@@ -541,18 +536,7 @@ Complex hardy_Z(mpfr_t t, Complex &R) {
 
     remainder_terms = rs_remainder(t);
 
-    if(verbose::hardy_Z) {
-        cout << "In hardy_Z(): "<< endl;
-        cout << "       computed main_sum = " << main_sum;
-        cout << "         rotation_factor = " << rotation_factor;
-        cout << "         remainder_terms = " << remainder_terms;
-    }
-
     Double Z_value = 2 * real(rotation_factor * main_sum) + remainder_terms;
-
-    if(verbose::hardy_Z) {
-        cout << "Computed Z(" << mpfr_get_d(t, GMP_RNDN) << ") = " << Z_value << endl;
-    }
 
     return Z_value;
 }

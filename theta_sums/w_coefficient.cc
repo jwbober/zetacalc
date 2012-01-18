@@ -9,19 +9,6 @@
 
 using namespace std;
 
-namespace wstats {
-    const bool stats = true;
-    int z_was_zero = 0;
-    int z_wasnt_zero = 0;
-};
-
-void print_w_coefficient_stats() {
-    cout << endl;
-    cout << "w_coefficient statistics: " << endl;
-    cout << "       Number of times z was 0: " << wstats::z_was_zero << endl;
-    cout << "       Number of times z wasn't 0: " << wstats::z_wasnt_zero << endl;
-}
-
 Complex w_coefficient(Double * b_powers, Double * q_powers, int s, int j, const theta_cache * cache, Complex * inner_sums) {
     //
     // a_powers should be an array of length at least j - s + 1, filled with 1, a, a^2, ..., a^{j - s}

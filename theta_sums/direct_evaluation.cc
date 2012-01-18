@@ -12,33 +12,15 @@ Complex compute_exponential_sums_directly(mpfr_t mp_a, mpfr_t mp_b, int j, int K
     Double b = mpfr_get_d(mp_b, GMP_RNDN);
 
     if (K > mpfr_Kmin) {
-        if(verbose::direct_evaluation) {
-            cout << "Directly evalutating using mpfr. Computing S = " << endl;
-        }
         for(int l = 0; l <= j; l++) {
             Complex x = 0.0;
             if(v[l] != 0.0) {
                 x = v[l] * direct_exponential_sum_evaluation2(mp_a, mp_b, l, 0, K);
             }
             S = S + x;
-            if(verbose::direct_evaluation) {
-                cout << "        " << x;
-                if(l < j) {
-                    cout << " + " << endl;
-                }
-                else
-                    cout << endl;
-            }
         }
     }
     else {
-        if(verbose::direct_evaluation >= 2) {
-            cout << "Directly evalutating using doubles. Coefficients are " << endl;
-            for(int l = 0; l <= j; l++) {
-                cout << "v[" << l << "] = " << v[l] << endl;
-            }
-        }
-
         Complex two_pi_i = 2. * PI * I;
         Double one_over_K = 1. / (Double)K;
         for(int n = 0; n <= K; n++) {
@@ -48,33 +30,17 @@ Complex compute_exponential_sums_directly(mpfr_t mp_a, mpfr_t mp_b, int j, int K
             Double z = 2 * PI * n * ( a + b * n);
             Complex common_exp = Complex( cos(z), sin(z) );
             Complex S2 = 0.0;
-            if(verbose::direct_evaluation >= 3) {
-                cout << "   S2 = " << endl;
-            }
             for(int l = 0; l <= j; l++) {
                 Complex y = 0.0;
                 if(v[l] != 0.) {
                     y = v[l] * n_over_K_powers;
                 }
                 S2 = S2 + y;
- 
-                if(verbose::direct_evaluation >= 3) {
-                    cout << "            " << y;
-                    if(l < j) {
-                        cout << " + " << endl;
-                    }
-                    else
-                        cout << endl << endl;
-                }
 
                 n_over_K_powers *= (Double)n * one_over_K;
             }
             x = S2 * common_exp;
             S += x;
-            if(verbose::direct_evaluation >= 2) {
-                cout << "S += " << x << "; S = " << S << endl;
-            }
-
         }
     }
  
