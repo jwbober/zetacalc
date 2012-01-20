@@ -26,7 +26,7 @@ extern string NUM_THREADS_FILE;
 
 const int stage1_block_size = 10000;
 
-Complex zeta_sum_stage1_version2(mpz_t start, mpz_t length, mpfr_t t, Double delta, int M, Complex * S, int verbose) {
+Complex zeta_sum_stage1(mpz_t start, mpz_t length, mpfr_t t, Double delta, int M, Complex * S, int verbose) {
     //
     // Compute the sums S(start, length, t + delta m) for m = 0, 1, ..., M - 1
     // and put the results in S[0], S[1], ..., S[M - 1]
@@ -132,76 +132,3 @@ Complex zeta_block_stage1(mpz_t v, unsigned int K, mpfr_t t, Double delta, int M
 
     return S[0];
 }
-
-Complex zeta_sum_stage1(mpz_t N, mpfr_t t, Double delta, int M, Complex * S, int verbose) {
-    // THIS FUNCTION SHOULD NO LONGER BE USED, AND SHOULD BE REMOVED.
-    //
-    // Compute and return the sum
-    //
-    // \sum_{n=1}^{N - 1} n^{-.5 + it)
-    //
-    // NOTE: Unlike the other zeta_sum_* functions, N is NOT the
-    // number of terms that will be computed. This will compute N - 1
-    // terms. (Or, it can be thought of as computing N terms,
-    // but with the 0th term being 0).
-    //
-    // We repeatedly call zeta_block_stage1 with a block size of 10000
-    // and add up all of the terms. We could just call zeta_block_stage1
-    // directly, but we anticipate shortly changing this routine
-    // to use multiple threads.
-
-    time_t start_time = time(NULL);
-
-
-    for(int l = 0; l < M; l++) {
-        S[l] = 0;
-    }
-
-    Complex * S2 = new Complex[M];
-
-    const unsigned int block_size = 10000;
-
-    mpz_t number_of_terms;
-    mpz_init(number_of_terms);
-    mpz_sub_ui(number_of_terms, N, 1u);
-
-    mpz_t number_of_blocks;
-    mpz_init(number_of_blocks);
-    unsigned int remainder = mpz_fdiv_q_ui(number_of_blocks, number_of_terms, block_size);
-
-    mpz_t k, v;
-    mpz_init(k);
-    mpz_init(v);
-
-    mpz_set_si(v, 1 - (int)block_size);
-    for(mpz_set_ui(k, 0u); mpz_cmp(k, number_of_blocks) < 0; mpz_add_ui(k, k, 1u)) {
-        mpz_add_ui(v, v, block_size);
-        zeta_block_stage1(v, block_size, t, delta, M, S2);
-        for(int l = 0; l < M; l++) {
-            S[l] += S2[l];
-        }
-        //S = S + zeta_block_mpfr(v, block_size, t);
-    }
-    mpz_add_ui(v, v, block_size);
-
-    zeta_block_stage1(v, remainder, t, delta, M, S2);
-    for(int l = 0; l < M; l++) {
-        S[l] += S2[l];
-    }
-
-    mpz_clear(v);
-    mpz_clear(k);
-    mpz_clear(number_of_blocks);
-    mpz_clear(number_of_terms);
-
-    time_t end_time = time(NULL);
-
-    time_t elapsed_time = end_time - start_time;
-    if(verbose)
-        cout << "Spent " << elapsed_time << " seconds in stage 1." << endl;
-
-    delete [] S2;
-
-    return S[0];
-}
-

@@ -22,11 +22,6 @@ using namespace std;
 
 void compute_taylor_coefficients(mpfr_t t, Complex Z[30]);
 
-const int MAX_THREADS = 30;
-extern string NUM_THREADS_FILE;
-extern bool use_num_threads_file;
-extern int default_number_of_threads;
-
 unsigned int stage_3_block_size(Double v, Double t) {
     // With this choice, the block size will hit N when
     // v = N/.9 * t^(1/3)
@@ -128,89 +123,6 @@ Complex zeta_block_stage3_basic(mpz_t v, unsigned int *K, mpfr_t t, Complex ZZ[3
     return S;
 }
 
-
-class stage3_data_t {
-public:
-    mpz_t v;
-    mpfr_t t;
-    unsigned int blocksize;
-    Double delta;
-    int M;
-    Complex * S;
-    
-    queue<int> * thread_queue;
-    pthread_mutex_t * queue_mutex;
-    pthread_cond_t * queue_nonempty_signaler;
-    int id;
-    int Kmin;
-    Complex * Z;
-
-
-    stage3_data_t() {
-        mpz_init(v);
-        mpfr_init2(t, 150);
-    }
-
-    void set(   mpz_t _v,
-                unsigned int _blocksize,
-                mpfr_t _t,
-                Double _delta,
-                int _M, Complex * _S,
-                queue<int> * _thread_queue,
-                pthread_mutex_t * _queue_mutex,
-                pthread_cond_t * _queue_nonempty_signaler,
-                int _id, 
-                int _Kmin,
-                Complex * _Z) {
-
-        mpz_set(v, _v);
-        mpfr_set(t, _t, GMP_RNDN);
-
-        blocksize = _blocksize;
-        delta = _delta;
-        M = _M;
-        S = _S;
-
-        thread_queue = _thread_queue;
-        queue_mutex = _queue_mutex;
-        queue_nonempty_signaler = _queue_nonempty_signaler;
-
-        id = _id;
-        Kmin = _Kmin;
-        Z = _Z;
-    }
-
-    ~stage3_data_t() {
-        mpz_clear(v);
-        mpfr_clear(t);
-    }
-
-};
-
-void * zeta_block_stage3(void * thread_data) {
-    stage3_data_t * data = (stage3_data_t * )(thread_data);
-
-    zeta_block_stage3(data->v, data->blocksize, data->t, data->Z, data->delta, data->M, data->S, data->Kmin);
-
-    // when we are done we need to put our thread number in the queue, and if the queue
-    // was empty, we need to signal that it is no longer empty
-
-    pthread_mutex_lock(data->queue_mutex);
-
-    bool queue_was_empty = data->thread_queue->empty();
-
-    data->thread_queue->push(data->id);
-
-    if(queue_was_empty) {
-        pthread_cond_signal(data->queue_nonempty_signaler);
-    }
-
-    pthread_mutex_unlock(data->queue_mutex);
-
-    pthread_exit(NULL);
-}
-
-
 Complex zeta_block_stage3(mpz_t n, unsigned int N, mpfr_t t, Complex Z[30], Double delta, int M, Complex * S, int Kmin) {
     for(int l = 0; l < M; l++) {
         S[l] = 0.0;
@@ -242,7 +154,6 @@ Complex zeta_block_stage3(mpz_t n, unsigned int N, mpfr_t t, Complex Z[30], Doub
 
     return S[0];
 }
-
 
 Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex * S, int Kmin, int verbose) {
     //
@@ -280,290 +191,43 @@ Complex zeta_sum_stage3(mpz_t n, mpz_t N, mpfr_t t, Double delta, int M, Complex
     Complex Z[30];
     compute_taylor_coefficients(t, Z);
 
-    int num_threads = default_number_of_threads;
-    if(use_num_threads_file) {
-        ifstream num_threads_file;
-        num_threads_file.open(NUM_THREADS_FILE.c_str());
-        if(num_threads_file) {
-            num_threads_file >> num_threads;
-            num_threads_file.close();
-        }
-    }
-
     mpz_t k, v;
     mpz_init(k);
     mpz_init(v);
 
     mpz_set(v, n);
     mpz_sub_ui(v, v, block_size);
-    if(num_threads == 1 || mpz_cmp_si(number_of_blocks, num_threads) < 0 ) {
-        for(mpz_set_ui(k, 0u); mpz_cmp(k, number_of_blocks) < 0; mpz_add_ui(k, k, 1u)) {
-            mpz_add_ui(v, v, block_size);
-            zeta_block_stage3(v, block_size, t, Z, delta, M, S2, Kmin);
-            for(int l = 0; l < M; l++) {
-                S[l] += S2[l];
-            }
-            //S = S + zeta_block_mpfr(v, block_size, t);
-            if(mpz_divisible_ui_p(k, 20u)) {
-                time_t current_wall_time = time(NULL);
-                clock_t current_cpu_time = clock();
-                time_t elapsed_wall_time = current_wall_time - start_wall_time;
-                double elapsed_cpu_time = ((double)current_cpu_time - (double)last_cpu_time)/CLOCKS_PER_SEC;
-                total_cpu_time += elapsed_cpu_time;
-                if(verbose) {
-                    cout << "In stage3, completed " << k << " large blocks out of " << number_of_blocks << "." << endl;
-                    cout << "        In stage3 thus far: " << elapsed_wall_time << " real seconds; " << total_cpu_time << " cpu seconds; " << elapsed_cpu_time << "cpu seconds this chunk. " << endl;
-                }
-                last_cpu_time = current_cpu_time;
-                int current_blocksize = stage_3_block_size(mpz_get_d(v), mpfr_get_d(t, GMP_RNDN));
-                if(verbose)
-                    cout << "        Current blocksize ~= " << current_blocksize << endl;
-            }
-        }
-        mpz_add_ui(v, v, block_size);
 
-        zeta_block_stage3(v, remainder, t, Z, delta, M, S2, Kmin);
+    for(mpz_set_ui(k, 0u); mpz_cmp(k, number_of_blocks) < 0; mpz_add_ui(k, k, 1u)) {
+        mpz_add_ui(v, v, block_size);
+        zeta_block_stage3(v, block_size, t, Z, delta, M, S2, Kmin);
         for(int l = 0; l < M; l++) {
             S[l] += S2[l];
         }
-        //S = S + zeta_block_mpfr(v, remainder, t);
+        //S = S + zeta_block_mpfr(v, block_size, t);
+        if(mpz_divisible_ui_p(k, 20u)) {
+            time_t current_wall_time = time(NULL);
+            clock_t current_cpu_time = clock();
+            time_t elapsed_wall_time = current_wall_time - start_wall_time;
+            double elapsed_cpu_time = ((double)current_cpu_time - (double)last_cpu_time)/CLOCKS_PER_SEC;
+            total_cpu_time += elapsed_cpu_time;
+            if(verbose) {
+                cout << "In stage3, completed " << k << " large blocks out of " << number_of_blocks << "." << endl;
+                cout << "        In stage3 thus far: " << elapsed_wall_time << " real seconds; " << total_cpu_time << " cpu seconds; " << elapsed_cpu_time << "cpu seconds this chunk. " << endl;
+            }
+            last_cpu_time = current_cpu_time;
+            int current_blocksize = stage_3_block_size(mpz_get_d(v), mpfr_get_d(t, GMP_RNDN));
+            if(verbose)
+                cout << "        Current blocksize ~= " << current_blocksize << endl;
+        }
     }
-    else {
-        pthread_t threads[MAX_THREADS];
-        bool unjoined[MAX_THREADS];
-        for(int l = 0; l < MAX_THREADS; l++) {
-            unjoined[l] = false;
-        }
+    mpz_add_ui(v, v, block_size);
 
-        queue<int> thread_queue;
-        pthread_mutex_t queue_mutex;
-        pthread_cond_t queue_nonempty_signaler;
-
-        pthread_mutex_init(&queue_mutex, NULL);
-        pthread_cond_init(&queue_nonempty_signaler, NULL);
-        
-        stage3_data_t thread_data[MAX_THREADS];
-        Complex * S2[MAX_THREADS];
-        for(int m = 0; m < MAX_THREADS; m++) {
-            S2[m] = new Complex[M];
-        }
-
-        // start by spawning a bunch of threads
-        //
-        // we lock the queue in case any of these threads would finish before
-        // we start waiting for them to finish.
-
-        pthread_mutex_lock(&queue_mutex);
-        mpz_set_ui(k, 0u);
-        for(int n = 0; n < num_threads; n++, mpz_add_ui(k, k, 1u)) {
-            mpz_add_ui(v, v, block_size);
-            thread_data[n].set(v, block_size, t, delta, M, S2[n], &thread_queue, &queue_mutex, &queue_nonempty_signaler, n, Kmin, Z);
-            pthread_create(&threads[n], NULL, zeta_block_stage3, (void *)(&thread_data[n]));
-            unjoined[n] = true;
-        }
-
-        // at this point the queue should be empty, and we want to wait for
-        // it to be nonempty, so we wait
-        
-        pthread_cond_wait(&queue_nonempty_signaler, &queue_mutex);
-
-
-
-        for(; mpz_cmp(k, number_of_blocks) < 0;) {
-            //if(next_thread == num_threads) {
-            //    for(int n = 0; n < num_threads; n++) {
-            //        void * status;
-            //        pthread_join(threads[n], &status);
-            //        for(int l = 0; l < M; l++) {
-            //            S[l] += S2[n][l];
-            //        }
-            //    }
-            //    next_thread = 0;
-            //}
-
-            // at this point it should be guaranteed that the thread queue is
-            // nonempty, so there is a thread that has finished and is ready to do
-            // some more work. also, we have the queue locked.
-
-            int next_thread = thread_queue.front();
-            thread_queue.pop();
-
-
-            void * status;
-            if(unjoined[next_thread]) {
-                pthread_join(threads[next_thread], &status);  // join this thread so that it can be destroyed.
-                unjoined[next_thread] = false;
-            }
-
-
-            // record the data from this thread
-            for(int l = 0; l < M; l++) {
-                S[l] += S2[next_thread][l];
-            }
-        
-            // now we create a new thread
-
-            if(next_thread < num_threads) {
-                mpz_add_ui(k, k, 1u);
-                mpz_add_ui(v, v, block_size);
-                thread_data[next_thread].set(v, block_size, t, delta, M, S2[next_thread], &thread_queue, &queue_mutex, &queue_nonempty_signaler, next_thread, Kmin, Z);
-                pthread_create(&threads[next_thread], NULL, zeta_block_stage3, (void *)(&thread_data[next_thread]));
-                unjoined[next_thread] = true;
-            }
-
-            // now we have created a new thread to do some work.
-            //
-            // if the thread queue is empty, we wait for a signal
-            // on the condition variable queue_nonempty_signaler. otherwise, we just
-            // go on to the next iteration of the loop.
-
-            if(thread_queue.empty()) {
-                pthread_cond_wait(&queue_nonempty_signaler, &queue_mutex);
-            }
-
-            //S = S + zeta_block_mpfr(v, block_size, t);
-            if(mpz_divisible_ui_p(k, 20u)) {
-                time_t current_wall_time = time(NULL);
-                clock_t current_cpu_time = clock();
-                time_t elapsed_wall_time = current_wall_time - start_wall_time;
-                double elapsed_cpu_time = ((double)current_cpu_time - (double)last_cpu_time)/CLOCKS_PER_SEC;
-                total_cpu_time += elapsed_cpu_time;
-                if(verbose) {
-                    cout << "In stage3, completed " << k << " large blocks out of " << number_of_blocks << "." << endl;
-                    cout << "        In stage3 thus far: " << elapsed_wall_time << " real seconds; " << total_cpu_time << " cpu seconds; " << elapsed_cpu_time << "cpu seconds this chunk. " << endl;
-                }
-                last_cpu_time = current_cpu_time;
-                int current_blocksize = stage_3_block_size(mpz_get_d(v), mpfr_get_d(t, GMP_RNDN));
-                if(verbose) {
-                    cout << "        Current blocksize ~= " << current_blocksize << endl;
-                    cout << "        Sum so far: " << S[0] << endl;
-                }
-                if(use_num_threads_file) {
-                    ifstream num_threads_file;
-                    int new_num_threads = num_threads;
-                    num_threads_file.open(NUM_THREADS_FILE.c_str());
-                    if(!num_threads_file) {
-                        new_num_threads = 2;
-                    }
-                    else {
-                        num_threads_file >> new_num_threads;
-                        num_threads_file.close();
-                    }
-                    if(new_num_threads > num_threads) {
-                        if(new_num_threads > MAX_THREADS)
-                            new_num_threads = MAX_THREADS;
-                        if(verbose)
-                            cout << "Increasing the number of threads to " << new_num_threads << endl;
-                        // We actually need to spawn new threads now. First we check to see how many blocks
-                        // are remaining. If it is less than the number of new threads we should
-                        // spawn, we actually do nothing. (Assuming that MAX_THREADS isn't very large
-                        // this can never be too wasteful.)
-                        
-                        mpz_sub(number_of_blocks, number_of_blocks, k);
-                        if(mpz_cmp_si(number_of_blocks, num_threads - new_num_threads) >= 0) {
-                            mpz_add(number_of_blocks, number_of_blocks, k);
-                            mpz_add_ui(k, k, new_num_threads - num_threads);
-                            for(int k = num_threads; k < new_num_threads; k++) {
-                                mpz_add_ui(v, v, block_size);
-                                thread_data[k].set(v, block_size, t, delta, M, S2[k], &thread_queue, &queue_mutex, &queue_nonempty_signaler, k, Kmin, Z);
-                                pthread_create(&threads[k], NULL, zeta_block_stage3, (void *)(&thread_data[k]));
-                                unjoined[k] = true;
-                            }
-                        }
-                        else {
-                            mpz_add(number_of_blocks, number_of_blocks, k);
-                            // Do nothing. This is the case where the number of blocks
-                            // remaining is very small.
-                        }
-
-                        num_threads = new_num_threads;   
-                    }
-                    else if(new_num_threads < num_threads) {
-                        if(new_num_threads < 1)
-                            new_num_threads = 1;
-                        if(verbose)
-                            cout << "Decreasing the number of threads to " << new_num_threads << endl;
-                        pthread_mutex_unlock(&queue_mutex);
-                        for(int k = new_num_threads; k < num_threads;k++) {
-                            void * status;
-                            if(verbose) {
-                                cout << "Attempting to join thread " << k << endl;
-                                cout.flush();
-                            }
-                            if(unjoined[k]) {
-                                pthread_join(threads[k], &status);
-                                unjoined[k] = false;
-                            }
-                        }
-                        if(verbose)
-                            cout << "Reacquiring lock" << endl;
-                        pthread_mutex_lock(&queue_mutex);
-                        if(verbose) {
-                            cout << "Lock acquired." << endl;
-                            cout.flush();
-                        }
-                        num_threads = new_num_threads;
-                    }
-                }
-            }
-        }
-
-        // at this point there are still some threads working which need to finish.
-        // we are guaranteed that the thread queue is nonempty, so
-        // will don't have to worry about that, but we do need to wait for all
-        // threads to finish.
-
-        // there is a good chance that below we will join threads that
-        // have already been joined. i don't know what happens in this case.
-        // hopefully pthread_join just returns an error and continues.
-
-        // we have the queue locked, and there may be threads waiting for it,
-        // so we have to unlock it here.
-
-        pthread_mutex_unlock(&queue_mutex);
-
-        for(int n = 0; n < num_threads; n++) {
-            void * status;
-            if(unjoined[n]) {
-                pthread_join(threads[n], &status);
-                unjoined[n] = false;
-            }
-                //for(int l = 0; l < M; l++) {
-                //    S[l] += S2[n][l];
-                //}
-        }
-
-        // now all the threads are done and we need to record their data
-
-        // at this point there should be no other threads running, so
-        // we don't have to worry about any locks or conditions.
-
-        while(!thread_queue.empty()) {
-            int next_thread = thread_queue.front();
-            thread_queue.pop();
-
-            // record the data from this thread
-            for(int l = 0; l < M; l++) {
-                S[l] += S2[next_thread][l];
-            }
-        }
-
-
-        // finally, we still have one more block to compute.
-        mpz_add_ui(v, v, block_size);
-
-        zeta_block_stage3(v, remainder, t, Z, delta, M, S2[0], Kmin);
-        for(int l = 0; l < M; l++) {
-            S[l] += S2[0][l];
-        }
-        
-        pthread_mutex_destroy(&queue_mutex);
-        pthread_cond_destroy(&queue_nonempty_signaler);
-
-
+    zeta_block_stage3(v, remainder, t, Z, delta, M, S2, Kmin);
+    for(int l = 0; l < M; l++) {
+        S[l] += S2[l];
     }
-
-
+    //S = S + zeta_block_mpfr(v, remainder, t);
 
     mpz_clear(v);
     mpz_clear(k);
