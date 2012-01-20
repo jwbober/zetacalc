@@ -4,7 +4,8 @@
 #include "mpfr.h"
 
 
-#include "misc.h"
+//#include "misc.h"
+#include "theta_sums.h"
 #include "precomputed_tables.h"
 #include "log.h"
 
@@ -223,7 +224,7 @@ Complex ExpA(mpfr_t A, int K) {
     mpfr_init2(tmp, mpfr_get_prec(A));
     mpfr_mul_si(tmp, A, K, GMP_RNDN);
     mpfr_frac(tmp, tmp, GMP_RNDN);
-    Complex S = exp(-2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
+    Complex S = EXP(-2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
     mpfr_clear(tmp);
     return S;
 }
@@ -234,7 +235,7 @@ Complex ExpAK(mpfr_t A, int K) {
     mpfr_init2(tmp, mpfr_get_prec(A));
     mpfr_mul_si(tmp, A, K, GMP_RNDN);
     mpfr_frac(tmp, tmp, GMP_RNDN);
-    Complex S = exp(2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
+    Complex S = EXP(2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
     mpfr_clear(tmp);
     return S;
 }
@@ -245,7 +246,7 @@ Complex ExpB(mpfr_t B, int K) {
     mpfr_mul_si(tmp, B, K, GMP_RNDN);
     mpfr_mul_si(tmp, tmp, K, GMP_RNDN);
     mpfr_frac(tmp, tmp, GMP_RNDN);
-    Complex S = exp(-2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
+    Complex S = EXP(-2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
     mpfr_clear(tmp);
     return S;
 }
@@ -257,7 +258,7 @@ Complex ExpBK(mpfr_t B, int K) {
     mpfr_mul_si(tmp, B, K, GMP_RNDN);
     mpfr_mul_si(tmp, tmp, K, GMP_RNDN);
     mpfr_frac(tmp, tmp, GMP_RNDN);
-    Complex S = exp(2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
+    Complex S = EXP(2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
     mpfr_clear(tmp);
     return S;
 }
@@ -273,7 +274,7 @@ Complex ExpAB(mpfr_t A, mpfr_t B) {
 
     mpfr_frac(tmp, tmp, GMP_RNDN);
     
-    Complex S = exp(-2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
+    Complex S = EXP(-2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
     mpfr_clear(tmp);
     return S;
 

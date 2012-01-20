@@ -25,8 +25,6 @@ Complex compute_exponential_sum_via_Euler_Maclaurin(mpfr_t mp_a, mpfr_t mp_b, in
 
     
     //Complex C11 = compute_C11(mp_a, mp_b, K);
-    Complex C12 = compute_C12(mp_a, mp_b, K);
-    Complex C11 = I * cache->ExpABK;
 
     S = S + IC0(j, mp_a, mp_b, cache, epsilon/2);
 

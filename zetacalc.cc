@@ -164,8 +164,6 @@ void compute_hardy_on_unit_interval(mpfr_t t) {
             outfile << ", ";
         Complex z = blfi_inter(t_minus_t0, N - 1, 30, start, end, main_sum);
         Double Z_value = 2 * real(rs_rotation(t) * z) + rs_remainder(t);
-        Complex zeta_value = Z_value * rs_rotation(t);
-        //cout << d << ", " << Z_value << "  " << zeta_value << endl;
         outfile << "(" << d << ", " << Z_value << ")";
         t_minus_t0 += .001;
         mpfr_add_d(t, t, .001, GMP_RNDN);

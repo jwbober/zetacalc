@@ -115,8 +115,6 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cach
                                                                                 // our how many terms we are going to compute
                                                                                 // and then divide appropriately.
                                                                                 //
-        //cout << "error = " << error << "; z = " << z << endl;
-
         S = S + z;
         b_power *= b;
         r++;
@@ -170,7 +168,7 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
         return 0.0;
     }
 
-    Double exp_minus_twopi = exp(-2.0 * PI);
+    Double exp_minus_twopi = EXP(-2.0 * PI);
     Double exp_minus_twopi_n = 1.0;
 
     //Double a_factor = exp(-2.0 * PI * (1 + a));
@@ -199,6 +197,7 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
         //Complex x = a_factor * Complex(cos(d), sin(d));
 
         for(Double m = (Double)1; m <= end_point; m = m + 1) {
+            
             if(m > 1)
                 x = x * exp_minus_twopi_n;
             //Complex z =  G(I*(m + a + (Complex)2.0 * I * b * n), -b, n, j, epsilon/(abs(x) * end_point * Double(L - 1) * one_over_K_to_the_j));

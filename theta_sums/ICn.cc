@@ -15,7 +15,7 @@
 #include <fcntl.h>
 
 using namespace std;
-inline Complex IC0_method1(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, Double epsilon) {
+Complex IC0_method1(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, Double epsilon) {
     MPFR_DECL_INIT(mp_a2, mpfr_get_prec(mp_a));
     MPFR_DECL_INIT(mp_b2, mpfr_get_prec(mp_a));
     MPFR_DECL_INIT(tmp, mpfr_get_prec(mp_a));
@@ -171,7 +171,7 @@ Complex IC1(int K, int j, Double a, Double b, const theta_cache * cache, Double 
     }
 
     if( a + 2 * b * K <= - LOG(epsilon * sqrt(b))/((Double)2 * PI * K) + 1) {
-        Complex C12 = I * cache->ExpBK_inverse * exp(-2 * PI * (a + 2 * b * K) * K);
+        Complex C12 = I * cache->ExpBK_inverse * EXP(-2 * PI * (a + 2 * b * K) * K);
 
         Complex S2 = 0;
         for(int l = 0; l <= j; l++) {
@@ -210,7 +210,7 @@ Complex IC1c(int K, int j, Double a, Double b, Complex C8, const theta_cache * c
         Double z = K_power(l, cache) * inverse_binomial_coefficient(j, l);
         for(int n = 0; n <= L - 1; n++) {
             S1 = S1 + EXP(2.0 * PI * n * (I * a - 2.0 * b * (Double)K + I * b * (Double)n) ) 
-                    * G(a + (Double)2.0 * I * b * (Double)K + (Double)2.0 * b * (Double)n, b, n, l, epsilon * exp(4 * PI * b * K * (Double)n + 2 * PI * a * K) * z, 0);
+                    * G(a + (Double)2.0 * I * b * (Double)K + (Double)2.0 * b * (Double)n, b, n, l, epsilon * EXP(4 * PI * b * K * (Double)n + 2 * PI * a * K) * z, 0);
         }
         S1 = S1 * minus_I_power(l)/z;
         S = S + S1;
@@ -291,7 +291,7 @@ Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, const theta_cache * c
     //Complex z = (Double)1/sqrt(2 * PI * b) * exp(I * PI/(Double)4 - 2.0 * PI* a * (Double)K - 4 * PI * b * (Double)K * Double(K)) * z1;
 
     //Complex z = pow(2.0 * PI * b, -((Double)j + 1.0)/2) * exp(I * PI * ((Double)j + 1)/(Double)4 - 2.0 * PI* a * (Double)K - 4 * PI * b * (Double)K * Double(K)) * z1;
-    Complex z = exp(I * PI * ((Double)j + 1)/(Double)4 - 2.0 * PI* a * (Double)K - 4 * PI * b * (Double)K * Double(K)) * z1;
+    Complex z = EXP(I * PI * ((Double)j + 1)/(Double)4 - 2.0 * PI* a * (Double)K - 4 * PI * b * (Double)K * Double(K)) * z1;
 
     Complex alpha = (I - (Double)1)*a/(2 * sqrt(PI * b)) - 2 * sqrt(b) * (Double)K / sqrt(PI);
     Double beta = -1/(2 * PI);
@@ -305,7 +305,7 @@ Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, const theta_cache * c
         Double z2 = K_power(r, cache) * pow(2.0 * PI * b, ((Double)r + 1)/2) / ( pow(2, ((Double)(j-r))/2) * binomial_coefficient(j, r));
 
         for(int n = 0; n < L; n++) {
-            Complex w1 = exp(2 * PI * alpha * (Double)n + 2 * PI * beta * (Double)n * (Double)n);
+            Complex w1 = EXP(2 * PI * alpha * (Double)n + 2 * PI * beta * (Double)n * (Double)n);
             Complex w2 = G_I(-I * alpha - (Double)2 * I * beta * (Double)n, -beta, n, r, epsilon * z2/(abs(z) * abs(w1)));
             S1 = S1 + z * w1 * w2;
         }
@@ -398,12 +398,11 @@ Complex IC7_method1(int K, int j, Double a, Double b, const theta_cache * cache,
             Double one_over_L = 1.0/L;
             Complex alpha = C10 * a * root_2pi_b_power(-1, cache);
             Complex s1 = alpha;
-            Complex y1 = exp(2 * PI * I * s1);
+            Complex y1 = EXP(2 * PI * I * s1);
             Complex y = 1.0;
             Double newepsilon = epsilon * two_pi_b_power * one_over_L;
             for(int n = 0; n <= L-1; n = n + 1) {
-                //Complex z3 = exp(2 * PI * I * n * s1- n * n);
-                Double y3 = exp(-n * n);
+                Double y3 = EXP(-n * n);
                 Complex z3 = y * y3;
                 Complex z = 0.0;
                 if( j * fastlog(n + 1) + fastlog(abs(z3)) < fastlog(newepsilon)) {          // TODO: This is a possible source of error,
@@ -431,13 +430,13 @@ Complex IC7_method1(int K, int j, Double a, Double b, const theta_cache * cache,
             Double one_over_L = 1.0/L;
             Complex alpha = C10 * a * root_2pi_b_power(-1, cache);
             Complex s1 = alpha;
-            Complex y1 = exp(2 * PI * I * s1);
+            Complex y1 = EXP(2 * PI * I * s1);
             Complex y = 1.0;
             Double newepsilon = epsilon * two_pi_b_power * K_to_the_j * one_over_L;
  
             for(int n = 0; n <= L-1; n = n + 1) {
                 //Complex z3 = exp(2 * PI * I * n * s1- n * n);
-                Double y3 = exp(-n * n);
+                Double y3 = EXP(-n * n);
 
 
                 Complex z3 = y * y3;
@@ -493,12 +492,12 @@ Complex IC7star(Double a, int j, Double epsilon) {
         Double one_over_L = 1.0/L;
         Complex alpha = C10 * a;
         Complex s1 = alpha;
-        Complex y1 = exp(2 * PI * I * s1);
+        Complex y1 = EXP(2 * PI * I * s1);
         Complex y = 1.0;
         Double newepsilon = epsilon * one_over_L;
         for(int n = 0; n <= L-1; n = n + 1) {
             //Complex z3 = exp(2 * PI * I * n * s1- n * n);
-            Double y3 = exp(-n * n);
+            Double y3 = EXP(-n * n);
             Complex z3 = y * y3;
             Complex z = 0.0;
             if( j * fastlog(n + 1) + fastlog(abs(z3)) < fastlog(newepsilon)) {          // TODO: This is a possible source of error,
@@ -562,7 +561,7 @@ Complex IC9E(int K, int j, Double a, Double b, const theta_cache * cache, Double
     Double K_to_the_j = K_power(j, cache);
     for(Double n = (Double)0; n <= L-1; n = n + 1) {
         
-        Complex z2 = exp(-2 * PI * (n * c + (Double)2 * b * n * n));
+        Complex z2 = EXP(-2 * PI * (n * c + (Double)2 * b * n * n));
         Complex z = G_I( I*(c + (Double)4 * b * n), 2 * b, n, j, epsilon * K_to_the_j/((Double)L * abs(z2)));
         z = z * z2;
         S = S + z;

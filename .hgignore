@@ -62,3 +62,5 @@ blfi
 *.mp4
 *.avi
 *.jpg
+work_units/
+doc/

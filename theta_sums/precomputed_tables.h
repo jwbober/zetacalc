@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
-const bool SKIP_RANGE_CHECK = false;
+//const bool SKIP_RANGE_CHECK = false;
+const bool SKIP_RANGE_CHECK = true;
 const int factorial_table_range = 170;
 const Double factorial_table[factorial_table_range] = {
 1.0000000000000000000000000000000,

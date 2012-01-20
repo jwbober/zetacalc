@@ -48,16 +48,13 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     Double a = cache->a;
     Double b = cache->b;
 
-    Complex C_AK_inverse = cache->ExpAK_inverse;
     Complex C_BK_inverse = cache->ExpBK_inverse;
     Complex C_AK = cache->ExpAK;
-    Complex C_BK = cache->ExpBK;
 
     Complex C_ABK = cache->ExpABK;
 
     Complex C1 = I * C_ABK;
     Complex C5 = -C1;
-    Complex C7 = -C5;
     Complex C8 = -I * C_BK_inverse;
 
     //int q = to_int(a + 2 * b * K); // note that a and b are both positive, so this will do the right thing.
@@ -111,8 +108,6 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 
     S1 = S1 + JBulk_term1;
 
-    Complex IC7_term1 = 0;
-
     Complex IC1c_term = 0;
     Complex IC9E_term = 0;
     
@@ -148,13 +143,13 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
         for(int l = 0; l <= j; l++) {
             Complex x = 0;
             if(Z2[l] != 0.0)
-                x = Z2[l] * IC9E(K, l, w, b, cache, epsilon * exp(2.0 * PI * w * K)/(12 * abs(Z2[l]) * (j + 1)) ); //----------
+                x = Z2[l] * IC9E(K, l, w, b, cache, epsilon * EXP(2.0 * PI * w * K)/(12 * abs(Z2[l]) * (j + 1)) ); //----------
 
             IC9E_term += x;
 
         }
         //IC9E_term = -IC9E_term * exp(-2.0 * PI * w * K) / ExpA(mp_a, K);
-        IC9E_term = -IC9E_term * exp(-2.0 * PI * w * K) * C_AK;
+        IC9E_term = -IC9E_term * EXP(-2.0 * PI * w * K) * C_AK;
 
         S1 = S1 + IC9E_term;
         S1 = S1 + IC1c_term;
@@ -175,7 +170,6 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     JBulk_term2 *= -1;
 
     S1 = S1 + JBulk_term2;
-    Complex IC7_term2 = 0;
 
     //s1 = s1 - C1*( JBulk(w, b, p1, K, epsilon/12) + IC7(K, w, b, epsilon/12) - IC1c(K, w, b, C8, epsilon/12));
     //s1 = s1 - C2*( JBulk(w1, b, p1, K, epsilon/12) + IC7(K, w1, b, epsilon/12) );
@@ -230,9 +224,6 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     }
     IC9H_term1 *= -C5;
     S2 = S2 + IC9H_term1;
-
-    Complex IC9H_term2 = 0;
-    Complex JBoundary_term1 = 0;
 
     Complex JBoundary_term2 = 0;
 

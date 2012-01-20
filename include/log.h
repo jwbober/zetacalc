@@ -9,7 +9,7 @@ namespace exp_itlogn_stats {
 
 
 
-inline int fastlog2(double x) {
+static int fastlog2(double x) {
     //
     // return the floor of the log base 2 of x
     //

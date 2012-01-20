@@ -194,11 +194,37 @@ Complex ExpABK(mpfr_t A, mpfr_t B, int K);
 
 inline Complex EXP(Complex z) {                                                 //--------------------------------------------
                                                                                 // This is just here for counting purposes.
+    /*
+    static __thread double rlast = 0.0;
+    static __thread double ilast = 0.0;
+    static __thread unsigned long total = 0;
+    static __thread unsigned long same_as_last = 0;
+    total++;
+    if(real(z) == rlast && imag(z) == ilast)
+        same_as_last++;
+    rlast = real(z);
+    ilast = imag(z);
+    if(total % 1000000 == 0) {
+        cout << "complex: " << same_as_last/(double)total << endl;
+    }*/
     return std::exp(z);                                                         // There is pretty much no overhead in using it,
 }                                                                               // and commenting out the first line of this
                                                                                 // function will get rid of any overhead at all.
                                                                                 // ---------------------------------------------
 inline double EXP(double z) {
+    /*
+    static __thread double last = 0.0;
+    static __thread unsigned long total = 0;
+    static __thread unsigned long same_as_last = 0;
+    cout << z << endl;
+    total++;
+    if(z == last)
+        same_as_last++;
+    last = z;
+    if(total % 1000000 == 0) {
+        cout << "   real: " << same_as_last/(double)total << endl;
+    }
+    */
     return std::exp(z);
 }
 
@@ -230,10 +256,10 @@ template<typename T> T H_method4(int j, T alpha, Double epsilon);               
 Complex G(Complex alpha, Double b, int n, int j, Double epsilon, int method = 0);  //
 Complex G_I(Complex alpha, Double b, int n, int j, Double epsilon, int method = 0);  //
 Complex G_I_over_twopi(Complex alpha, int n, int j, Double epsilon, int method = 0);  //
-Complex G_method1(Complex alpha, Complex b, int n, int j, Double epsilon);  //
+//Complex G_method1(Complex alpha, Complex b, int n, int j, Double epsilon);  //
 Complex G_method1_R(Complex alpha, Double b, int n, int j, Double epsilon);  //
 Complex G_method1_I(Complex alpha, Double b, int n, int j, Double epsilon);  //
-Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double epsilon); //    / 0
+//Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double epsilon); //    / 0
 Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double epsilon); //    / 0
 Complex G_via_Euler_MacLaurin_I(Complex alpha, Double b, int n, int j, Double epsilon); //    / 0
                                                                                 //  For complex parameters alpha and b.

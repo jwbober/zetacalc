@@ -43,9 +43,10 @@ using namespace std;
 Complex G_method1_I_over_twopi(Complex alpha, int n, int j, Double epsilon);
 Complex G_via_Euler_MacLaurin_I_over_twopi(Complex alpha, int n, int j, Double epsilon);
 
+Complex G_via_Euler_MacLaurin_deprecated(Complex alpha, Complex b, int n, int j, Double epsilon);
+Complex G_method1_deprecated(Complex alpha, Complex b, int n, int j, Double epsilon);
 
-
-Complex G_depracated(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
+Complex G_deprecated(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
     //
     // OLD METHOD NO LONGER USED, SINCE b is ALWAYS EITHER REAL OR PURELY
     // IMAGINARY.
@@ -73,8 +74,6 @@ Complex G_depracated(Complex alpha, Complex b, int n, int j, Double epsilon, int
     //else if(real(b) == 0) {
     //    return G_I(alpha, imag(b), n, j, epsilon, method);
     //}
-
-    check_condition(imag(alpha) >= 0, "In function G(), Imag(alpha) should be nonnegative, but it isn't");
 
     //if(epsilon >= pow((Double)n + 1, (Double)j)) {
     if(fastlog2(epsilon) > j * fastlog2(n+1)) {
@@ -117,7 +116,7 @@ Complex G_depracated(Complex alpha, Complex b, int n, int j, Double epsilon, int
         //    return G_via_Euler_MacLaurin_I(alpha, imag(b), n, j, epsilon);
         //}
         //else
-            return G_via_Euler_MacLaurin(alpha, b, n, j, epsilon);
+            return G_via_Euler_MacLaurin_deprecated(alpha, b, n, j, epsilon);
     }
     else {
         //if(imag(b) == 0) {
@@ -126,7 +125,7 @@ Complex G_depracated(Complex alpha, Complex b, int n, int j, Double epsilon, int
         //if(real(b) == 0) {
         //    return G_method1_I(alpha, imag(b), n, j, epsilon);
         //}
-        return G_method1(alpha, b, n, j, epsilon);
+        return G_method1_deprecated(alpha, b, n, j, epsilon);
     }
 
 }
@@ -143,20 +142,16 @@ Complex G(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
     // to a bunch of calls to H().
     //
     
-    //cout << "New code called" << endl;
-    
     // Note b is _always_ (I think) either real or purely imaginary.
     // We should take advantage of this.
     //
     // alpha is typically complex, however.
 
-    check_condition(imag(alpha) >= 0, "In function G(), Imag(alpha) should be nonnegative, but it isn't");
-
-
     //if(epsilon >= pow((Double)n + 1, (Double)j)) {
     if(fastlog(epsilon) > j * fastlog(n+1) + j) {
         return (Complex)0;
     }
+
 
     //
     // TODO: these if statements need to be optimized.
@@ -207,15 +202,10 @@ Complex G_I(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
     // to a bunch of calls to H().
     //
     
-    //cout << "New code called" << endl;
-    
     // Note b is _always_ (I think) either real or purely imaginary.
     // We should take advantage of this.
     //
     // alpha is typically complex, however.
-
-
-    check_condition(imag(alpha) >= 0, "In function G(), Imag(alpha) should be nonnegative, but it isn't");
 
 
     //if(epsilon >= pow((Double)n + 1, (Double)j)) {
@@ -272,14 +262,10 @@ Complex G_I_over_twopi(Complex alpha, int n, int j, Double epsilon, int method) 
     // to a bunch of calls to H().
     //
     
-    //cout << "New code called" << endl;
-    
     // Note b is _always_ (I think) either real or purely imaginary.
     // We should take advantage of this.
     //
     // alpha is typically complex, however.
-
-    check_condition(imag(alpha) >= 0, "In function G(), Imag(alpha) should be nonnegative, but it isn't");
 
     //if(epsilon >= pow((Double)n + 1, (Double)j)) {
     if(fastlog(epsilon) > j * fastlog(n+1) + j) {
@@ -320,13 +306,13 @@ Complex G_I_over_twopi(Complex alpha, int n, int j, Double epsilon, int method) 
 
 }
 
-Complex G_method1(Complex alpha, Complex b, int n, int j, Double epsilon) {
+Complex G_method1_deprecated(Complex alpha, Complex b, int n, int j, Double epsilon) {
     if(n > 0) {
         Complex S = 0;
         Double n_power = 1.0;
         for(int s = 0; s <= j; s++) {
             Double z = binomial_coefficient(j, s) * n_power;
-            S = S + z * G_method1(alpha, b, 0, j - s, epsilon/(z * (j + 1)));
+            S = S + z * G_method1_deprecated(alpha, b, 0, j - s, epsilon/(z * (j + 1)));
             n_power *= n;
         }
         return S;
@@ -510,7 +496,7 @@ inline Double POW(Double a, Double b) {
 inline Complex g(Complex alpha, Complex b, Double n, Double j, Double t) {
     return POW(t + n, j) * EXP(2 * PI * I * t * (alpha + b * t) );
 }
-Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double epsilon) {
+Complex G_via_Euler_MacLaurin_deprecated(Complex alpha, Complex b, int n, int j, Double epsilon) {
     // We compute the integral int_0^1 g(t),
     // where g(t) = (t + n)^j exp(2 pi i alpha t + 2 pi i b t^2)
     // using euler maclaurin summation
@@ -560,7 +546,7 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
                 }
                 else if(real(b) == 0) {
                     for(int s = 0; s <= N; s++) {
-                        S = S + exp(-2 * PI * imag(b) * t * t) * alpha_term;
+                        S = S + EXP(-2 * PI * imag(b) * t * t) * alpha_term;
                         alpha_term *= alpha_term_multiplier;
                         t += t_increment;
                     }
@@ -583,7 +569,7 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
                 }
                 else if(real(b) == 0) {
                     for(int s = 0; s <= N; s++) {
-                        S = S + (n + t) * exp(-2 * PI * imag(b) * t * t) * alpha_term;
+                        S = S + (n + t) * EXP(-2 * PI * imag(b) * t * t) * alpha_term;
                         alpha_term *= alpha_term_multiplier;
                         t += t_increment;
                     }
@@ -607,7 +593,7 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
                 }
                 else if(real(b) == 0) {
                     for(int s = 0; s <= N; s++) {
-                        S = S + pow(t + n, j) * exp(-2 * PI * imag(b) * t * t) * alpha_term;
+                        S = S + pow(t + n, j) * EXP(-2 * PI * imag(b) * t * t) * alpha_term;
                         alpha_term *= alpha_term_multiplier;
                         t += t_increment;
                     }
@@ -685,7 +671,7 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
             for(int k = 0; k <= 2 * r - 1 + j; k++) {
                 derivative_at_1 = derivative_at_1 + p[k];
             }
-            derivative_at_1 *= exp(2 * PI * I * (alpha + real(b)));
+            derivative_at_1 *= EXP(2 * PI * I * (alpha + real(b)));
             Complex derivative_at_0 = p[0];
 
             N_power *= ((Double)N * (Double)N);
@@ -713,7 +699,7 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
             for(int k = 0; k <= 2 * r - 1 + j; k++) {
                 derivative_at_1 = derivative_at_1 + p[k];
             }
-            derivative_at_1 *= exp(2 * PI * I * (alpha + b));
+            derivative_at_1 *= EXP(2 * PI * I * (alpha + b));
             Complex derivative_at_0 = p[0];
 
             N_power *= ((Double)N * (Double)N);
@@ -741,7 +727,7 @@ Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double eps
             for(int k = 0; k <= 2 * r - 1 + j; k++) {
                 derivative_at_1 = derivative_at_1 + p[k];
             }
-            derivative_at_1 *= exp(2 * PI * I * (alpha + b));
+            derivative_at_1 *= EXP(2 * PI * I * (alpha + b));
             Complex derivative_at_0 = p[0];
 
             N_power *= ((Double)N * (Double)N);
@@ -766,7 +752,7 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
     // where g(t) = (t + n)^j exp(2 pi i alpha t + 2 pi i b t^2)
     // using euler maclaurin summation
     //
-    // This routine is specialize for b real.
+    // This routine is specialized for b real.
 
     // By rough experimentation, we decide to use Euler MacLaurin summation in the cases that
     // (i) |alpha| < 1.5
@@ -1015,14 +1001,14 @@ Complex G_via_Euler_MacLaurin_I(Complex alpha, Double b, int n, int j, Double ep
         switch(j) {
             case 0:
                 for(int s = 0; s <= N; s++) {
-                    S = S + exp(-2 * PI * b * t * t) * alpha_term;
+                    S = S + EXP(-2 * PI * b * t * t) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
                 }
                 break;
             case 1:
                 for(int s = 0; s <= N; s++) {
-                    S = S + (n + t) * exp(-2 * PI * b * t * t) * alpha_term;
+                    S = S + (n + t) * EXP(-2 * PI * b * t * t) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
                 }
@@ -1030,7 +1016,7 @@ Complex G_via_Euler_MacLaurin_I(Complex alpha, Double b, int n, int j, Double ep
 
             default:
                 for(int s = 0; s <= N; s++) {
-                    S = S + pow(t + n, j) * exp(-2 * PI * b * t * t) * alpha_term;
+                    S = S + pow(t + n, j) * EXP(-2 * PI * b * t * t) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
                 }
@@ -1040,7 +1026,7 @@ Complex G_via_Euler_MacLaurin_I(Complex alpha, Double b, int n, int j, Double ep
 
 
     //S = S - (Double)(.5) * (g(alpha, I * b, n, j, 0) + g(alpha, I * b, n, j, 1));
-    S = S - .5 * (pow(n, j) + pow(1 + n, j) * exp(2 * PI * I * (alpha + I * b)));
+    S = S - .5 * (pow(n, j) + pow(1 + n, j) * EXP(2 * PI * I * (alpha + I * b)));
     S = S/(Double)N;
 
     Double N_power = 1;
@@ -1099,7 +1085,7 @@ Complex G_via_Euler_MacLaurin_I(Complex alpha, Double b, int n, int j, Double ep
         for(int k = 0; k <= 2 * r - 1 + j; k++) {
             derivative_at_1 = derivative_at_1 + p[k];
         }
-        derivative_at_1 *= exp(2 * PI * I * (alpha + I * b));
+        derivative_at_1 *= EXP(2 * PI * I * (alpha + I * b));
         Complex derivative_at_0 = p[0];
 
         N_power *= ((Double)N * (Double)N);

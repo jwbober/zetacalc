@@ -179,7 +179,7 @@ template<typename T> T H_method4(int j, T alpha, Double epsilon) {
          //exit(1);
     }
 
-    g = exp(-w)/g;
+    g = EXP(-w)/g;
     return g;
 }
 
@@ -266,13 +266,6 @@ Complex H_method5(int j, Complex alpha, Double epsilon) {
     //
     // THIS IS CURRENTLY UNUSED.
     //
-    const int S = 20;
-    const int D = 5;
-    const int N = S * D;
-    const int M = S * D;
-
-    int n = floor(real(alpha)*N);
-    int m = floor(imag(alpha)*M);
 
 //    Complex alpha_0 = Complex( n/(Double)N, m/(Double)M );
     Complex alpha_0 = alpha + 1.0;
@@ -293,7 +286,6 @@ Complex H_method5(int j, Complex alpha, Double epsilon) {
         difference_power *= difference;
         r++;
     }
-//        cout << r << " ";
 
     return Z;
 }

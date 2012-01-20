@@ -21,7 +21,6 @@ Complex compute_exponential_sums_directly(mpfr_t mp_a, mpfr_t mp_b, int j, int K
         }
     }
     else {
-        Complex two_pi_i = 2. * PI * I;
         Double one_over_K = 1. / (Double)K;
         for(int n = 0; n <= K; n++) {
             Complex x = 0;

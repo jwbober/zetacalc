@@ -1,14 +1,14 @@
-CXX = clang++
+#CXX = clang++
 
 #OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -fno-math-errno -funsafe-math-optimizations -fno-rounding-math -fno-signaling-nans -fcx-limited-range -g
-OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -ffast-math -g -pthread -Winline
-H_OPTIONS = -O3 -msse2 -mfpmath=sse -Wall -g -pthread
+OPTIONS = -msse2 -mfpmath=sse -Wall -ffast-math -pthread -Winline  -O3
+H_OPTIONS = -msse2 -mfpmath=sse -Wall -pthread  -O3
 
 #OPTIONS = -msse2 -mfpmath=sse -Wall -g
 #H_OPTIONS = -msse2 -mfpmath=sse -Wall -g
 
 #OPTIONS = -O3 -Wall -ffast-math -g
-LIBS = -lmpfr -lgmp -lgmpxx -pthread -g
+LIBS = -lmpfr -lgmp -lgmpxx -pthread -O3
 #LIBS = -lmpfr -lgmp -lgmpxx
 INCLUDEDIR = -Iinclude
 #INCLUDEDIR = -I/usr/local/sage/local/include
@@ -68,7 +68,7 @@ build/stage2.o: rs_sum/stage2.cc include/rs_sum.h
 build/stage3.o: rs_sum/stage3.cc include/rs_sum.h
 	$(CXX) -c rs_sum/stage3.cc $(OPTIONS) $(INCLUDEDIR) -o build/stage3.o
 
-build/rs_misc.o: rs_sum/rs_misc.cc include/rs_sum.h
+build/rs_misc.o: rs_sum/rs_misc.cc include/rs_sum.h include/theta_sums.h
 	$(CXX) -c rs_sum/rs_misc.cc $(OPTIONS) $(INCLUDEDIR) -o build/rs_misc.o
 
 build/riemann_siegel_sum.o: rs_sum/riemann_siegel_sum.cc include/rs_sum.h include/theta_sums.h

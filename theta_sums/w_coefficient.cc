@@ -54,8 +54,6 @@ void compute_subsum_coefficients(Complex * v2, Complex * v, const theta_cache * 
     Double a = cache->a;
     Double b = cache->b;
     Double q = cache->q;
-    Complex CF = cache->ExpAB;
-
 
     int N = j;
     if(N == 0) {
@@ -157,7 +155,7 @@ Complex w_coefficient_slow(mpfr_t mp_a, mpfr_t mp_b, int K, int s, int j, Comple
                    * pow(2.0, -3.0 * j/2.0 - 1)
                    * factorial(j)
                    * sqrt(2 * PI)
-                   * exp(PI * I / 4.0 + (j - s) * 3.0 * PI * I / 4.0)
+                   * EXP(PI * I / 4.0 + (j - s) * 3.0 * PI * I / 4.0)
                    / factorial(s);
 
     Complex S = 0;
@@ -170,7 +168,7 @@ Complex w_coefficient_slow(mpfr_t mp_a, mpfr_t mp_b, int K, int s, int j, Comple
                 sign = -1;
 
             S = S + sign * (  pow(a, l) * pow(2.0 * PI / b, l/2.0) *
-                              exp(-3.0 * PI * I * (Double)l/4.0) /
+                              EXP(-3.0 * PI * I * (Double)l/4.0) /
                               ( factorial(l) * factorial( (j - s - l)/2 ) ) );
         }
     }
