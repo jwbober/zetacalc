@@ -17,7 +17,7 @@ Complex initial_zeta_sum_mpfr(mpz_t M, mpfr_t t);
 void print_zeta_stats();
 
 Complex zeta_sum2(mpfr_t, Double delta, int N, Complex * S);
-Complex partial_zeta_sum(mpz_t start, mpz_t length, mpfr_t t, double delta, int N, Complex * S, int Kmin, int verbose=1);
+Complex partial_zeta_sum(mpz_t start, mpz_t length, mpfr_t t, double delta, int N, Complex * S, int Kmin, int number_of_threads = 2, int fraction = -1, int verbose=1);
 Complex zeta_sum_mpfr(mpfr_t);
 Complex zeta_sum_basic(mpfr_t);
 
@@ -40,3 +40,5 @@ Complex rs_rotation(mpfr_t t);
 Double rs_remainder(mpfr_t t);
 
 void compute_Z_from_rs_sum(mpfr_t t0, double delta, int N, Complex * S, Complex * Z);
+
+void compute_taylor_coefficients(mpfr_t t, Complex Z[30]);

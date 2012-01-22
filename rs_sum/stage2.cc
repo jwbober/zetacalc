@@ -234,9 +234,9 @@ Complex zeta_block_stage2_basic(mpz_t v, unsigned int *K, mpfr_t t, Double epsil
 }
 
 Complex zeta_block_stage2(mpz_t n, unsigned int N, mpfr_t t, Double delta, int M, Complex * S) {
-    for(int l = 0; l < M; l++) {
-        S[l] = 0.0;
-    }
+    //for(int l = 0; l < M; l++) {
+    //    S[l] = 0.0;
+    //}
     
     if(N == 0) {
         return 0;

@@ -11,8 +11,6 @@
 
 using namespace std;
 
-extern int default_number_of_threads;
-
 extern int stage3_start;
 
 string output_filename = "";
@@ -128,6 +126,8 @@ int main(int argc, char * argv[]) {
     int Z_flag = 0;
     int zeta_flag = 0;
     int verbose = 1;
+    int number_of_threads = 2;
+    int fraction = -1;
 
     mpfr_t t;
     mpfr_init2(t, 250);
@@ -142,7 +142,7 @@ int main(int argc, char * argv[]) {
     mpz_set_str(start, "1", 10);
 
     while (1) {
-        enum {KMIN = 2, T, START, LENGTH, DELTA, DOPRECOMPUTATION, USEPRECOMPUTATION, FILENAME, NUMTHREADS, N_OPTION, STAGE3_START, OUTPUT, REPEAT};
+        enum {KMIN = 2, T, START, LENGTH, DELTA, DOPRECOMPUTATION, USEPRECOMPUTATION, FILENAME, NUMTHREADS, N_OPTION, STAGE3_START, OUTPUT, REPEAT, FRACTION};
 
         static struct option options[] = 
             {
@@ -155,6 +155,7 @@ int main(int argc, char * argv[]) {
                 {"zeta", no_argument, &zeta_flag, 1},
                 {"filename", required_argument, 0, FILENAME},
                 {"number_of_threads", required_argument, 0, NUMTHREADS},
+                {"fraction", required_argument, 0, FRACTION},
                 {"N", required_argument, 0, N_OPTION},
                 {"stage3_start", required_argument, 0, STAGE3_START},
                 {"output", required_argument, 0, OUTPUT},
@@ -190,7 +191,10 @@ int main(int argc, char * argv[]) {
                 use_input_file = true;
                 break;
             case NUMTHREADS:
-                default_number_of_threads = atoi(optarg);
+                number_of_threads = atoi(optarg);
+                break;
+            case FRACTION:
+                fraction = atoi(optarg);
                 break;
             case N_OPTION:
                 N = atoi(optarg);
@@ -226,11 +230,13 @@ int main(int argc, char * argv[]) {
         }
 
 
-        partial_zeta_sum(start, length, t, delta, N, S, Kmin, verbose);
+        partial_zeta_sum(start, length, t, delta, N, S, Kmin, number_of_threads, fraction, verbose);
 
         if(Z_flag) {
             compute_Z_from_rs_sum(t, delta, N, S, S);
         }
+
+        cout << setprecision(17);
 
         for(int n = 0; n < N; n++) {
             cout << delta * n + k * delta * N << " " << S[n].real() << " " << S[n].imag() << endl;

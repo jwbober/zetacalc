@@ -20,8 +20,6 @@
 
 using namespace std;
 
-void compute_taylor_coefficients(mpfr_t t, Complex Z[30]);
-
 unsigned int stage_3_block_size(Double v, Double t) {
     // With this choice, the block size will hit N when
     // v = N/.9 * t^(1/3)
@@ -124,9 +122,9 @@ Complex zeta_block_stage3_basic(mpz_t v, unsigned int *K, mpfr_t t, Complex ZZ[3
 }
 
 Complex zeta_block_stage3(mpz_t n, unsigned int N, mpfr_t t, Complex Z[30], Double delta, int M, Complex * S, int Kmin) {
-    for(int l = 0; l < M; l++) {
-        S[l] = 0.0;
-    }
+    //for(int l = 0; l < M; l++) {
+    //    S[l] = 0.0;
+    //}
 
     if(N == 0) {
         return 0;

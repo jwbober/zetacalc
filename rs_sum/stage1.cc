@@ -102,10 +102,9 @@ Complex zeta_block_stage1(mpz_t v, unsigned int K, mpfr_t t, Double delta, int M
     // S should already be initialized, but we will explicitly set it to 0 here.
 
     
-    // Start by zeroing the return array.
-    for(int l = 0; l < M; l++) {
-        S[l] = 0;
-    }
+    //for(int l = 0; l < M; l++) {
+    //    S[l] = 0;
+    //}
     
     // Special case for dealing with the empty sum:
     if(K == 0) {
