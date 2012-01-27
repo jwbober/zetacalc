@@ -4,9 +4,11 @@ H_OPTIONS = -msse2 -mfpmath=sse -Wall -pthread  -O3
 LIBS = -lmpfr -lgmp -lgmpxx -pthread -O3
 INCLUDEDIR = -Iinclude
 
-ifeq (shell hostname,riemann)
-	LIBS = $(LIBS) -L `sage -root`/local/lib
-	INCLUDEDIR = $(INCLUDEDIR) -I`sage -root`/local/include
+HOSTNAME = $(shell hostname)
+
+ifeq ($(HOSTNAME),riemann)
+	LIBS += -L `sage -root`/local/lib
+	INCLUDEDIR += -I`sage -root`/local/include
 endif
 
 zetacalc:  build/theta_sums.o build/G_functions.o build/H_functions.o build/ICn.o build/H_and_J_integrals.o build/derivative_computations.o build/misc.o build/log.o include/main_sum.h include/log.h build/direct_evaluation.o build/exp_sum_euler_maclaurin.o build/theta_algorithm.o build/w_coefficient.o build/cache.o build/zetacalc.o build/main_sum.o build/stage1.o build/stage2.o build/stage3.o build/log.o build/ms_misc.o
