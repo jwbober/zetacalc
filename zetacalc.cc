@@ -226,6 +226,12 @@ int main(int argc, char * argv[]) {
             mpfr_div(z, t, z, GMP_RNDN);
             mpfr_sqrt(z, z, GMP_RNDN);
             mpfr_get_z(length, z, GMP_RNDD);
+            // that is going to be the endpoint, really, or the endpoint + 1,
+            // so we adjust the length if we are not starting at the endpoint.
+
+            mpz_sub(length, length, start);
+            mpz_add_ui(length, length, 1u);
+
             mpfr_clear(z);
         }
 
