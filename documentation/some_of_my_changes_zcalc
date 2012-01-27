@@ -1,0 +1,5 @@
+1. In getData.cc: the remainder term is not being added!
+2. In getData.cc: the cosh should be replaced by sinh.
+3. In getData.cc: the current implementation of Turing's method needs to be exmained more closely (including for efficiency).
+4. In zcalc.cc: there's a logic error in command-line options for Kmin, usepromcputation, preocmputation,... stuff.
+5. In zcalc.cc: when doing preocomputation from scratch, it does up to block size 501 only!!

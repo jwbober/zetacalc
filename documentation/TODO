@@ -13,12 +13,12 @@ to functions I_power, etc.
    (Similar condition may apply elsewhere.)
 
 (partially done) 6. Check exp(2 pi w K) factor in front of IC1, IC6, IC4, IC4c. These will probably
-often vanish, so we shouldn't compute them.
+often vanish, so we shouldn't compute them always.
 
 7. IC1c, IC7, IC9E, IC9H all should have tildes. This should be mentioned
 somewhere in the code.
 
-8. A lot of the comments in the code are wrong then j > 0. This should be fixed.
+8. A lot of the comments in the code are wrong when j > 0. This should be fixed.
 
 9. In initial_zeta_sum() two things:
     m should be chosen intelligently

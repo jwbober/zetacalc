@@ -1,0 +1,16 @@
+1. To link dynamic libraries before running zcalc, type:
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/ghiary/sage/local/lib
+
+2. To make a zcalc executable type:
+make -f makefile.riemann
+
+3. To find large value candidates, use find_large_value_candidates.sage.
+
+4. To make work_units for some t, type e.g.:
+sage create_zeta_work_units.sage 13036589919442157190082573984513. 1000 0.040000000000000001 /home/ghiary/zcalc/zcomp/work_units/ 1
+
+5. To compute zeta at points t in the work_units directory, type e.g.:
+python zeta_manager.py /home/ghiary/zcalc/zcomp/work_units/ &
+
+6. To run zcalc for a specific work_unit file, type e.g.:
+./zcalc --filename /home/ghiary/zcalc/zcomp/work_units/1_13036589919442157190082573984513./todo/work_unit0001 --number_of_threads 1 --Kmin 500 --use_precomputation /scratch/?

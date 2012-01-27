@@ -19,7 +19,7 @@
 #include <fstream>
 
 #include "theta_sums.h"
-#include "rs_sum.h"
+#include "main_sum.h"
 
 #include "log.h"
 

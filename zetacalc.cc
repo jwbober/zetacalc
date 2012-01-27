@@ -1,5 +1,5 @@
 #include "theta_sums.h"
-#include "rs_sum.h"
+#include "main_sum.h"
 
 #include <getopt.h>
 
