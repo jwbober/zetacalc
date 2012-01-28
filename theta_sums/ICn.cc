@@ -8,41 +8,118 @@
 #include <cmath>
 #include <assert.h>
 
-#include <sys/mman.h>
 #include <cstdlib>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+
+/*
+ * Function to compute a bunch of integrals. The names of the functions
+ * should correspond to the notation of Hiary's theta algorithm paper.
+ *
+ * In general, the notation ICn stands for I_{C_n}, namely, the integral
+ * along the contour C_n. These integrals are all of the form
+ *
+ * K^{-j}\int_{C_n} t^j exp(2 pi i a t + 2 pi i b t^2) dt
+ *
+ * for some contour C_n.
+ *
+ */
 
 using namespace std;
+
+// There are a lot of functions defined here. A list:
+
+Complex IC0_method1(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, Double epsilon);
+Complex IC0_method2(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, Double epsilon);
+Complex IC0_method3(int j, const theta_cache * cache, Double epsilon);
+Complex IC0_method4(int j, const theta_cache * cache, Double epsilon);
+Complex IC0(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, Double epsilon);
+Complex IC1(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon);
+Complex IC1c(int K, int j, Double a, Double b, Complex C8, const theta_cache * cache, Double epsilon);
+Complex IC4(int K, int j, Double a, Double b, Complex C11, const theta_cache * cache, Double epsilon);
+Complex IC4c(int K, int j, Double a, Double b, Complex C11, const theta_cache * cache, Double epsilon);
+Complex IC5(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon);
+Complex IC6(int K, int j, Double a, Double b, mpfr_t mp_a, const theta_cache * cache, Double epsilon);
+Complex IC7(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon);
+Complex IC7_method1(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon, int L);
+Complex IC7star(Double a, int j, Double epsilon);
+Complex IC9E(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon);
+
+// In a few cases, we have to choose a method of computation depending on the range of input,
+// which explains the various extra functions with method* in the name.
+
+// There are also a few related functions defined elsewhere. There exist an IC3, IC3c, and IC9H,
+// but they are basically just slight modifications of IC7, and so they are defined
+// as inline functions in theta_sums.h
+//
+// IC8 is a slightly different case. Its computation is related to
+// other computation done in w_coefficients.cc, which relies on some
+// precomputed tables, so it is included there.
+
+Complex IC0(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, Double epsilon) {
+    //
+    // This is simply the integral along the real line, from 0 to K,
+    // so it is
+    //
+    // K^{-j} \int_0^K t^j exp(2 pi i a t + 2 pi i b t^2) dt
+    //
+    // This is used in the case where we compute the exponential
+    // sum via Euler-Maclaurin summation.
+
+    // We split this up into a few different cases depending on the
+    // size of a and b. If b is small enough, we can make a suitable
+    // change of variables to compress the range of integration
+    // and efficiently compute the integral as a sum of G() functions,
+    // which is what method 1 does. In the other cases we change
+    // the contour of integration and compute the integral
+    // as a sum of other functions in this file.
+
+    Double a = cache->a;
+    Double b = cache->b;
+    int K = cache->K;
+
+    Double logepsilon = max(-fastlog(epsilon), 1);
+
+    if(-a/(2 * b) >= 0 && -a/(2 * b) <= K) {
+        if(b <= logepsilon * logepsilon * K_power(-2, cache)) {
+            return IC0_method1(j, mp_a, mp_b, cache, epsilon);
+        }
+        return IC0_method2(j, mp_a, mp_b, cache, epsilon);
+    }
+    else {
+        if(b <= K_power(-2, cache)) {
+            return IC0_method1(j, mp_a, mp_b, cache, epsilon);
+        }
+        if(-a/(2 * b) > K) {
+            return IC0_method3(j, cache, epsilon);
+        }
+        else {// -a/(2b) < 0
+            return IC0_method4(j, cache, epsilon);
+        }
+    }
+}
+
 Complex IC0_method1(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, Double epsilon) {
-    MPFR_DECL_INIT(mp_a2, mpfr_get_prec(mp_a));
-    MPFR_DECL_INIT(mp_b2, mpfr_get_prec(mp_a));
+    //
+    // Compute IC0 in the case of small b by doing a change
+    // of variables to compress the range of integration.
+    //
+
+    MPFR_DECL_INIT(mp_a2, mpfr_get_prec(mp_a)); // a few mpfr variables that we are using in this function
+    MPFR_DECL_INIT(mp_b2, mpfr_get_prec(mp_a)); // allocated on the stack for efficiency.
     MPFR_DECL_INIT(tmp, mpfr_get_prec(mp_a));
     MPFR_DECL_INIT(tmp2, mpfr_get_prec(mp_a));
 
-
-
     int K = cache->K;
 
-    //int N = to_int(ceil(std::max ((Double)2.0, sqrt(2.0) * abs(fastlog(epsilon)) ) ));
     int N = to_int(ceil(std::max ((Double)2.0, sqrt(2.0 * cache->b * (Double)K * (Double)K) ) ));
 
-    //cout << "K: " << K << endl;
-    //cout << "N: " << N << endl;
-    //cout << "a: " << a << endl;
-    //cout << "b: " << b << endl;
-    //cout << "j: " << j << endl;
-    //cout << "epsilon: " << epsilon << endl;
+    // We now make a change of variables t <--- t * N/K so
+    // that the range of integration runs from 0 to N
 
-
-    mpfr_mul_si(mp_a2, mp_a, K, GMP_RNDN);      //mp_a2 = aK
-    mpfr_div_si(mp_a2, mp_a2, N, GMP_RNDN);     //now mp_a2 = aK/N
+    mpfr_mul_si(mp_a2, mp_a, K, GMP_RNDN);      // mp_a2 = aK
+    mpfr_div_si(mp_a2, mp_a2, N, GMP_RNDN);     // now mp_a2 = aK/N
 
     Double a2 = mpfr_get_d(mp_a2, GMP_RNDN);    // a2 = aK/N
     
-    //cout << "a2: " << a2 << endl;
-
     mpfr_floor(tmp, mp_a2);                     // tmp = floor(aK/N) 
     mpfr_sub(mp_a2, mp_a2, tmp, GMP_RNDN);      // mp_a2 = {aK/N}
 
@@ -51,8 +128,6 @@ Complex IC0_method1(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, 
     mpfr_div_si(mp_b2, mp_b2, N * N, GMP_RNDN); // mp_b2 = bK^2/N^2
 
     Double b2 = mpfr_get_d(mp_b2, GMP_RNDN);    // b2 = bK^2/N^2
-
-    //cout << "b2: " << b2 << endl;
 
     mpfr_floor(tmp, mp_b2);                     // tmp = floor(bK^2/N^2)
     mpfr_sub(mp_b2, mp_b2, tmp, GMP_RNDN);      // mp_b2 = {bK^2/N^2}
@@ -85,7 +160,7 @@ Complex IC0_method1(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, 
     return S;
 }
 
-inline Complex IC0_method2(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, Double epsilon) {
+Complex IC0_method2(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, Double epsilon) {
     Double a = cache->a;
     Double b = cache->b;
     int K = cache->K;
@@ -98,7 +173,7 @@ inline Complex IC0_method2(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * 
     return A - B - C - D;
 }
 
-inline Complex IC0_method3(int j, const theta_cache * cache, Double epsilon) {
+Complex IC0_method3(int j, const theta_cache * cache, Double epsilon) {
     int K = cache->K;
     Double a = cache->a;
     Double b = cache->b;
@@ -118,36 +193,6 @@ Complex IC0_method4(int j, const theta_cache * cache, Double epsilon) {
     Complex B = IC4c(K, j, a, b, I*cache->ExpABK, cache, epsilon/2);
     return A - B;
 }
-
-Complex IC0(int j, mpfr_t mp_a, mpfr_t mp_b, const theta_cache * cache, Double epsilon) {
-    Double a = cache->a;
-    Double b = cache->b;
-    int K = cache->K;
-
-    Double logepsilon = max(-fastlog(epsilon), 1);
-    //if(b <= logepsilon * logepsilon * K_power(-2, cache)) {
-    //    return IC0_method1(j, mp_a, mp_b, cache, epsilon);
-    //}
-    if(-a/(2 * b) >= 0 && -a/(2 * b) <= K) {
-        if(b <= logepsilon * logepsilon * K_power(-2, cache)) {
-            return IC0_method1(j, mp_a, mp_b, cache, epsilon);
-        }
-        return IC0_method2(j, mp_a, mp_b, cache, epsilon);
-    }
-    else {
-        //if(b <= logepsilon * logepsilon * K_power(-2, cache)) {
-        if(b <= K_power(-2, cache)) {
-            return IC0_method1(j, mp_a, mp_b, cache, epsilon);
-        }
-        if(-a/(2 * b) > K) {
-            return IC0_method3(j, cache, epsilon);
-        }
-        else {// -a/(2b) < 0
-            return IC0_method4(j, cache, epsilon);
-        }
-    }
-}
-
 Complex IC1(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon) {
     //
     // C11 should be passed as I * exp(2 pi I a K + 2 PI i b K^2)
@@ -517,35 +562,6 @@ Complex IC7star(Double a, int j, Double epsilon) {
 
 }
 
-/*
-Complex IC8(int K, int j, mpfr_t mp_a, mpfr_t mp_b, theta_cache * cache) {
-    Double a = mpfr_get_d(mp_a, GMP_RNDN);
-    Double b = mpfr_get_d(mp_b, GMP_RNDN);
-
-    Complex z = ExpAB(mp_a, mp_b);
-
-    z = z * pow(2.0, -3.0 * j/2.0 - 1) * pow(b * PI, -(j + 1)/2.0) *
-                K_power(-j, cache) * factorial(j) * sqrt(2 * PI) * exp(PI * I / 4.0 + j * 3.0 * PI * I / 4.0);
-
-    Complex S = 0;
-    for(int l = 0; l <= j; l++) {
-        if( (j - l) % 2 == 0 ) {
-            Double sign = 0;
-            if( ((j + l)/2) % 2 == 0 )
-                sign = 1;
-            else
-                sign = -1;
-
-            S = S + sign * (  pow(a, l) * exp(-3.0 * PI * I * (Double)l/4.0) * pow(2.0 * PI / b, l/2.0)/(factorial(l) * factorial( (j - l)/2 ) ) );
-        }
-    }
-
-    S = S * z;
-
-    return S;
-}
-*/
-
 Complex IC9E(int K, int j, Double a, Double b, const theta_cache * cache, Double epsilon) {
     //
     // Compute the integral int_0^\infty exp(-2 pi(a - ia + 2bK + 2ibK)t - 4 pi b t^2) dt
@@ -569,7 +585,3 @@ Complex IC9E(int K, int j, Double a, Double b, const theta_cache * cache, Double
     S = S * K_power(-j, cache);
     return S;
 }
-
-
-// IC9H is an inline function in the header file
-

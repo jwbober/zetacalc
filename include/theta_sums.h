@@ -248,41 +248,34 @@ template<typename T> T H_method4(int j, T alpha, Double epsilon);               
                                                                                 //----------------------------------------------
 
 
-                                                                                //----------------------------------------------
-                                                                                //  Functions to compute the integral         
-                                                                                //    / 1
-                                                                                //    |
-//Complex G(Complex alpha, Complex b, int n, int j, Double epsilon, int method = 0);  //
-Complex G(Complex alpha, Double b, int n, int j, Double epsilon, int method = 0);  //
-Complex G_I(Complex alpha, Double b, int n, int j, Double epsilon, int method = 0);  //
-Complex G_I_over_twopi(Complex alpha, int n, int j, Double epsilon, int method = 0);  //
-//Complex G_method1(Complex alpha, Complex b, int n, int j, Double epsilon);  //
-Complex G_method1_R(Complex alpha, Double b, int n, int j, Double epsilon);  //
-Complex G_method1_I(Complex alpha, Double b, int n, int j, Double epsilon);  //
-//Complex G_via_Euler_MacLaurin(Complex alpha, Complex b, int n, int j, Double epsilon); //    / 0
-Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double epsilon); //    / 0
-Complex G_via_Euler_MacLaurin_I(Complex alpha, Double b, int n, int j, Double epsilon); //    / 0
-                                                                                //  For complex parameters alpha and b.
-                                                                                //  (Defined in G_functions.cc)
-                                                                                //----------------------------------------------
+                                                                                        //----------------------------------------------
+                                                                                        //  Functions to compute the integral         
+                                                                                        //    
+                                                                                        //      / 
+Complex G(Complex alpha, Double b, int n, int j, Double epsilon, int method = 0);       //      |        j                                   2
+Complex G_I(Complex alpha, Double b, int n, int j, Double epsilon, int method = 0);     //      | (t + n)  exp(2 pi i alpha t + 2 pi i beta t ) dt
+Complex G_I_over_twopi(Complex alpha, int n, int j, Double epsilon, int method = 0);    //      |
+Complex G_method1_R(Complex alpha, Double b, int n, int j, Double epsilon);             //      /
+Complex G_method1_I(Complex alpha, Double b, int n, int j, Double epsilon);             //
+Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double epsilon); //    
+Complex G_via_Euler_MacLaurin_I(Complex alpha, Double b, int n, int j, Double epsilon); //    
+                                                                                        //  For complex parameters alpha and b.
+                                                                                        //  (Defined in G_functions.cc)
+                                                                                        //----------------------------------------------
 
-Complex H_Integral_0(int j, Double a, int M, Double epsilon);                   //----------------------------------------------
+Complex H_Integral_0(int j, Double a, int M, Double epsilon);                                        //--------------------
 Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon);  //
-Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon);  //
-Complex H_Integral_2(int j, Double a1, Double a2, Double epsilon);              //
-Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double epsilon);// Various integrals.
+Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon);  // Various integrals
+Complex H_Integral_2(int j, Double a1, Double a2, Double epsilon);                                   //
+Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double epsilon);           //--------------------
 
-Complex JBulk2(Double a, Double b, int j, int M, int K, theta_cache * cache, Complex * Z, Double * epsilon);                
-
-inline Complex JBulk(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon) {         //                         
+inline Complex JBulk(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon) {
     Double x = epsilon/2;
     Complex A = J_Integral_0(a, b, j, M, K, cache, x);
     Complex B = J_Integral_1(a, b, j, M, K, cache, x);
     return A + B;
-    //return J_Integral_0(a, b, j, M, K, cache, epsilon/2)                                          // See H_and_J_integrals.cc
-    //                                    + J_Integral_1(a, b, j, M, K, cache, epsilon/2);       //
-}                                                                                       //
-                                                                                        //
+}                                                                                       
+                                                                                        
 inline Complex JBoundary(Double a1, Double a2, Double b, int j, int K, theta_cache * cache, Double epsilon){ 
     if(j == 0) {
         Double x = epsilon * .33333333333333333333;

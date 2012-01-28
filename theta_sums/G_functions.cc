@@ -36,6 +36,7 @@
 #include "log.h"
 
 #include <iostream>
+#include <iomanip>
 #include <cmath>
 
 using namespace std;
@@ -771,7 +772,6 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
 
     int N = to_int(ceil(  ( abs(alpha) + abs(2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
     N = 2 * max(N, 1);
-
 
     /*
     Double two_n_to_the_j = 1;

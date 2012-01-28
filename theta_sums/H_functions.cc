@@ -189,7 +189,7 @@ template<typename T> Complex H(int j, T alpha, Double epsilon) {
     // We have three different methods to compute this depending
     // on the range of input.
     //
-    
+
     if((j + 1) * epsilon > 1.0) {
         return 0.0;
     }
