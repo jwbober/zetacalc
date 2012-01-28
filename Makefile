@@ -24,6 +24,15 @@ test:  build/test.o build/theta_sums.o build/G_functions.o build/H_functions.o b
 build/test.o: test.cc include/theta_sums.h include/log.h
 	$(CXX) -c test.cc $(OPTIONS) $(INCLUDEDIR) -o build/test.o
 
+tests: tests/mainsum_tests
+
+
+tests/mainsum_tests:  build/mainsum_tests.o build/theta_sums.o build/G_functions.o build/H_functions.o build/ICn.o build/H_and_J_integrals.o build/derivative_computations.o build/misc.o build/log.o include/main_sum.h include/log.h build/direct_evaluation.o build/exp_sum_euler_maclaurin.o build/theta_algorithm.o build/w_coefficient.o build/cache.o build/main_sum.o build/stage1.o build/stage2.o build/stage3.o build/log.o build/ms_misc.o
+	$(CXX) -O3 -o tests/mainsum_tests build/theta_sums.o build/direct_evaluation.o build/exp_sum_euler_maclaurin.o build/theta_algorithm.o build/G_functions.o build/H_functions.o build/ICn.o build/H_and_J_integrals.o build/derivative_computations.o build/misc.o build/ms_misc.o build/stage1.o build/stage2.o build/stage3.o build/main_sum.o build/log.o build/w_coefficient.o build/cache.o build/mainsum_tests.o $(LIBS)
+
+build/mainsum_tests.o: tests/mainsum_tests.cc include/main_sum.h include/theta_sums.h
+	$(CXX) -c tests/mainsum_tests.cc $(OPTIONS) $(INCLUDEDIR) -o build/mainsum_tests.o
+
 build/blfi.o: blfi.cc include/main_sum.h
 	$(CXX) -c blfi.cc $(OPTIONS) $(INCLUDEDIR) -o build/blfi.o
 

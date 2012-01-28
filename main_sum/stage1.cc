@@ -110,6 +110,7 @@ Complex zeta_block_stage1(mpz_t v, unsigned int K, mpfr_t t, Double delta, int M
     if(K == 0) {
         return 0.0;
     }
+
     
     mpz_t n;
     mpz_init(n);

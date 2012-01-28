@@ -269,14 +269,14 @@ template<int stage> struct sum_data_t {
         mpz_set(start, next);
         mpz_add_ui(next, next, block_size);
 
-
         pthread_mutex_unlock(next_mutex);
         return block_size;
     }
 
     void report(complex<double> * S2) {
         pthread_mutex_lock(report_mutex);
-        
+            
+
         for(int m = 0; m < M; m++) {
             S[m] += S2[m];
         }
