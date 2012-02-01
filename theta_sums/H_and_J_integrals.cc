@@ -63,6 +63,14 @@ Complex H_Integral_0(int j, Double a, int M, Double epsilon) {
 
 }
 
+void J_Integral_0(complex<double> * J, double a, double b, int j, int M, int K, theta_cache * cache, double * epsilon) {
+    for(int l = 0; l <= j; l++) {
+        if(!isinf(epsilon[l])) {
+            J[l] += J_Integral_0(a, b, l, M, K, cache, epsilon[l]);
+        }
+    }
+}
+
 Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon) {
     //
     // Compute the integral int_0^1 t^j exp(-2 pi a t - 2 pi i b t^2) (1 - exp(-2 pi M t))/(exp(2 pi t) - 1) dt
@@ -275,4 +283,20 @@ Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double
     return S;
 
 }
+
+void JBulk(complex<double> * J, Double a, Double b, int j, int M, int K, theta_cache * cache, double * epsilon) {
+    for(int l = 0; l <= j; l++) {
+        J[l] = 0.0;
+    }
+    J_Integral_0(J, a, b, j, M, K, cache, epsilon);
+    for(int l = 0; l <= j; l++) {
+        double x = epsilon[l]/2;
+        complex<double> B = 0.0;
+        if(!isinf(x)) {
+            B = J_Integral_1(a, b, l, M, K, cache, x);
+        }
+        J[l] += B;
+    }
+}                                                                                       
+
 

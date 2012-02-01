@@ -18,32 +18,13 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     // using Hiary's "theta sum algorithm".
     //
     
-    theta_cache * cache = build_theta_cache(mp_a, mp_b, j, K);
-
     // The sum is split into S1 + S2 + "boundary terms", which we compute shortly.
     //
     // First we compute some constants for later use, trying to keep notation consistant
-    // which Hiary's paper.
+    // which Hiary's paper. This "cache" variable contains a bunch of commonly used
+    // quantities, like powers of a, b, and K, which we pass to pretty much every function.
 
-    //Double a = mpfr_get_d(mp_a, GMP_RNDN);
-    //Double b = mpfr_get_d(mp_b, GMP_RNDN);
-
-    //Complex C_AK_inverse = ExpA(mp_a, K);
-    //Complex C_BK_inverse = ExpB(mp_b, K);
-    //Complex C_AK = 1.0/C_AK_inverse;
-    //Complex C_BK = 1.0/C_BK_inverse;
-    //
-    //Complex C_ABK = C_AK * C_BK;
-    //
-    //Complex C1 = I * C_ABK;
-    //Complex C5 = -C1;
-    //Complex C7 = -C5;
-    //Complex C8 = -I * C_BK_inverse;
-    //Complex CF;
-    //if(53 + 2 + log2(epsilon * b) < 0)
-    //    CF = ExpAB(mp_a, mp_b);
-    //else
-    //    CF = exp(-I * PI * a * a * .5/b);
+    theta_cache * cache = build_theta_cache(mp_a, mp_b, j, K);
 
     Double a = cache->a;
     Double b = cache->b;
@@ -57,7 +38,6 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     Complex C5 = -C1;
     Complex C8 = -I * C_BK_inverse;
 
-    //int q = to_int(a + 2 * b * K); // note that a and b are both positive, so this will do the right thing.
     int q = cache->q;
     Double w = a + 2 * b * K - (Double)q;
     
@@ -90,6 +70,9 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 
     Double Z_epsilon[max_j + 1];
     Double V_epsilon[max_j + 1];
+
+    complex<double> * X = new complex<double>[j + 1];
+
     {
         Double x = 1.0/(12 * (j + 1.0));
         for(int l = 0; l <= j; l++) {
@@ -100,10 +83,18 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     Complex JBulk_term1 = 0;
     for(int l = 0; l <= j; l++) {
         Complex x = 0;
-        if(Z[l] != 0.0) 
-            x = JBulk(w, b, l, p1, K, cache, Z_epsilon[l]) + IC7(K, l, w, b, cache, Z_epsilon[l]);        //----------
-        JBulk_term1 += Z[l] * x;
+        if(Z[l] != 0.0)  {
+            //x = JBulk(w, b, l, p1, K, cache, Z_epsilon[l]) + IC7(K, l, w, b, cache, Z_epsilon[l]);
+            x = IC7(K, l, w, b, cache, Z_epsilon[l]);
+            JBulk_term1 += Z[l] * x;
+        }
     }
+
+    JBulk(X, w, b, j, p1, K, cache, Z_epsilon);
+    for(int l = 0; l <= j; l++) {
+        JBulk_term1 += Z[l] * X[l];
+    }
+
     JBulk_term1 *= -C1;
 
     S1 = S1 + JBulk_term1;
@@ -158,10 +149,13 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 
     Complex JBulk_term2 = 0;
 
+    JBulk(X, w1, b, j, p1, K, cache, V_epsilon);
+
     for(int l = 0; l <= j; l++) {
         Complex x = 0;
         if(v[l] != 0.0)
-            x = (Double)minus_one_power(l) * I_power(l+1) * v[l] * (JBulk(w1, b, l, p1, K, cache, V_epsilon[l]) + IC7(K, l, w1, b, cache, V_epsilon[l] )) ;  //-----------
+            //x = (Double)minus_one_power(l) * I_power(l+1) * v[l] * (JBulk(w1, b, l, p1, K, cache, V_epsilon[l]) + IC7(K, l, w1, b, cache, V_epsilon[l] )); 
+            x = (Double)minus_one_power(l) * I_power(l+1) * v[l] * (X[l] + IC7(K, l, w1, b, cache, V_epsilon[l] ));
 
         JBulk_term2 += x;
 
@@ -252,6 +246,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     Complex S = S1 + S2 + boundary_terms;
 
     free_theta_cache(cache);
+    delete [] X;
 
     return S;
 
