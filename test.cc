@@ -816,9 +816,6 @@ int main() {
 
     cout << setprecision(17);
 
-    test_theta_algorithm_EM_case(20, 10000, pow(2, -30));
-    test_theta_algorithm_EM_case(100, 1000, pow(2, -50));
-    test_theta_algorithm_EM_case(100, 1000, pow(2, -30));
 
     test_theta_algorithm(10, 5000);
     test_theta_algorithm(10, 3000);
@@ -836,6 +833,10 @@ int main() {
     test_theta_algorithm(2, 100000, pow(2, -30));
     test_theta_algorithm(2, 100000, pow(2, -50));
  
+    test_theta_algorithm_EM_case(20, 10000, pow(2, -30));
+    test_theta_algorithm_EM_case(100, 1000, pow(2, -50));
+    test_theta_algorithm_EM_case(100, 1000, pow(2, -30));
+
     test_theta_algorithm_EM_case(10, 10000, pow(2, -30));
     test_theta_algorithm_EM_case(10, 10000, pow(2, -50));
     
