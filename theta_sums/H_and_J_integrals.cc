@@ -60,7 +60,7 @@ Complex H_Integral_0(int j, Double a, int M, Double epsilon) {
 
 }
 
-void J_Integral_0(complex<double> * J, double a, double b, int j, int M, int K, theta_cache * cache, double * epsilon) {
+void J_Integral_0(complex<double> * J, double a, double b, int j, int M, theta_cache * cache, double * epsilon) {
     //
     // Compute and add to J[l] the integral
     //
@@ -156,12 +156,21 @@ void J_Integral_0(complex<double> * J, double a, double b, int j, int M, int K, 
     //
 
     double H_integrals[j + 2 * (Z.size() - 1) + 1];
-    double smaller_epsilon = small_epsilon/(largest_Z + Z.size());
+    double new_epsilon[j + 2 * (Z.size() - 1) + 1];
+    for(unsigned int n = 0; n < j + 2 * (Z.size() - 1) + 1; n++) {
+        new_epsilon[n] = 1000;
+    }
+    for(int l = 0; l <= j; l++) {
+        for(int r = 0; r <= R; r++) {
+            new_epsilon[l + 2 * r] = min(epsilon[l]/Z[r], new_epsilon[l + 2*r]);
+        }
+    }
+    //double smaller_epsilon = small_epsilon/(largest_Z + Z.size());
     for(int l = 0; l <= j + 2 * R; l++) {
-        H_integrals[l] = real(H_Integral_0(l, a, M, smaller_epsilon)); // REMARK: H_Integral_0
-                                                                       // is always real, so
-                                                                       // it is stupid that it
-                                                                       // does complex arithmetic.
+        H_integrals[l] = real(H_Integral_0(l, a, M, new_epsilon[l]/Z.size())); // REMARK: H_Integral_0
+                                                                               // is always real, so
+                                                                               // it is stupid that it
+                                                                               // does complex arithmetic.
     }
 
     // -- Now we finally compute the integrals that we are looking for. We have
@@ -169,8 +178,10 @@ void J_Integral_0(complex<double> * J, double a, double b, int j, int M, int K, 
     //      J[l] = sum_{r} (-i)^r Z[r] H_integrals[l + 2*r]
     //
 
-    for(int r = 0; r <= R; r += 4) {
-        for(int l = 0; l <= j; l++) {
+    for(int l = 0; l <= j; l++) {
+        for(int r = 0; r <= R; r += 4) {
+            if(Z[r] < epsilon[l])
+                break;
             real(J[l]) += Z[r]     * H_integrals[l + 2*r];          // (-i)^0 ==  1
             imag(J[l]) -= Z[r + 1] * H_integrals[l + 2*(r + 1)];    // (-i)^1 == -i
             real(J[l]) -= Z[r + 2] * H_integrals[l + 2*(r + 2)];    // (-i)^2 == -1
@@ -413,7 +424,7 @@ void JBulk(complex<double> * J, Double a, Double b,
         new_epsilon[l] = epsilon[l] * Kpower;
     }
 
-    J_Integral_0(J, a, b, j, M, K, cache, new_epsilon);
+    J_Integral_0(J, a, b, j, M, cache, new_epsilon);
     Kpower = 1.0;
     double Kinv = 1.0/K;
     for(int l = 1; l <= j; l++) {

@@ -1,7 +1,7 @@
-OPTIONS = -msse2 -mfpmath=sse -Wall -ffast-math -pthread -Winline  -O3
-H_OPTIONS = -msse2 -mfpmath=sse -Wall -pthread  -O3
+OPTIONS = -msse2 -mfpmath=sse -Wall -ffast-math -pthread -Winline  -O3 -fno-omit-frame-pointer -g
+H_OPTIONS = -msse2 -mfpmath=sse -Wall -pthread  -O3 -fno-omit-frame-pointer -g
 
-LIBS = -lmpfr -lgmp -lgmpxx -pthread -O3
+LIBS = -lmpfr -lgmp -lgmpxx -pthread -O3 -g
 INCLUDEDIR = -Iinclude
 
 HOSTNAME = $(shell hostname)
