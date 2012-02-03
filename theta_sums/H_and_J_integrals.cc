@@ -12,8 +12,6 @@
 
 using namespace std;
 
-extern "C" double igam ( double, double );
-
 Complex H_Integral_0(int j, Double a, int M, Double epsilon) {
     //
     // Compute the integral int_0^1 t^j exp(-2 pi a t) (1 - exp(-2 pi M t))/(exp(2 pi t) - 1)dt,
