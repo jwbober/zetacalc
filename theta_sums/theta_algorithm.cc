@@ -208,11 +208,12 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 
     Complex IC9H_term1 = 0;
 
-
+    JBoundary(X, 2 * b * K - w1, 1 - w, b, j, K, cache, Z_epsilon);
     for(int l = 0; l <= j; l++) {
         Complex x = 0.0;
         if(Z[l] != 0.0)
-            x = Z[l] * ((Double)minus_one_power(l) * IC9H(K, l, 1 - w, b, cache, Z_epsilon[l] ) - JBoundary(2 * b * K - w1, 1 - w, b, l, K, cache, Z_epsilon[l] )); 
+            //x = Z[l] * ((Double)minus_one_power(l) * IC9H(K, l, 1 - w, b, cache, Z_epsilon[l] ) - JBoundary(2 * b * K - w1, 1 - w, b, l, K, cache, Z_epsilon[l] )); 
+            x = Z[l] * ((Double)minus_one_power(l) * IC9H(K, l, 1 - w, b, cache, Z_epsilon[l] ) - X[l] ); 
 
         IC9H_term1 += x;
     }
@@ -221,11 +222,12 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 
     Complex JBoundary_term2 = 0;
 
-
+    JBoundary(X, 2 * b * K - w, 1 - w1, b, j, K, cache, V_epsilon);
     for(int l = 0; l <= j; l++) {
         Complex x = 0.0;
         if(v[l] != 0.0)
-            x = I_power(l + 1) * v[l] * ((Double)minus_one_power(l + 1) * JBoundary(2 * b * K - w, 1 - w1, b, l, K, cache, V_epsilon[l] ) + IC9H(K, l, 1 - w1, b, cache, V_epsilon[l] )) ;     //-----------
+            //x = I_power(l + 1) * v[l] * ((Double)minus_one_power(l + 1) * JBoundary(2 * b * K - w, 1 - w1, b, l, K, cache, V_epsilon[l] ) + IC9H(K, l, 1 - w1, b, cache, V_epsilon[l] )) ;     //-----------
+            x = I_power(l + 1) * v[l] * ((Double)minus_one_power(l + 1) * X[l] + IC9H(K, l, 1 - w1, b, cache, V_epsilon[l] )) ;     //-----------
 
         JBoundary_term2 += x;
     }

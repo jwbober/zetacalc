@@ -277,6 +277,7 @@ inline Complex JBulk(Double a, Double b, int j, int M, int K, theta_cache * cach
 }                                                                                       
 
 void JBulk(complex<double> * J, double a, double b, int j, int M, int K, theta_cache * cache, double * epsilon);
+void JBoundary(complex<double> * J, double a1, double a2, double b, int j, int K, theta_cache * cache, double * epsilon);
 
 inline Complex JBoundary(Double a1, Double a2, Double b, int j, int K, theta_cache * cache, Double epsilon){ 
     if(j == 0) {
