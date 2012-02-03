@@ -194,6 +194,12 @@ template<typename T> Complex H(int j, T alpha, Double epsilon) {
         return 0.0;
     }
 
+    //if(imag(alpha) == 0) {
+    //    if(j == 0) {
+    //       return -expm1(-2 * M_PI * real(alpha))/(2 * PI * alpha);
+    //    }
+    //}
+
     const Double alpha_0 = 1/(2*PI);
 
     Double norm_alpha = norm(alpha);

@@ -12,6 +12,8 @@
 
 using namespace std;
 
+extern "C" double igam ( double, double );
+
 Complex H_Integral_0(int j, Double a, int M, Double epsilon) {
     //
     // Compute the integral int_0^1 t^j exp(-2 pi a t) (1 - exp(-2 pi M t))/(exp(2 pi t) - 1)dt,
@@ -43,9 +45,33 @@ Complex H_Integral_0(int j, Double a, int M, Double epsilon) {
         C = min(M, C);
     }
 
-    for(int m = 1; m <= C; m++) {
-        Complex z = H(j, a + m, epsilon/(C + 1));
-        S = S + z;
+    if(j == 0) {
+
+        // compute H(j, a + m) as )1 - exp(-2pi(a + m)))/(2pi(a + m))
+        // 
+        // since a + m > 1, this will work ok, and when we increase m we can
+        // compute the exponential just by multiplying
+
+        double exp_m2pi_alpha = exp(-2 * M_PI * (a + 1));
+        double exp_m2pi = exp(-2 * M_PI);
+        double two_pi_alpha = 2 * M_PI * (a + 1);
+
+        S += (1 - exp_m2pi_alpha)/two_pi_alpha;
+
+        for(int m = 2; m <= C; m++) {
+            exp_m2pi_alpha *= exp_m2pi;
+            two_pi_alpha += 2 * M_PI;
+            S += (1 - exp_m2pi_alpha)/two_pi_alpha;
+        }
+    }
+    else {
+        if(epsilon*j > 2 * C)
+            return 0.0;
+
+        for(int m = 1; m <= C; m++) {
+            Complex z = H(j, a + m, epsilon/(C + 1));
+            S = S + z;
+        }
     }
 
     if(C == M) {
@@ -59,6 +85,70 @@ Complex H_Integral_0(int j, Double a, int M, Double epsilon) {
     return S;
 
 }
+
+Complex H_Integral_2(int j, Double a1, Double a2, Double epsilon) {
+
+    Complex S = (Complex)0;
+
+    int C = max(to_int(ceil(j/(2*PI*E))), to_int(ceil(-fastlog(epsilon)/(2 * PI) ) ));
+
+    if(epsilon*j > 2 * C) {
+        return 0.0;
+    }
+    
+    if(j == 0) {
+        // compute H(j, a + m) as )1 - exp(-2pi(a + m)))/(2pi(a + m))
+        // 
+        // since a + m > 1, this will work ok, and when we increase m we can
+        // compute the exponential just by multiplying
+
+        double exp_m2pi_alpha = exp(-2 * M_PI * (a1 + 1));
+        double exp_m2pi = exp(-2 * M_PI);
+        double two_pi_alpha = 2 * M_PI * (a1 + 1);
+
+        S += (1 - exp_m2pi_alpha)/two_pi_alpha;
+
+        for(int m = 2; m <= C; m++) {
+            exp_m2pi_alpha *= exp_m2pi;
+            two_pi_alpha += 2 * M_PI;
+            S += (1 - exp_m2pi_alpha)/two_pi_alpha;
+        }
+
+        exp_m2pi_alpha = exp(-2 * M_PI * (a2 + 1));
+        two_pi_alpha = 2 * M_PI * (a2 + 1);
+
+        S -= (1 - exp_m2pi_alpha)/two_pi_alpha;
+
+        for(int m = 2; m <= C; m++) {
+            exp_m2pi_alpha *= exp_m2pi;
+            two_pi_alpha += 2 * M_PI;
+            S -= (1 - exp_m2pi_alpha)/two_pi_alpha;
+        }
+
+        S = S + (.5/M_PI) * infinite_sum_of_differenced_inverse_powers(a1, a2, C + 1, 1, epsilon);
+
+    }
+    else if(j % 2 == 0) {
+        for(int m = 1; m <= C; m++) {
+            Complex z = H(j, m + a1, epsilon/(C + 1)) - H(j, m + a2, epsilon/(C + 1));
+            S = S + z;
+        }
+
+        S = S + factorial(j)/two_pi_power(j + 1) * infinite_sum_of_differenced_inverse_powers(a1, a2, C + 1, j + 1, epsilon);
+    }
+    else {
+        for(int m = 1; m <= C; m++) {
+            Complex z = H(j, m + a1, epsilon/(C + 1)) + H(j, m + a2, epsilon/(C + 1));
+            S = S + z;
+        }
+        S = S + factorial(j)/two_pi_power(j + 1) * (sum_of_offset_inverse_powers(a1, C + 1, -1, j + 1, epsilon) + sum_of_offset_inverse_powers(a2, C + 1, -1, j + 1, epsilon));
+    }
+
+    return S;
+
+}
+
+
 
 
 void J_Integral_0(complex<double> * J, double a, double b, int j, int M, theta_cache * cache, double * epsilon) {
@@ -460,33 +550,6 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
     return S;
 
 }
-
-Complex H_Integral_2(int j, Double a1, Double a2, Double epsilon) {
-
-    Complex S = (Complex)0;
-
-    int C = max(to_int(ceil(j/(2*PI*E))), to_int(ceil(-fastlog(epsilon)/(2 * PI) ) ));
-
-    if(j % 2 == 0) {
-        for(int m = 1; m <= C; m++) {
-            Complex z = H(j, m + a1, epsilon/(C + 1)) - H(j, m + a2, epsilon/(C + 1));
-            S = S + z;
-        }
-
-        S = S + factorial(j)/two_pi_power(j + 1) * infinite_sum_of_differenced_inverse_powers(a1, a2, C + 1, j + 1, epsilon);
-    }
-    else {
-        for(int m = 1; m <= C; m++) {
-            Complex z = H(j, m + a1, epsilon/(C + 1)) + H(j, m + a2, epsilon/(C + 1));
-            S = S + z;
-        }
-        S = S + factorial(j)/two_pi_power(j + 1) * (sum_of_offset_inverse_powers(a1, C + 1, -1, j + 1, epsilon) + sum_of_offset_inverse_powers(a2, C + 1, -1, j + 1, epsilon));
-    }
-
-    return S;
-
-}
-
 Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double epsilon) {
     //
     // Compute the integral int_0^1 exp(-2 pi i b t^2) (exp(-2 pi a1 t) - exp(-2 pi a2 t))(exp(2 pi t) - 1) dt,
