@@ -1,9 +1,72 @@
-Possible sources of nan:
-    -out of range errors in precomputed tables
-    -out of range errors in data that is precomputed for J_Integrals and IC7 (shouldn't even happen if the data is created correctly)
+Possible sources of nan (will be fixed of course):
+----------------------------------------------------
+
+    * out of range errors in precomputed tables
+
+    * out of range errors in data that is precomputed for J_Integrals and IC7 (shouldn't even happen if the data is created correctly)
     
-    -When K is large or epsilon is very small, compute_exponential_sums_via_euler_maclaurin() might end with nans or infs from out
+    * When K is large or epsilon is very small, compute_exponential_sums_via_euler_maclaurin() might end with nans or infs from out
         of range errors on the correction terms.
-    -H_method1() can end up returning nan if j is very large from out of range errors. When this is compiled
+    * H_method1() can end up returning nan if j is very large from out of range errors. When this is compiled
         with -ffast-math, these errors are much more likely, because -ffast-math doesn't always work correctly with
         the full exponent range for complex numbers. For this reason, we don't compile this file with -ffast-math.
+
+
+Hard-coded parameters that (maybe) shouldn't:
+----------------------------------------------------
+
+    * j = 18 in stage3.cc
+
+    * epsilon = exp(-20) in stage3.cc
+
+    * number 1200 in stage_3_start in main_sum.cc
+
+    * dimension of array Z[30] in stage3.cc (but there's little need to change it since
+      it's unlikely we'll used an array of a larger size ever)
+
+    * dimension of array Z[30] in main_sum.cc
+
+    * dimension of array Z[30] in main_sum.h
+
+    * Only the first 23 coefficients of array Z[30] are computed in stage3.cc
+
+
+Possible cosmetic changes:
+----------------------------------------------------
+
+    * compute_exponential_sums function takes in the end-point of the block,
+      rather than its length, which is a little bit at odds with all other
+      functions.
+
+
+Files structure:
+----------------------------------------------------
+
+    * It's reasonable to remove all the functions above "the mark" from main_sum.h 
+      since we're only concerned with the _main sum_ here, and not yet with computing 
+      zeta. These functions (or whichever ones survive in a final release) should be
+      in a seperate "compute_zeta" files & directory.
+
+
+Redundancies:
+----------------------------------------------------
+
+    * none, of course
+
+
+General remarks:
+----------------------------------------------------
+
+    * The algorithm computes the sum:
+
+            sum_{n = 1}^N exp(i*t*log(n)) / sqrt(n) = sum_{n = 1}^N n^{i*t - 0.5}
+
+      rather than its conjugate. 
+
+    * The comments try to make a distinction between a "chunk", which is the basic 
+      unit fed to zeta_block_stage_x, and a "block", which is the basic unit fed to
+      zeta_block_stage_x_basic. A "chunk" is relatively large piece of the main sum
+      and is computed in "blocks", which are smaller pieces where certain taylor
+      expansions are applicable.
+
+

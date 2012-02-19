@@ -11,8 +11,6 @@
 
 using namespace std;
 
-extern int stage3_start;
-
 string output_filename = "";
 
 void usage() {
@@ -142,7 +140,7 @@ int main(int argc, char * argv[]) {
     mpz_set_str(start, "1", 10);
 
     while (1) {
-        enum {KMIN = 2, T, START, LENGTH, DELTA, DOPRECOMPUTATION, USEPRECOMPUTATION, FILENAME, NUMTHREADS, N_OPTION, STAGE3_START, OUTPUT, REPEAT, FRACTION};
+        enum {KMIN = 2, T, START, LENGTH, DELTA, DOPRECOMPUTATION, USEPRECOMPUTATION, FILENAME, NUMTHREADS, N_OPTION, OUTPUT, REPEAT, FRACTION};
 
         static struct option options[] = 
             {
@@ -157,7 +155,6 @@ int main(int argc, char * argv[]) {
                 {"number_of_threads", required_argument, 0, NUMTHREADS},
                 {"fraction", required_argument, 0, FRACTION},
                 {"N", required_argument, 0, N_OPTION},
-                {"stage3_start", required_argument, 0, STAGE3_START},
                 {"output", required_argument, 0, OUTPUT},
                 {"repeat", required_argument, 0, REPEAT},
                 {"terse", no_argument, &verbose, 0},
@@ -198,9 +195,6 @@ int main(int argc, char * argv[]) {
                 break;
             case N_OPTION:
                 N = atoi(optarg);
-                break;
-            case STAGE3_START:
-                stage3_start = strtoul(optarg, NULL, 10);
                 break;
             case OUTPUT:
                 output_filename = optarg;
