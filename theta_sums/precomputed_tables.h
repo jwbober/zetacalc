@@ -22549,7 +22549,7 @@ const Double inverse_binomial_table[inverse_binomial_range][inverse_binomial_ran
 
 inline Double inverse_binomial_coefficient(int n, int m) {
     if(SKIP_RANGE_CHECK || (n < inverse_binomial_range && m <= n)) {
-        return binomial_table[n][m];
+        return inverse_binomial_table[n][m];
     }
     else {
         std::cout << "inverse_binomial_coefficient() called out of range." << std::endl;
