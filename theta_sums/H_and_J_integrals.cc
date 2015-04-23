@@ -269,10 +269,20 @@ void J_Integral_0(complex<double> * J, double a, double b, int j, int M, theta_c
 
     for(int l = 0; l <= j; l++) {
         for(int r = 0; r <= R; r += 4) {
-            real(J[l]) += Z[r]     * H_integrals[l + 2*r];          // (-i)^0 ==  1
-            imag(J[l]) -= Z[r + 1] * H_integrals[l + 2*(r + 1)];    // (-i)^1 == -i
-            real(J[l]) -= Z[r + 2] * H_integrals[l + 2*(r + 2)];    // (-i)^2 == -1
-            imag(J[l]) += Z[r + 3] * H_integrals[l + 2*(r + 3)];    // (-i)^3 == i
+            double x = J[l].real();
+            double y = J[l].imag();
+            
+            //real(J[l]) += Z[r]     * H_integrals[l + 2*r];          // (-i)^0 ==  1
+            //imag(J[l]) -= Z[r + 1] * H_integrals[l + 2*(r + 1)];    // (-i)^1 == -i
+            //real(J[l]) -= Z[r + 2] * H_integrals[l + 2*(r + 2)];    // (-i)^2 == -1
+            //imag(J[l]) += Z[r + 3] * H_integrals[l + 2*(r + 3)];    // (-i)^3 == i
+            
+            x += Z[r]     * H_integrals[l + 2*r];          // (-i)^0 ==  1
+            y -= Z[r + 1] * H_integrals[l + 2*(r + 1)];    // (-i)^1 == -i
+            x -= Z[r + 2] * H_integrals[l + 2*(r + 2)];    // (-i)^2 == -1
+            y += Z[r + 3] * H_integrals[l + 2*(r + 3)];    // (-i)^3 == i
+            J[l].real(x);
+            J[l].imag(y);
             if(Z[r] < epsilon[l])
                 break;
         }
@@ -393,12 +403,26 @@ void J_Integral_2(complex<double> * J, double a1, double a2, double b, int j, th
 
     for(int l = 0; l <= j; l++) {
         for(int r = 0; r <= R; r += 4) {
-            real(J[l]) += Z[r]     * H_integrals[l + 2*r];          // (-i)^0 ==  1
-            imag(J[l]) -= Z[r + 1] * H_integrals[l + 2*(r + 1)];    // (-i)^1 == -i
-            real(J[l]) -= Z[r + 2] * H_integrals[l + 2*(r + 2)];    // (-i)^2 == -1
-            imag(J[l]) += Z[r + 3] * H_integrals[l + 2*(r + 3)];    // (-i)^3 == i
+            double x = J[l].real();
+            double y = J[l].imag();
+            
+            //real(J[l]) += Z[r]     * H_integrals[l + 2*r];          // (-i)^0 ==  1
+            //imag(J[l]) -= Z[r + 1] * H_integrals[l + 2*(r + 1)];    // (-i)^1 == -i
+            //real(J[l]) -= Z[r + 2] * H_integrals[l + 2*(r + 2)];    // (-i)^2 == -1
+            //imag(J[l]) += Z[r + 3] * H_integrals[l + 2*(r + 3)];    // (-i)^3 == i
+            
+            x += Z[r]     * H_integrals[l + 2*r];          // (-i)^0 ==  1
+            y -= Z[r + 1] * H_integrals[l + 2*(r + 1)];    // (-i)^1 == -i
+            x -= Z[r + 2] * H_integrals[l + 2*(r + 2)];    // (-i)^2 == -1
+            y += Z[r + 3] * H_integrals[l + 2*(r + 3)];    // (-i)^3 == i
+
+            J[l].real(x);
+            J[l].imag(y);
+
             if(Z[r] < epsilon[l])
                 break;
+
+
         }
     }
 
@@ -645,7 +669,7 @@ void JBulk(complex<double> * J, Double a, Double b,
     for(int l = 0; l <= j; l++) {
         double x = epsilon[l]/2;
         complex<double> B = 0.0;
-        if(!isinf(x)) {
+        if(!std::isinf((double)x)) {
             B = J_Integral_1(a, b, l, M, K, cache, x);
         }
         J[l] += B;
@@ -696,7 +720,7 @@ void JBoundary(complex<double> * J, double a1, double a2, double b, int j, int K
     for(int l = 0; l <= j; l++) {
         double x = epsilon[l]/2;
         complex<double> B = 0.0;
-        if(!isinf(x)) {
+        if(!std::isinf(x)) {
             B = J_Integral_1(a1, b, l, -1, K, cache, x) + (Double)minus_one_power(l+1) * J_Integral_1(a2, b, l, -1, K, cache, x);
         }
         J[l] += B;

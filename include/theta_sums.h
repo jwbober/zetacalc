@@ -3,6 +3,7 @@
 #include <string>
 #include <cmath>
 #include <cstdlib>
+#include <cstdint>
 
 #include "mpfr.h"
 #include "gmp.h"
