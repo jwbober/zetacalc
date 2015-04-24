@@ -37,12 +37,13 @@
 #include "mpfr.h"
 #include "gmp.h"
 
+using std::complex;
 
 unsigned int table_precision;
 mp_size_t number_of_limbs_needed;
 
-Complex * exp_table;        // Table to store the values exp(i t log (2^k/(2^k - 1)))
-Complex * exp_table2;       // Table to store the values exp(i t log(2^k))
+complex<double> * exp_table;        // Table to store the values exp(i t log (2^k/(2^k - 1)))
+complex<double> * exp_table2;       // Table to store the values exp(i t log(2^k))
 
 namespace exp_itlogn_stats {
     int bigger_than_one = 0;
@@ -58,7 +59,7 @@ void create_exp_itlogn_table(mpfr_t t) {
     // we compute everything to a precision of
     // log_2(t) + .5 log_2(log(t/2pi)) + 56 bits
     
-    Double tt = mpfr_get_d(t, GMP_RNDN);
+    double tt = mpfr_get_d(t, GMP_RNDN);
     table_precision = (unsigned int)( log2(tt) + .5 * log2(log(tt/(2 * PI)))) + 56;
 
     //cout << "Using table_precision = " << table_precision << endl;
@@ -66,8 +67,8 @@ void create_exp_itlogn_table(mpfr_t t) {
     // The number of entries in our table will be equal to the precision
     // that we are using. We add 1 to this, and won't use the 0th entry.
 
-    exp_table = new Complex[table_precision + 1];
-    exp_table2 = new Complex[table_precision + 1];
+    exp_table = new complex<double>[table_precision + 1];
+    exp_table2 = new complex<double>[table_precision + 1];
     exp_table[0] = -1.0;
     exp_table2[0] = 1.0;
 
@@ -216,7 +217,7 @@ inline void shift_right(mp_ptr output, mp_srcptr input, mp_size_t input_size, un
 }
 
 
-Complex exp_itlogn(mpz_t n) {
+complex<double> exp_itlogn(mpz_t n) {
     // Compute exp(it log n) to (almost) 53 bits of precision, using whatever
     // t was used as an argument to create_exp_itlogn_table().
     //
@@ -242,7 +243,7 @@ Complex exp_itlogn(mpz_t n) {
     unsigned int a = mpz_sizeinbase(n, 2);
 
     if(a > table_precision) {
-        cout << "n was too big." << endl;
+        std::cout << "n was too big." << std::endl;
         return 0.0/0.0;
     }
 
@@ -266,7 +267,7 @@ Complex exp_itlogn(mpz_t n) {
 
     // y is an accumulator where we to the product of exp(it log(2^k/(2^k - 1))
     // as we compute it.
-    Complex y = 1.0;
+    complex<double> y = 1.0;
 
 
     // To check if x > 2^k/(2^k - 1) we will mostly use bit operations. Suppose

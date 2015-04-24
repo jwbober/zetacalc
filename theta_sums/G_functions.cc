@@ -39,15 +39,17 @@
 #include <iomanip>
 #include <cmath>
 
-using namespace std;
+using std::complex;
+using std::pow;
+using std::max;
 
-Complex G_method1_I_over_twopi(Complex alpha, int n, int j, Double epsilon);
-Complex G_via_Euler_MacLaurin_I_over_twopi(Complex alpha, int n, int j, Double epsilon);
+complex<double> G_method1_I_over_twopi(complex<double> alpha, int n, int j, double epsilon);
+complex<double> G_via_Euler_MacLaurin_I_over_twopi(complex<double> alpha, int n, int j, double epsilon);
 
-Complex G_via_Euler_MacLaurin_deprecated(Complex alpha, Complex b, int n, int j, Double epsilon);
-Complex G_method1_deprecated(Complex alpha, Complex b, int n, int j, Double epsilon);
+complex<double> G_via_Euler_MacLaurin_deprecated(complex<double> alpha, complex<double> b, int n, int j, double epsilon);
+complex<double> G_method1_deprecated(complex<double> alpha, complex<double> b, int n, int j, double epsilon);
 
-Complex G_deprecated(Complex alpha, Complex b, int n, int j, Double epsilon, int method) {
+complex<double> G_deprecated(complex<double> alpha, complex<double> b, int n, int j, double epsilon, int method) {
     //
     // OLD METHOD NO LONGER USED, SINCE b is ALWAYS EITHER REAL OR PURELY
     // IMAGINARY.
@@ -76,17 +78,17 @@ Complex G_deprecated(Complex alpha, Complex b, int n, int j, Double epsilon, int
     //    return G_I(alpha, imag(b), n, j, epsilon, method);
     //}
 
-    //if(epsilon >= pow((Double)n + 1, (Double)j)) {
+    //if(epsilon >= pow((double)n + 1, (double)j)) {
     if(fastlog2(epsilon) > j * fastlog2(n+1)) {
-        return (Complex)0;
+        return (complex<double>)0;
     }
 
     //
     // TODO: these if statements need to be optimized.
     //
 
-    Double norm_alpha = norm(alpha);
-    Double norm_b = norm(b);
+    double norm_alpha = norm(alpha);
+    double norm_b = norm(b);
 
     if(method == 0) {
 //        if(abs(alpha) < 5) {
@@ -131,7 +133,7 @@ Complex G_deprecated(Complex alpha, Complex b, int n, int j, Double epsilon, int
 
 }
 
-Complex G(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
+complex<double> G(complex<double> alpha, double b, int n, int j, double epsilon, int method) {
     // We compute the integral int_0^1 g(t),
     // where g(t) = (t + n)^j exp(2 pi i alpha t + 2 pi i b t^2)
     //
@@ -148,9 +150,9 @@ Complex G(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
     //
     // alpha is typically complex, however.
 
-    //if(epsilon >= pow((Double)n + 1, (Double)j)) {
+    //if(epsilon >= pow((double)n + 1, (double)j)) {
     if(fastlog(epsilon) > j * fastlog(n+1) + j) {
-        return (Complex)0;
+        return (complex<double>)0;
     }
 
 
@@ -158,8 +160,8 @@ Complex G(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
     // TODO: these if statements need to be optimized.
     //
 
-    Double norm_alpha = norm(alpha);
-    Double norm_b = abs(b) * abs(b);
+    double norm_alpha = norm(alpha);
+    double norm_b = abs(b) * abs(b);
 
     if(method == 0) {
 //        if(abs(alpha) < 5) {
@@ -191,7 +193,7 @@ Complex G(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
 
 }
 
-Complex G_I(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
+complex<double> G_I(complex<double> alpha, double b, int n, int j, double epsilon, int method) {
     // We compute the integral int_0^1 g(t),
     // where g(t) = (t + n)^j exp(2 pi i alpha t + 2 pi i b t^2)
     //
@@ -209,17 +211,17 @@ Complex G_I(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
     // alpha is typically complex, however.
 
 
-    //if(epsilon >= pow((Double)n + 1, (Double)j)) {
+    //if(epsilon >= pow((double)n + 1, (double)j)) {
     if(fastlog(epsilon) > j * fastlog(n+1)) {
-        return (Complex)0;
+        return (complex<double>)0;
     }
 
     //
     // TODO: these if statements need to be optimized.
     //
 
-    Double norm_alpha = norm(alpha);
-    Double norm_b = abs(b) * abs(b);
+    double norm_alpha = norm(alpha);
+    double norm_b = abs(b) * abs(b);
 
     if(method == 0) {
 //        if(abs(alpha) < 5) {
@@ -251,7 +253,7 @@ Complex G_I(Complex alpha, Double b, int n, int j, Double epsilon, int method) {
 
 }
 
-Complex G_I_over_twopi(Complex alpha, int n, int j, Double epsilon, int method) {
+complex<double> G_I_over_twopi(complex<double> alpha, int n, int j, double epsilon, int method) {
     // We compute the integral int_0^1 g(t),
     // where g(t) = (t + n)^j exp(2 pi i alpha t + 2 pi i b t^2)
     //
@@ -268,16 +270,16 @@ Complex G_I_over_twopi(Complex alpha, int n, int j, Double epsilon, int method) 
     //
     // alpha is typically complex, however.
 
-    //if(epsilon >= pow((Double)n + 1, (Double)j)) {
+    //if(epsilon >= pow((double)n + 1, (double)j)) {
     if(fastlog(epsilon) > j * fastlog(n+1) + j) {
-        return (Complex)0;
+        return (complex<double>)0;
     }
 
     //
     // TODO: these if statements need to be optimized.
     //
 
-    Double norm_alpha = norm(alpha);
+    double norm_alpha = norm(alpha);
 
     if(method == 0) {
 //        if(abs(alpha) < 5) {
@@ -307,12 +309,12 @@ Complex G_I_over_twopi(Complex alpha, int n, int j, Double epsilon, int method) 
 
 }
 
-Complex G_method1_deprecated(Complex alpha, Complex b, int n, int j, Double epsilon) {
+complex<double> G_method1_deprecated(complex<double> alpha, complex<double> b, int n, int j, double epsilon) {
     if(n > 0) {
-        Complex S = 0;
-        Double n_power = 1.0;
+        complex<double> S = 0;
+        double n_power = 1.0;
         for(int s = 0; s <= j; s++) {
-            Double z = binomial_coefficient(j, s) * n_power;
+            double z = binomial_coefficient(j, s) * n_power;
             S = S + z * G_method1_deprecated(alpha, b, 0, j - s, epsilon/(z * (j + 1)));
             n_power *= n;
         }
@@ -321,43 +323,43 @@ Complex G_method1_deprecated(Complex alpha, Complex b, int n, int j, Double epsi
 
     // At this point we assume that n == 0
 
-    if(b == Complex(0, 0)) {
+    if(b == complex<double>(0, 0)) {
         return H(j, -I * alpha, epsilon);
     }
 
     //int N = max(1, to_int(ceil( -LOG(epsilon) )));
     int N = max(1, -fastlog(epsilon));
 
-    Complex S = (Complex)0;
+    complex<double> S = (complex<double>)0;
 
-    Double error = epsilon + 1;
+    double error = epsilon + 1;
     int r = 0;
-    Complex Ib_power = (Complex)1;
+    complex<double> Ib_power = (complex<double>)1;
     while(error > epsilon/2) {
         if(r > 0) {
             Ib_power *= (I * b);
         }
-        Complex s = Ib_power * two_pi_over_factorial_power(r);
-        Complex s2 = H(j + 2 * r, -I * alpha, epsilon/(2 * abs(s) * (Double)N));
-        Complex z = s * s2;
+        complex<double> s = Ib_power * two_pi_over_factorial_power(r);
+        complex<double> s2 = H(j + 2 * r, -I * alpha, epsilon/(2 * abs(s) * (double)N));
+        complex<double> z = s * s2;
         S = S + z;
         r++;
-        error = abs(s/(Complex)max( PI * abs(alpha) / (r + 1.0 + j/2),  (Double)(2.0 * r + 1.0 + j)));
+        error = abs(s/(complex<double>)max( PI * abs(alpha) / (r + 1.0 + j/2),  (double)(2.0 * r + 1.0 + j)));
     }
 
 
     return S;
 }
 
-Complex G_method1_R(Complex alpha, Double b, int n, int j, Double epsilon) {
+complex<double> G_method1_R(complex<double> alpha, double b, int n, int j, double epsilon) {
     // Specialized for b real.
     
 
     if(n > 0) {
-        Complex S = 0;
-        Double n_power = 1.0;
+        complex<double> S = 0;
+        double n_power = 1.0;
         for(int s = 0; s <= j; s++) {
-            Double z = binomial_coefficient(j, s) * n_power;
+            double z = binomial_coefficient(j, s) * n_power;
             S = S + z * G_method1_R(alpha, b, 0, j - s, epsilon/(z * (j + 1)));
             n_power *= n;
         }
@@ -373,12 +375,12 @@ Complex G_method1_R(Complex alpha, Double b, int n, int j, Double epsilon) {
     //int N = max(1, to_int(ceil( -LOG(epsilon) )));
     int N = max(1, -fastlog(epsilon));
 
-    Complex S = (Complex)0;
+    complex<double> S = (complex<double>)0;
 
-    Double error = epsilon + 1;
+    double error = epsilon + 1;
     int r = 0;
-    //Complex Ib_power = (Complex)1;
-    Double b_power = 1.0;
+    //complex<double> Ib_power = (complex<double>)1;
+    double b_power = 1.0;
     while(error > epsilon/2) {
         if(r > 0) {
             //Ib_power *= (I * b);
@@ -387,26 +389,26 @@ Complex G_method1_R(Complex alpha, Double b, int n, int j, Double epsilon) {
     
         //Ib_power = (ib)^r
 
-        Double s = b_power * two_pi_over_factorial_power(r);
-        Complex s2 = H(j + 2 * r, -I * alpha, epsilon/(2 * abs(s) * (Double)N));
-        Complex z = I_power(r) * s * s2;
+        double s = b_power * two_pi_over_factorial_power(r);
+        complex<double> s2 = H(j + 2 * r, -I * alpha, epsilon/(2 * abs(s) * (double)N));
+        complex<double> z = I_power(r) * s * s2;
         S = S + z;
         r++;
-        error = abs(s/max( PI * abs(alpha) / (r + 1.0 + j/2),  (Double)(2.0 * r + 1.0 + j)));
+        error = abs(s/max( PI * abs(alpha) / (r + 1.0 + j/2),  (double)(2.0 * r + 1.0 + j)));
     }
 
     return S;
 }
 
-Complex G_method1_I(Complex alpha, Double b, int n, int j, Double epsilon) {
+complex<double> G_method1_I(complex<double> alpha, double b, int n, int j, double epsilon) {
     //
     // specialized for b purely imaginary. b has an implicit I in front
     //
     if(n > 0) {
-        Complex S = 0;
-        Double n_power = 1.0;
+        complex<double> S = 0;
+        double n_power = 1.0;
         for(int s = 0; s <= j; s++) {
-            Double z = binomial_coefficient(j, s) * n_power;
+            double z = binomial_coefficient(j, s) * n_power;
             S = S + z * G_method1_I(alpha, b, 0, j - s, epsilon/(z * (j + 1)));
             n_power *= n;
         }
@@ -422,36 +424,36 @@ Complex G_method1_I(Complex alpha, Double b, int n, int j, Double epsilon) {
     //int N = max(1, to_int(ceil( -LOG(epsilon) )));
     int N = max(1, -fastlog(epsilon));
 
-    Complex S = (Complex)0;
+    complex<double> S = (complex<double>)0;
 
-    Double error = epsilon + 1;
+    double error = epsilon + 1;
     int r = 0;
-    Double Ib_power = 1.0;
+    double Ib_power = 1.0;
     while(error > epsilon/2) {
         if(r > 0) {
             Ib_power *= (-b);
         }
-        Double s = Ib_power * two_pi_over_factorial_power(r);
-        Complex s2 = H(j + 2 * r, -I * alpha, epsilon/(2 * abs(s) * (Double)N));
-        Complex z = s * s2;
+        double s = Ib_power * two_pi_over_factorial_power(r);
+        complex<double> s2 = H(j + 2 * r, -I * alpha, epsilon/(2 * abs(s) * (double)N));
+        complex<double> z = s * s2;
         S = S + z;
         r++;
-        error = abs(s/max( PI * abs(alpha) / (r + 1.0 + j/2),  (Double)(2.0 * r + 1.0 + j)));
+        error = abs(s/max( PI * abs(alpha) / (r + 1.0 + j/2),  (double)(2.0 * r + 1.0 + j)));
     }
 
 
     return S;
 }
 
-Complex G_method1_I_over_twopi(Complex alpha, int n, int j, Double epsilon) {
+complex<double> G_method1_I_over_twopi(complex<double> alpha, int n, int j, double epsilon) {
     //
     // specialized for b purely imaginary. b has an implicit I in front
     //
     if(n > 0) {
-        Complex S = 0;
-        Double n_power = 1.0;
+        complex<double> S = 0;
+        double n_power = 1.0;
         for(int s = 0; s <= j; s++) {
-            Double z = binomial_coefficient(j, s) * n_power;
+            double z = binomial_coefficient(j, s) * n_power;
             S = S + z * G_method1_I_over_twopi(alpha, 0, j - s, epsilon/(z * (j + 1)));
             n_power *= n;
         }
@@ -463,41 +465,41 @@ Complex G_method1_I_over_twopi(Complex alpha, int n, int j, Double epsilon) {
     //int N = max(1, to_int(ceil( -LOG(epsilon) )));
     int N = max(1, fastlog(epsilon));
 
-    Complex S = (Complex)0;
+    complex<double> S = (complex<double>)0;
 
-    Double error = epsilon + 1;
+    double error = epsilon + 1;
     int r = 0;
-    //Double Ib_power = 1.0;
+    //double Ib_power = 1.0;
     while(error > epsilon/2) {
         //if(r > 0) {
         //    Ib_power *= (-b);
         //}
         // Ib_power = (-1/2pi)^r
         // so this is just...
-        //Double s = Ib_power * two_pi_over_factorial_power(r);
-        Double s = minus_one_power(r) / factorial(r);
-        Complex s2 = H(j + 2 * r, -I * alpha, epsilon/(2 * abs(s) * (Double)N));
-        Complex z = s * s2;
+        //double s = Ib_power * two_pi_over_factorial_power(r);
+        double s = minus_one_power(r) / factorial(r);
+        complex<double> s2 = H(j + 2 * r, -I * alpha, epsilon/(2 * abs(s) * (double)N));
+        complex<double> z = s * s2;
         S = S + z;
         r++;
-        error = abs(s/max( PI * abs(alpha) / (r + 1.0 + j/2),  (Double)(2.0 * r + 1.0 + j)));
+        error = abs(s/max( PI * abs(alpha) / (r + 1.0 + j/2),  (double)(2.0 * r + 1.0 + j)));
     }
 
 
     return S;
 }
 
-inline Double POW(Double a, Double b) {
+inline double POW(double a, double b) {
     if(a == 0 && b == 0) {
         return 1;
     }
     return pow(a, b);
 }
 
-inline Complex g(Complex alpha, Complex b, Double n, Double j, Double t) {
+inline complex<double> g(complex<double> alpha, complex<double> b, double n, double j, double t) {
     return POW(t + n, j) * EXP(2 * PI * I * t * (alpha + b * t) );
 }
-Complex G_via_Euler_MacLaurin_deprecated(Complex alpha, Complex b, int n, int j, Double epsilon) {
+complex<double> G_via_Euler_MacLaurin_deprecated(complex<double> alpha, complex<double> b, int n, int j, double epsilon) {
     // We compute the integral int_0^1 g(t),
     // where g(t) = (t + n)^j exp(2 pi i alpha t + 2 pi i b t^2)
     // using euler maclaurin summation
@@ -510,37 +512,37 @@ Complex G_via_Euler_MacLaurin_deprecated(Complex alpha, Complex b, int n, int j,
     // (These heuristics might not work well when b is larger, but b will be at most .25 in our applications.)
 
     //if(epsilon >= 1) {
-    //    return (Complex)0;
+    //    return (complex<double>)0;
     //}
 
-    //int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((Complex)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 0.0) ) * (1 + j * log(n + 1)/4.0) )), 1);
+    //int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((complex<double>)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 0.0) ) * (1 + j * log(n + 1)/4.0) )), 1);
 
-//    int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((Complex)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) )), 1);
+//    int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((complex<double>)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) )), 1);
 
-    int N = to_int(ceil(  ( abs(alpha) + abs((Double)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
+    int N = to_int(ceil(  ( abs(alpha) + abs((double)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
     N = 2 * max(N, 1);
 
 
     /*
-    Double two_n_to_the_j = 1;
+    double two_n_to_the_j = 1;
     if(n != 0)
         two_n_to_the_j = pow(2 * n, j);
     else
         two_n_to_the_j = 1;
-    Double one_over_two_n_to_the_j = 1/two_n_to_the_j;
+    double one_over_two_n_to_the_j = 1/two_n_to_the_j;
     */
 
-    Complex S = (Complex)0;
+    complex<double> S = (complex<double>)0;
     {
-        Complex alpha_term = 1.0;
-        Complex alpha_term_multiplier = EXP(2 * PI * I * alpha/(Double)N);
+        complex<double> alpha_term = 1.0;
+        complex<double> alpha_term_multiplier = EXP(2 * PI * I * alpha/(double)N);
         double t = 0;
         double t_increment = 1.0/N;
         switch(j) {
             case 0:
                 if(imag(b) == 0) {
                     for(int s = 0; s <= N; s++) {
-                        S = S + Complex(cos(2 * PI * real(b) * t * t), sin(2 * PI * real(b) * t * t)) * alpha_term;
+                        S = S + complex<double>(cos(2 * PI * real(b) * t * t), sin(2 * PI * real(b) * t * t)) * alpha_term;
                         alpha_term *= alpha_term_multiplier;
                         t += t_increment;
                     }
@@ -563,7 +565,7 @@ Complex G_via_Euler_MacLaurin_deprecated(Complex alpha, Complex b, int n, int j,
             case 1:
                 if(imag(b) == 0) {
                     for(int s = 0; s <= N; s++) {
-                        S = S + (n + t) * Complex(cos(2 * PI * real(b) * t * t), sin(2 * PI * real(b) * t * t)) * alpha_term;
+                        S = S + (n + t) * complex<double>(cos(2 * PI * real(b) * t * t), sin(2 * PI * real(b) * t * t)) * alpha_term;
                         alpha_term *= alpha_term_multiplier;
                         t += t_increment;
                     }
@@ -587,7 +589,7 @@ Complex G_via_Euler_MacLaurin_deprecated(Complex alpha, Complex b, int n, int j,
             default:
                 if(imag(b) == 0) {
                     for(int s = 0; s <= N; s++) {
-                        S = S + pow(t + n, j) * Complex(cos(2 * PI * real(b) * t * t), sin(2 * PI * real(b) * t * t)) * alpha_term;
+                        S = S + pow(t + n, j) * complex<double>(cos(2 * PI * real(b) * t * t), sin(2 * PI * real(b) * t * t)) * alpha_term;
                         alpha_term *= alpha_term_multiplier;
                         t += t_increment;
                     }
@@ -611,18 +613,18 @@ Complex G_via_Euler_MacLaurin_deprecated(Complex alpha, Complex b, int n, int j,
 
 
     }
-    //S = S - (Double)(.5) * (g(alpha, b, n, j, 0) + g(alpha, b, n, j, 1)) * one_over_two_n_to_the_j;
-    S = S - (Double)(.5) * (g(alpha, b, n, j, 0) + g(alpha, b, n, j, 1));
-    S = S/(Double)N;
+    //S = S - (double)(.5) * (g(alpha, b, n, j, 0) + g(alpha, b, n, j, 1)) * one_over_two_n_to_the_j;
+    S = S - (double)(.5) * (g(alpha, b, n, j, 0) + g(alpha, b, n, j, 1));
+    S = S/(double)N;
 
-    Double N_power = 1;
+    double N_power = 1;
 
-    Double error = 10 * epsilon * epsilon;
+    double error = 10 * epsilon * epsilon;
     int r = 1;
 
 
-    Complex p1[bernoulli_range + max_j];            // below p will need to be as big as 2r + j
-    Complex p2[bernoulli_range + max_j];            // for increasing r. If 2r ever gets as large
+    complex<double> p1[bernoulli_range + max_j];            // below p will need to be as big as 2r + j
+    complex<double> p2[bernoulli_range + max_j];            // for increasing r. If 2r ever gets as large
                                                 // as bernoulli_range, then the computation
                                                 // will fail anyway, so the biggest p
                                                 // that makes sense is of size bernoulli_range + j.
@@ -630,11 +632,11 @@ Complex G_via_Euler_MacLaurin_deprecated(Complex alpha, Complex b, int n, int j,
                                                 // As long as bernoulli_range isn't too big, this
                                                 // should be hopefully be a good choice.
 
-    Complex * ptmp;                             // A temporary variable used for swapping
+    complex<double> * ptmp;                             // A temporary variable used for swapping
                                                 // p and p_prev.
 
-    Complex * p = p1;
-    Complex * p_prev = p2;
+    complex<double> * p = p1;
+    complex<double> * p_prev = p2;
 
     if(n == 0) {
         for(int s = 0; s <= j - 1; s++) {
@@ -649,7 +651,7 @@ Complex G_via_Euler_MacLaurin_deprecated(Complex alpha, Complex b, int n, int j,
             p_prev[s] = pow(n, j - s) * binomial_coefficient(j, s);
         }
         */
-        Double n_power = 1.0;
+        double n_power = 1.0;
         for(int s = 0; s <= j; s++) {
             //p_prev[s] = pow(2, -j) * pow(n, -s) * binomial_coefficient(j, s);
             p_prev[j - s] = n_power * binomial_coefficient(j, s);
@@ -668,15 +670,15 @@ Complex G_via_Euler_MacLaurin_deprecated(Complex alpha, Complex b, int n, int j,
             }
             g_derivative_polynomial(2 * r - 1 + j, p, p_prev, alpha, real(b));
 
-            Complex derivative_at_1 = (Complex)0;
+            complex<double> derivative_at_1 = (complex<double>)0;
             for(int k = 0; k <= 2 * r - 1 + j; k++) {
                 derivative_at_1 = derivative_at_1 + p[k];
             }
             derivative_at_1 *= EXP(2 * PI * I * (alpha + real(b)));
-            Complex derivative_at_0 = p[0];
+            complex<double> derivative_at_0 = p[0];
 
-            N_power *= ((Double)N * (Double)N);
-            Complex z = bernoulli_table[2 * r]/(factorial(2 * r) * N_power) * (derivative_at_1 - derivative_at_0);
+            N_power *= ((double)N * (double)N);
+            complex<double> z = bernoulli_table[2 * r]/(factorial(2 * r) * N_power) * (derivative_at_1 - derivative_at_0);
 
             S = S - z;
             error = norm(z);
@@ -696,15 +698,15 @@ Complex G_via_Euler_MacLaurin_deprecated(Complex alpha, Complex b, int n, int j,
             }
             g_derivative_polynomial_I(2 * r - 1 + j, p, p_prev, alpha, imag(b));
 
-            Complex derivative_at_1 = (Complex)0;
+            complex<double> derivative_at_1 = (complex<double>)0;
             for(int k = 0; k <= 2 * r - 1 + j; k++) {
                 derivative_at_1 = derivative_at_1 + p[k];
             }
             derivative_at_1 *= EXP(2 * PI * I * (alpha + b));
-            Complex derivative_at_0 = p[0];
+            complex<double> derivative_at_0 = p[0];
 
-            N_power *= ((Double)N * (Double)N);
-            Complex z = bernoulli_table[2 * r]/(factorial(2 * r) * N_power) * (derivative_at_1 - derivative_at_0);
+            N_power *= ((double)N * (double)N);
+            complex<double> z = bernoulli_table[2 * r]/(factorial(2 * r) * N_power) * (derivative_at_1 - derivative_at_0);
 
             S = S - z;
             error = norm(z);
@@ -724,15 +726,15 @@ Complex G_via_Euler_MacLaurin_deprecated(Complex alpha, Complex b, int n, int j,
             }
             g_derivative_polynomial(2 * r - 1 + j, p, p_prev, alpha, b);
 
-            Complex derivative_at_1 = (Complex)0;
+            complex<double> derivative_at_1 = (complex<double>)0;
             for(int k = 0; k <= 2 * r - 1 + j; k++) {
                 derivative_at_1 = derivative_at_1 + p[k];
             }
             derivative_at_1 *= EXP(2 * PI * I * (alpha + b));
-            Complex derivative_at_0 = p[0];
+            complex<double> derivative_at_0 = p[0];
 
-            N_power *= ((Double)N * (Double)N);
-            Complex z = bernoulli_table[2 * r]/(factorial(2 * r) * N_power) * (derivative_at_1 - derivative_at_0);
+            N_power *= ((double)N * (double)N);
+            complex<double> z = bernoulli_table[2 * r]/(factorial(2 * r) * N_power) * (derivative_at_1 - derivative_at_0);
 
             S = S - z;
             error = norm(z);
@@ -748,7 +750,7 @@ Complex G_via_Euler_MacLaurin_deprecated(Complex alpha, Complex b, int n, int j,
 
 }
 
-Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double epsilon) {
+complex<double> G_via_Euler_MacLaurin_R(complex<double> alpha, double b, int n, int j, double epsilon) {
     // We compute the integral int_0^1 g(t),
     // where g(t) = (t + n)^j exp(2 pi i alpha t + 2 pi i b t^2)
     // using euler maclaurin summation
@@ -763,35 +765,35 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
     // (These heuristics might not work well when b is larger, but b will be at most .25 in our applications.)
 
     //if(epsilon >= 1) {
-    //    return (Complex)0;
+    //    return (complex<double>)0;
     //}
 
-    //int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((Complex)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 0.0) ) * (1 + j * log(n + 1)/4.0) )), 1);
+    //int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((complex<double>)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 0.0) ) * (1 + j * log(n + 1)/4.0) )), 1);
 
-//    int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((Complex)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) )), 1);
+//    int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((complex<double>)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) )), 1);
 
     int N = to_int(ceil(  ( abs(alpha) + abs(2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
     N = 2 * max(N, 1);
 
     /*
-    Double two_n_to_the_j = 1;
+    double two_n_to_the_j = 1;
     if(n != 0)
         two_n_to_the_j = pow(2 * n, j);
     else
         two_n_to_the_j = 1;
-    Double one_over_two_n_to_the_j = 1/two_n_to_the_j;
+    double one_over_two_n_to_the_j = 1/two_n_to_the_j;
     */
-    Complex alpha_term_multiplier = EXP(2 * PI * I * alpha/(Double)N);
-    Complex alpha_term = alpha_term_multiplier;
+    complex<double> alpha_term_multiplier = EXP(2 * PI * I * alpha/(double)N);
+    complex<double> alpha_term = alpha_term_multiplier;
 
-    Complex S = (Complex)0;
+    complex<double> S = (complex<double>)0;
     {
         double t_increment = 1.0/N;
         double t = t_increment;
         switch(j) {
             case 0:
                 for(int s = 1; s < N; s++) {
-                    S = S + Complex(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
+                    S = S + complex<double>(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
                 }
@@ -799,7 +801,7 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
             case 1:
                 for(int s = 1; s < N; s++) {
                     double a = (n + t);
-                    S = S + a * Complex(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
+                    S = S + a * complex<double>(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
                 }
@@ -807,7 +809,7 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
             case 2:
                 for(int s = 1; s < N; s++) {
                     double a = (n + t);
-                    S = S + a*a * Complex(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
+                    S = S + a*a * complex<double>(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
                 }
@@ -815,7 +817,7 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
             case 3:
                 for(int s = 1; s < N; s++) {
                     double a = (n + t);
-                    S = S + a*a*a * Complex(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
+                    S = S + a*a*a * complex<double>(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
                 }
@@ -823,7 +825,7 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
             case 4:
                 for(int s = 1; s < N; s++) {
                     double a = (n + t);
-                    S = S + a*a*a*a * Complex(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
+                    S = S + a*a*a*a * complex<double>(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
                 }
@@ -831,7 +833,7 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
             case 5:
                 for(int s = 1; s < N; s++) {
                     double a = (n + t);
-                    S = S + a*a*a*a*a * Complex(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
+                    S = S + a*a*a*a*a * complex<double>(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
                 }
@@ -839,7 +841,7 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
             case 6:
                 for(int s = 1; s < N; s++) {
                     double a = (n + t);
-                    S = S + a*a*a*a*a*a * Complex(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
+                    S = S + a*a*a*a*a*a * complex<double>(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
                 }
@@ -847,7 +849,7 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
             case 7:
                 for(int s = 1; s < N; s++) {
                     double a = (n + t);
-                    S = S + a*a*a*a*a*a*a * Complex(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
+                    S = S + a*a*a*a*a*a*a * complex<double>(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
                 }
@@ -855,7 +857,7 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
             case 8:
                 for(int s = 1; s < N; s++) {
                     double a = (n + t);
-                    S = S + a*a*a*a*a*a*a*a * Complex(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
+                    S = S + a*a*a*a*a*a*a*a * complex<double>(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
                 }
@@ -864,27 +866,27 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
             default:
                 for(int s = 1; s < N; s++) {
                     double a = (n + t);
-                    S = S + pow(a, j) * Complex(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
+                    S = S + pow(a, j) * complex<double>(cos(2 * PI * b * t * t), sin(2 * PI * b * t * t)) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
                 }
         }
     }
-    //S = S - (Double)(.5) * (g(alpha, b, n, j, 0) + g(alpha, b, n, j, 1)) * one_over_two_n_to_the_j;
+    //S = S - (double)(.5) * (g(alpha, b, n, j, 0) + g(alpha, b, n, j, 1)) * one_over_two_n_to_the_j;
     
-    Complex exp_factor_at_one = alpha_term * Complex(cos(2 * PI * b), sin(2 * PI * b));
+    complex<double> exp_factor_at_one = alpha_term * complex<double>(cos(2 * PI * b), sin(2 * PI * b));
     //S = S - .5 * (pow(n, j) + pow(n + 1, j) * EXP(2 * PI * I * (alpha + b)));
     S = S + .5 * (pow(n, j) + pow(n + 1, j) * exp_factor_at_one);
-    S = S/(Double)N;
+    S = S/(double)N;
 
-    Double N_power = 1;
+    double N_power = 1;
 
-    Double error = 10 * epsilon * epsilon;
+    double error = 10 * epsilon * epsilon;
     int r = 1;
 
 
-    Complex p1[bernoulli_range + max_j];            // below p will need to be as big as 2r + j
-    Complex p2[bernoulli_range + max_j];            // for increasing r. If 2r ever gets as large
+    complex<double> p1[bernoulli_range + max_j];            // below p will need to be as big as 2r + j
+    complex<double> p2[bernoulli_range + max_j];            // for increasing r. If 2r ever gets as large
                                                 // as bernoulli_range, then the computation
                                                 // will fail anyway, so the biggest p
                                                 // that makes sense is of size bernoulli_range + j.
@@ -892,11 +894,11 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
                                                 // As long as bernoulli_range isn't too big, this
                                                 // should be hopefully be a good choice.
 
-    Complex * ptmp;                             // A temporary variable used for swapping
+    complex<double> * ptmp;                             // A temporary variable used for swapping
                                                 // p and p_prev.
 
-    Complex * p = p1;
-    Complex * p_prev = p2;
+    complex<double> * p = p1;
+    complex<double> * p_prev = p2;
 
     if(n == 0) {
         for(int s = 0; s <= j - 1; s++) {
@@ -911,7 +913,7 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
             p_prev[s] = pow(n, j - s) * binomial_coefficient(j, s);
         }
         */
-        Double n_power = 1.0;
+        double n_power = 1.0;
         for(int s = 0; s <= j; s++) {
             //p_prev[s] = pow(2, -j) * pow(n, -s) * binomial_coefficient(j, s);
             p_prev[j - s] = n_power * binomial_coefficient(j, s);
@@ -931,16 +933,16 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
         //g_derivative_polynomial_R(2 * r - 1 + j, p, p_prev, alpha, b);
         g_derivative_polynomial(2 * r - 1 + j, p, p_prev, alpha, b);
 
-        Complex derivative_at_1 = (Complex)0;
+        complex<double> derivative_at_1 = (complex<double>)0;
         for(int k = 0; k <= 2 * r - 1 + j; k++) {
             derivative_at_1 = derivative_at_1 + p[k];
         }
         //derivative_at_1 *= exp(2 * PI * I * (alpha + b));
         derivative_at_1 *= exp_factor_at_one;
-        Complex derivative_at_0 = p[0];
+        complex<double> derivative_at_0 = p[0];
 
-        N_power *= ((Double)N * (Double)N);
-        Complex z = bernoulli_table[2 * r]/(factorial(2 * r) * N_power) * (derivative_at_1 - derivative_at_0);
+        N_power *= ((double)N * (double)N);
+        complex<double> z = bernoulli_table[2 * r]/(factorial(2 * r) * N_power) * (derivative_at_1 - derivative_at_0);
 
         S = S - z;
         error = norm(z);
@@ -955,7 +957,7 @@ Complex G_via_Euler_MacLaurin_R(Complex alpha, Double b, int n, int j, Double ep
 
 }
 
-Complex G_via_Euler_MacLaurin_I(Complex alpha, Double b, int n, int j, Double epsilon) {
+complex<double> G_via_Euler_MacLaurin_I(complex<double> alpha, double b, int n, int j, double epsilon) {
     // I don't think that this function is ever used.
  
     // We compute the integral int_0^1 g(t),
@@ -972,30 +974,30 @@ Complex G_via_Euler_MacLaurin_I(Complex alpha, Double b, int n, int j, Double ep
     // (These heuristics might not work well when b is larger, but b will be at most .25 in our applications.)
 
     //if(epsilon >= 1) {
-    //    return (Complex)0;
+    //    return (complex<double>)0;
     //}
 
-    //int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((Complex)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 0.0) ) * (1 + j * log(n + 1)/4.0) )), 1);
+    //int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((complex<double>)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 0.0) ) * (1 + j * log(n + 1)/4.0) )), 1);
 
-//    int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((Complex)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) )), 1);
+//    int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((complex<double>)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) )), 1);
 
-    int N = to_int(ceil(  ( abs(alpha) + abs((Double)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
+    int N = to_int(ceil(  ( abs(alpha) + abs((double)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
     N = 2 * max(N, 1);
 
 
     /*
-    Double two_n_to_the_j = 1;
+    double two_n_to_the_j = 1;
     if(n != 0)
         two_n_to_the_j = pow(2 * n, j);
     else
         two_n_to_the_j = 1;
-    Double one_over_two_n_to_the_j = 1/two_n_to_the_j;
+    double one_over_two_n_to_the_j = 1/two_n_to_the_j;
     */
 
-    Complex S = (Complex)0;
+    complex<double> S = (complex<double>)0;
     {
-        Complex alpha_term = 1.0;
-        Complex alpha_term_multiplier = EXP(2 * PI * I * alpha/(Double)N);
+        complex<double> alpha_term = 1.0;
+        complex<double> alpha_term_multiplier = EXP(2 * PI * I * alpha/(double)N);
         double t = 0;
         double t_increment = 1.0/N;
         switch(j) {
@@ -1022,21 +1024,21 @@ Complex G_via_Euler_MacLaurin_I(Complex alpha, Double b, int n, int j, Double ep
                 }
         }
     }
-    //S = S - (Double)(.5) * (g(alpha, b, n, j, 0) + g(alpha, b, n, j, 1)) * one_over_two_n_to_the_j;
+    //S = S - (double)(.5) * (g(alpha, b, n, j, 0) + g(alpha, b, n, j, 1)) * one_over_two_n_to_the_j;
 
 
-    //S = S - (Double)(.5) * (g(alpha, I * b, n, j, 0) + g(alpha, I * b, n, j, 1));
+    //S = S - (double)(.5) * (g(alpha, I * b, n, j, 0) + g(alpha, I * b, n, j, 1));
     S = S - .5 * (pow(n, j) + pow(1 + n, j) * EXP(2 * PI * I * (alpha + I * b)));
-    S = S/(Double)N;
+    S = S/(double)N;
 
-    Double N_power = 1;
+    double N_power = 1;
 
-    Double error = 10 * epsilon * epsilon;
+    double error = 10 * epsilon * epsilon;
     int r = 1;
 
 
-    Complex p1[bernoulli_range + max_j];            // below p will need to be as big as 2r + j
-    Complex p2[bernoulli_range + max_j];            // for increasing r. If 2r ever gets as large
+    complex<double> p1[bernoulli_range + max_j];            // below p will need to be as big as 2r + j
+    complex<double> p2[bernoulli_range + max_j];            // for increasing r. If 2r ever gets as large
                                                 // as bernoulli_range, then the computation
                                                 // will fail anyway, so the biggest p
                                                 // that makes sense is of size bernoulli_range + j.
@@ -1044,11 +1046,11 @@ Complex G_via_Euler_MacLaurin_I(Complex alpha, Double b, int n, int j, Double ep
                                                 // As long as bernoulli_range isn't too big, this
                                                 // should be hopefully be a good choice.
 
-    Complex * ptmp;                             // A temporary variable used for swapping
+    complex<double> * ptmp;                             // A temporary variable used for swapping
                                                 // p and p_prev.
 
-    Complex * p = p1;
-    Complex * p_prev = p2;
+    complex<double> * p = p1;
+    complex<double> * p_prev = p2;
 
     if(n == 0) {
         for(int s = 0; s <= j - 1; s++) {
@@ -1063,7 +1065,7 @@ Complex G_via_Euler_MacLaurin_I(Complex alpha, Double b, int n, int j, Double ep
             p_prev[s] = pow(n, j - s) * binomial_coefficient(j, s);
         }
         */
-        Double n_power = 1.0;
+        double n_power = 1.0;
         for(int s = 0; s <= j; s++) {
             //p_prev[s] = pow(2, -j) * pow(n, -s) * binomial_coefficient(j, s);
             p_prev[j - s] = n_power * binomial_coefficient(j, s);
@@ -1081,15 +1083,15 @@ Complex G_via_Euler_MacLaurin_I(Complex alpha, Double b, int n, int j, Double ep
         }
         g_derivative_polynomial_I(2 * r - 1 + j, p, p_prev, alpha, b);
 
-        Complex derivative_at_1 = (Complex)0;
+        complex<double> derivative_at_1 = (complex<double>)0;
         for(int k = 0; k <= 2 * r - 1 + j; k++) {
             derivative_at_1 = derivative_at_1 + p[k];
         }
         derivative_at_1 *= EXP(2 * PI * I * (alpha + I * b));
-        Complex derivative_at_0 = p[0];
+        complex<double> derivative_at_0 = p[0];
 
-        N_power *= ((Double)N * (Double)N);
-        Complex z = bernoulli_table[2 * r]/(factorial(2 * r) * N_power) * (derivative_at_1 - derivative_at_0);
+        N_power *= ((double)N * (double)N);
+        complex<double> z = bernoulli_table[2 * r]/(factorial(2 * r) * N_power) * (derivative_at_1 - derivative_at_0);
 
         S = S - z;
         error = norm(z);
@@ -1104,7 +1106,7 @@ Complex G_via_Euler_MacLaurin_I(Complex alpha, Double b, int n, int j, Double ep
 
 }
 
-Complex G_via_Euler_MacLaurin_I_over_twopi(Complex alpha, int n, int j, Double epsilon) {
+complex<double> G_via_Euler_MacLaurin_I_over_twopi(complex<double> alpha, int n, int j, double epsilon) {
     // We compute the integral int_0^1 g(t),
     // where g(t) = (t + n)^j exp(2 pi i alpha t + 2 pi i b t^2)
     // using euler maclaurin summation
@@ -1119,29 +1121,29 @@ Complex G_via_Euler_MacLaurin_I_over_twopi(Complex alpha, int n, int j, Double e
     // (These heuristics might not work well when b is larger, but b will be at most .25 in our applications.)
 
     //if(epsilon >= 1) {
-    //    return (Complex)0;
+    //    return (complex<double>)0;
     //}
 
-    //int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((Complex)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 0.0) ) * (1 + j * log(n + 1)/4.0) )), 1);
+    //int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((complex<double>)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 0.0) ) * (1 + j * log(n + 1)/4.0) )), 1);
 
-//    int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((Complex)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) )), 1);
+//    int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((complex<double>)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) )), 1);
 
     int N = to_int(ceil(  ( abs(alpha) + 1/PI + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
     N = 2 * max(N, 1);
 
 
     /*
-    Double two_n_to_the_j = 1;
+    double two_n_to_the_j = 1;
     if(n != 0)
         two_n_to_the_j = pow(2 * n, j);
     else
         two_n_to_the_j = 1;
-    Double one_over_two_n_to_the_j = 1/two_n_to_the_j;
+    double one_over_two_n_to_the_j = 1/two_n_to_the_j;
     */
 
-    Complex alpha_term_multiplier = EXP(2 * PI * I * alpha/(Double)N);
-    Complex alpha_term = alpha_term_multiplier;
-    Complex S = (Complex)0;
+    complex<double> alpha_term_multiplier = EXP(2 * PI * I * alpha/(double)N);
+    complex<double> alpha_term = alpha_term_multiplier;
+    complex<double> S = (complex<double>)0;
 
     {
         double t_increment = 1.0/N;
@@ -1173,21 +1175,21 @@ Complex G_via_Euler_MacLaurin_I_over_twopi(Complex alpha, int n, int j, Double e
                 }
         }
     }
-    //S = S - (Double)(.5) * (g(alpha, b, n, j, 0) + g(alpha, b, n, j, 1)) * one_over_two_n_to_the_j;
-    //S = S - (Double)(.5) * (g(alpha, I/(2 * PI), n, j, 0) + g(alpha, I/(2 * PI), n, j, 1));
+    //S = S - (double)(.5) * (g(alpha, b, n, j, 0) + g(alpha, b, n, j, 1)) * one_over_two_n_to_the_j;
+    //S = S - (double)(.5) * (g(alpha, I/(2 * PI), n, j, 0) + g(alpha, I/(2 * PI), n, j, 1));
     
-    //Complex exp_factor_at_1 = exp(2 * PI * I * alpha - 1.0);
-    Complex exp_factor_at_1 = alpha_term/E;
+    //complex<double> exp_factor_at_1 = exp(2 * PI * I * alpha - 1.0);
+    complex<double> exp_factor_at_1 = alpha_term/E;
     S = S + .5 * (pow(n, j) + pow(1 + n, j) * exp_factor_at_1);
-    S = S/(Double)N;
+    S = S/(double)N;
 
 
-    Double error = 10 * epsilon * epsilon;
+    double error = 10 * epsilon * epsilon;
     int r = 1;
 
 
-    Complex p1[bernoulli_range + max_j];            // below p will need to be as big as 2r + j
-    Complex p2[bernoulli_range + max_j];            // for increasing r. If 2r ever gets as large
+    complex<double> p1[bernoulli_range + max_j];            // below p will need to be as big as 2r + j
+    complex<double> p2[bernoulli_range + max_j];            // for increasing r. If 2r ever gets as large
                                                 // as bernoulli_range, then the computation
                                                 // will fail anyway, so the biggest p
                                                 // that makes sense is of size bernoulli_range + j.
@@ -1195,11 +1197,11 @@ Complex G_via_Euler_MacLaurin_I_over_twopi(Complex alpha, int n, int j, Double e
                                                 // As long as bernoulli_range isn't too big, this
                                                 // should be hopefully be a good choice.
 
-    Complex * ptmp;                             // A temporary variable used for swapping
+    complex<double> * ptmp;                             // A temporary variable used for swapping
                                                 // p and p_prev.
 
-    Complex * p = p1;
-    Complex * p_prev = p2;
+    complex<double> * p = p1;
+    complex<double> * p_prev = p2;
 
     if(n == 0) {
         for(int s = 0; s <= j - 1; s++) {
@@ -1214,7 +1216,7 @@ Complex G_via_Euler_MacLaurin_I_over_twopi(Complex alpha, int n, int j, Double e
             p_prev[s] = pow(n, j - s) * binomial_coefficient(j, s);
         }
         */
-        Double n_power = 1.0;
+        double n_power = 1.0;
         for(int s = 0; s <= j; s++) {
             //p_prev[s] = pow(2, -j) * pow(n, -s) * binomial_coefficient(j, s);
             p_prev[j - s] = n_power * binomial_coefficient(j, s);
@@ -1222,11 +1224,8 @@ Complex G_via_Euler_MacLaurin_I_over_twopi(Complex alpha, int n, int j, Double e
         }
     }
 
-
-    Double N_power = 1;
-    Double N_power_multiplier = 1.0/(N * N);
-
-
+    double N_power = 1;
+    double N_power_multiplier = 1.0/(N * N);
 
     while(4 * error > epsilon * epsilon) {
         if(r > 1) {
@@ -1237,17 +1236,17 @@ Complex G_via_Euler_MacLaurin_I_over_twopi(Complex alpha, int n, int j, Double e
         }
         g_derivative_polynomial_I_over_twopi(2 * r - 1 + j, p, p_prev, alpha);
 
-        Complex derivative_at_1 = (Complex)0;
+        complex<double> derivative_at_1 = (complex<double>)0;
         for(int k = 0; k <= 2 * r - 1 + j; k++) {
             derivative_at_1 = derivative_at_1 + p[k];
         }
         //derivative_at_1 *= exp(2 * PI * I * alpha - 1.0);
         derivative_at_1 *= exp_factor_at_1;
-        Complex derivative_at_0 = p[0];
+        complex<double> derivative_at_0 = p[0];
 
         N_power *= N_power_multiplier;
-        //Complex z = N_power * bernoulli_table[2 * r]/factorial(2 * r) * (derivative_at_1 - derivative_at_0);
-        Complex z = N_power * bernoulli_over_factorial(2*r) * (derivative_at_1 - derivative_at_0);
+        //complex<double> z = N_power * bernoulli_table[2 * r]/factorial(2 * r) * (derivative_at_1 - derivative_at_0);
+        complex<double> z = N_power * bernoulli_over_factorial(2*r) * (derivative_at_1 - derivative_at_0);
 
         S = S - z;
         error = norm(z);
