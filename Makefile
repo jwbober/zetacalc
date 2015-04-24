@@ -1,12 +1,11 @@
 CC = g++
 CXX = g++
-CXXFLAGS = -msse2 -mfpmath=sse -Wall -ffast-math -pthread -Winline -O3 -fno-omit-frame-pointer -g -std=c++11 -Iinclude
-H_CXXFLAGS = -msse2 -mfpmath=sse -Wall -pthread  -O3 -fno-omit-frame-pointer -g -std=c++11 -Iinclude
+CXXFLAGS = -march=native -Wall -ffast-math -pthread -Winline -O3 -g -std=c++11 -Iinclude
+H_CXXFLAGS = -march=native -Wall -pthread  -O3 -g -std=c++11 -Iinclude
 
 #OPTIONS = -msse2 -mfpmath=sse -Wall -ffast-math -pthread -Winline  -O3 -fno-omit-frame-pointer -g -std=c++11
 
 LDFLAGS = -lmpfr -lgmp -lgmpxx -pthread -g
-
 #HOSTNAME = $(shell hostname)
 #ifeq ($(HOSTNAME),riemann)
 #	LIBS += -L `sage -root`/local/lib
@@ -46,7 +45,8 @@ OBJECTS = $(MAIN_SUM_OBJECTS) \
 
 EXECUTABLES = zetacalc \
 	      test \
-	      tests/mainsum_tests
+	      tests/mainsum_tests \
+	      tests/Htest
 
 zetacalc: $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) zetacalc.o
 	$(CXX) -o zetacalc zetacalc.o $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) $(LDFLAGS)
@@ -62,7 +62,10 @@ theta_sums/H_functions.o: theta_sums/H_functions.cc
 test: $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) test.o
 	$(CXX) -o test test.o $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) $(LDFLAGS)
 
-tests: tests/mainsum_tests
+tests: tests/mainsum_tests tests/Htest
+
+tests/%: tests/%.o $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS)
+	$(CXX) -o $@ $< $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) $(LDFLAGS)
 
 tests/mainsum_tests:  tests/mainsum_tests.o $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS)
 	$(CXX) -o tests/mainsum_tests tests/mainsum_tests.o $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) $(LDFLAGS)
