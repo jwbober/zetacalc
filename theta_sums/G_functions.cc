@@ -40,7 +40,7 @@
 #include <cmath>
 
 using std::complex;
-using std::pow;
+using misc::pow;
 using std::max;
 
 complex<double> G_method1_I_over_twopi(complex<double> alpha, int n, int j, double epsilon);

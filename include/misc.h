@@ -1,5 +1,8 @@
-
 #define BUILTIN_EXPECT(a, b) __builtin_expect( (a), (b) )
+
+#include <cmath>
+#include <complex>
+#include "mpfr.h"
 
 typedef double Double;
 typedef std::complex<double> Complex;
@@ -14,18 +17,22 @@ const double PI = 3.14159265358979323846264338327950288;
 const double E = 2.7182818284590452353602874713526624977572470936999595749670;
 const std::complex<double> I = std::complex<double>(0, 1);
 
-
-inline double pow(int a, int b) {
-    return pow((double)a, (double)b);
+namespace misc {
+    double pow(double x, int exponent);
 }
 
-inline double pow(int a, double b) {
-    return pow((double)a, (double)b);
-}
+//inline double pow(int a, int b) {
+//    return pow((double)a, (double)b);
+//}
 
-inline double pow(int a, unsigned int b) {
-    return pow((double)a, (double)b);
-}
+//inline double pow(int a, double b) {
+//    return pow((double)a, (double)b);
+//}
+
+//inline double pow(int a, unsigned int b) {
+//    return pow((double)a, (double)b);
+//}
+
 
 inline int to_int(int x) {
     return x;

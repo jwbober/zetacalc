@@ -34,7 +34,8 @@ MAIN_SUM_OBJECTS = \
 		   main_sum/stage3.o
 
 OTHER_OBJECTS = \
-		log/log.o
+		log/log.o \
+		misc/pow.o
 
 OBJECTS = $(MAIN_SUM_OBJECTS) \
 	  $(THETA_SUM_OBJECTS) \
