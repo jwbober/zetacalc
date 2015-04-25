@@ -91,18 +91,18 @@ complex<double> G_deprecated(complex<double> alpha, complex<double> b, int n, in
     double norm_b = norm(b);
 
     if(method == 0) {
-//        if(abs(alpha) < 5) {
+//        if(std::abs(alpha) < 5) {
 //            return exp(I * alpha);
 //        }
-        //if(abs(alpha) < 1.5) {
+        //if(std::abs(alpha) < 1.5) {
         if(norm_alpha < 2.25) {
             method = 2;
         }
-        //else if( (1.5 <= abs(alpha)) && (abs(alpha) <= 2.5) && abs(b) > .024) {
+        //else if( (1.5 <= std::abs(alpha)) && (std::abs(alpha) <= 2.5) && std::abs(b) > .024) {
         else if( (2.25 <= norm_alpha) && (norm_alpha <= 6.25) && norm_b > .000576) {
             method = 2;
         }
-        //else if( (abs(alpha) >= 2.5) && (abs(alpha) - 2.0)/10.0 < abs(b)) {
+        //else if( (std::abs(alpha) >= 2.5) && (std::abs(alpha) - 2.0)/10.0 < std::abs(b)) {
         else if( (norm_alpha >= 6.25) && (norm_alpha - 4.0) < 100 * norm_b) {
             method = 2;
         }
@@ -161,21 +161,21 @@ complex<double> G(complex<double> alpha, double b, int n, int j, double epsilon,
     //
 
     double norm_alpha = norm(alpha);
-    double norm_b = abs(b) * abs(b);
+    double norm_b = std::abs(b) * std::abs(b);
 
     if(method == 0) {
-//        if(abs(alpha) < 5) {
+//        if(std::abs(alpha) < 5) {
 //            return exp(I * alpha);
 //        }
-        //if(abs(alpha) < 1.5) {
+        //if(std::abs(alpha) < 1.5) {
         if(norm_alpha < 2.25) {
             method = 2;
         }
-        //else if( (1.5 <= abs(alpha)) && (abs(alpha) <= 2.5) && abs(b) > .024) {
-        else if( (2.25 <= norm_alpha) && (norm_alpha <= 6.25) && abs(b) > .024) {
+        //else if( (1.5 <= std::abs(alpha)) && (std::abs(alpha) <= 2.5) && std::abs(b) > .024) {
+        else if( (2.25 <= norm_alpha) && (norm_alpha <= 6.25) && std::abs(b) > .024) {
             method = 2;
         }
-        //else if( (abs(alpha) >= 2.5) && (abs(alpha) - 2.0)/10.0 < abs(b)) {
+        //else if( (std::abs(alpha) >= 2.5) && (std::abs(alpha) - 2.0)/10.0 < std::abs(b)) {
         else if( (norm_alpha >= 6.25) && (norm_alpha - 4.0) < 100 * norm_b) {
             method = 2;
         }
@@ -221,21 +221,21 @@ complex<double> G_I(complex<double> alpha, double b, int n, int j, double epsilo
     //
 
     double norm_alpha = norm(alpha);
-    double norm_b = abs(b) * abs(b);
+    double norm_b = std::abs(b) * std::abs(b);
 
     if(method == 0) {
-//        if(abs(alpha) < 5) {
+//        if(std::abs(alpha) < 5) {
 //            return exp(I * alpha);
 //        }
-        //if(abs(alpha) < 1.5) {
+        //if(std::abs(alpha) < 1.5) {
         if(norm_alpha < 2.25) {
             method = 2;
         }
-        //else if( (1.5 <= abs(alpha)) && (abs(alpha) <= 2.5) && abs(b) > .024) {
+        //else if( (1.5 <= std::abs(alpha)) && (std::abs(alpha) <= 2.5) && std::abs(b) > .024) {
         else if( (2.25 <= norm_alpha) && (norm_alpha <= 6.25) && norm_b > .000576) {
             method = 2;
         }
-        //else if( (abs(alpha) >= 2.5) && (abs(alpha) - 2.0)/10.0 < abs(b)) {
+        //else if( (std::abs(alpha) >= 2.5) && (std::abs(alpha) - 2.0)/10.0 < std::abs(b)) {
         else if( (norm_alpha >= 6.25) && (norm_alpha - 4.0) < 100 * norm_b) {
             method = 2;
         }
@@ -282,14 +282,14 @@ complex<double> G_I_over_twopi(complex<double> alpha, int n, int j, double epsil
     double norm_alpha = norm(alpha);
 
     if(method == 0) {
-//        if(abs(alpha) < 5) {
+//        if(std::abs(alpha) < 5) {
 //            return exp(I * alpha);
 //        }
-        //if(abs(alpha) < 1.5) {
+        //if(std::abs(alpha) < 1.5) {
         if(norm_alpha <= 6.25) {
             method = 2;
         }
-        //else if( (abs(alpha) >= 2.5) && (abs(alpha) - 2.0)/10.0 < abs(b)) {
+        //else if( (std::abs(alpha) >= 2.5) && (std::abs(alpha) - 2.0)/10.0 < std::abs(b)) {
         else if(norm_alpha - 4.0 < 25/(PI * PI)) {
             method = 2;
         }
@@ -340,11 +340,11 @@ complex<double> G_method1_deprecated(complex<double> alpha, complex<double> b, i
             Ib_power *= (I * b);
         }
         complex<double> s = Ib_power * two_pi_over_factorial_power(r);
-        complex<double> s2 = H(j + 2 * r, -I * alpha, epsilon/(2 * abs(s) * (double)N));
+        complex<double> s2 = H(j + 2 * r, -I * alpha, epsilon/(2 * std::abs(s) * (double)N));
         complex<double> z = s * s2;
         S = S + z;
         r++;
-        error = abs(s/(complex<double>)max( PI * abs(alpha) / (r + 1.0 + j/2),  (double)(2.0 * r + 1.0 + j)));
+        error = std::abs(s/(complex<double>)max( PI * std::abs(alpha) / (r + 1.0 + j/2),  (double)(2.0 * r + 1.0 + j)));
     }
 
 
@@ -390,11 +390,11 @@ complex<double> G_method1_R(complex<double> alpha, double b, int n, int j, doubl
         //Ib_power = (ib)^r
 
         double s = b_power * two_pi_over_factorial_power(r);
-        complex<double> s2 = H(j + 2 * r, -I * alpha, epsilon/(2 * abs(s) * (double)N));
+        complex<double> s2 = H(j + 2 * r, -I * alpha, epsilon/(2 * std::abs(s) * (double)N));
         complex<double> z = I_power(r) * s * s2;
         S = S + z;
         r++;
-        error = abs(s/max( PI * abs(alpha) / (r + 1.0 + j/2),  (double)(2.0 * r + 1.0 + j)));
+        error = std::abs(s/max( PI * std::abs(alpha) / (r + 1.0 + j/2),  (double)(2.0 * r + 1.0 + j)));
     }
 
     return S;
@@ -434,11 +434,11 @@ complex<double> G_method1_I(complex<double> alpha, double b, int n, int j, doubl
             Ib_power *= (-b);
         }
         double s = Ib_power * two_pi_over_factorial_power(r);
-        complex<double> s2 = H(j + 2 * r, -I * alpha, epsilon/(2 * abs(s) * (double)N));
+        complex<double> s2 = H(j + 2 * r, -I * alpha, epsilon/(2 * std::abs(s) * (double)N));
         complex<double> z = s * s2;
         S = S + z;
         r++;
-        error = abs(s/max( PI * abs(alpha) / (r + 1.0 + j/2),  (double)(2.0 * r + 1.0 + j)));
+        error = std::abs(s/max( PI * std::abs(alpha) / (r + 1.0 + j/2),  (double)(2.0 * r + 1.0 + j)));
     }
 
 
@@ -478,11 +478,11 @@ complex<double> G_method1_I_over_twopi(complex<double> alpha, int n, int j, doub
         // so this is just...
         //double s = Ib_power * two_pi_over_factorial_power(r);
         double s = minus_one_power(r) / factorial(r);
-        complex<double> s2 = H(j + 2 * r, -I * alpha, epsilon/(2 * abs(s) * (double)N));
+        complex<double> s2 = H(j + 2 * r, -I * alpha, epsilon/(2 * std::abs(s) * (double)N));
         complex<double> z = s * s2;
         S = S + z;
         r++;
-        error = abs(s/max( PI * abs(alpha) / (r + 1.0 + j/2),  (double)(2.0 * r + 1.0 + j)));
+        error = std::abs(s/max( PI * std::abs(alpha) / (r + 1.0 + j/2),  (double)(2.0 * r + 1.0 + j)));
     }
 
 
@@ -515,11 +515,11 @@ complex<double> G_via_Euler_MacLaurin_deprecated(complex<double> alpha, complex<
     //    return (complex<double>)0;
     //}
 
-    //int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((complex<double>)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 0.0) ) * (1 + j * log(n + 1)/4.0) )), 1);
+    //int N = 4 * max(to_int(ceil(  ( std::abs(alpha) + std::abs((complex<double>)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 0.0) ) * (1 + j * log(n + 1)/4.0) )), 1);
 
-//    int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((complex<double>)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) )), 1);
+//    int N = 4 * max(to_int(ceil(  ( std::abs(alpha) + std::abs((complex<double>)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) )), 1);
 
-    int N = to_int(ceil(  ( abs(alpha) + abs((double)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
+    int N = to_int(ceil(  ( std::abs(alpha) + std::abs((double)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
     N = 2 * max(N, 1);
 
 
@@ -768,11 +768,11 @@ complex<double> G_via_Euler_MacLaurin_R(complex<double> alpha, double b, int n, 
     //    return (complex<double>)0;
     //}
 
-    //int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((complex<double>)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 0.0) ) * (1 + j * log(n + 1)/4.0) )), 1);
+    //int N = 4 * max(to_int(ceil(  ( std::abs(alpha) + std::abs((complex<double>)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 0.0) ) * (1 + j * log(n + 1)/4.0) )), 1);
 
-//    int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((complex<double>)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) )), 1);
+//    int N = 4 * max(to_int(ceil(  ( std::abs(alpha) + std::abs((complex<double>)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) )), 1);
 
-    int N = to_int(ceil(  ( abs(alpha) + abs(2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
+    int N = to_int(ceil(  ( std::abs(alpha) + std::abs(2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
     N = 2 * max(N, 1);
 
     /*
@@ -977,11 +977,11 @@ complex<double> G_via_Euler_MacLaurin_I(complex<double> alpha, double b, int n, 
     //    return (complex<double>)0;
     //}
 
-    //int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((complex<double>)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 0.0) ) * (1 + j * log(n + 1)/4.0) )), 1);
+    //int N = 4 * max(to_int(ceil(  ( std::abs(alpha) + std::abs((complex<double>)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 0.0) ) * (1 + j * log(n + 1)/4.0) )), 1);
 
-//    int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((complex<double>)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) )), 1);
+//    int N = 4 * max(to_int(ceil(  ( std::abs(alpha) + std::abs((complex<double>)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) )), 1);
 
-    int N = to_int(ceil(  ( abs(alpha) + abs((double)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
+    int N = to_int(ceil(  ( std::abs(alpha) + std::abs((double)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
     N = 2 * max(N, 1);
 
 
@@ -1124,11 +1124,11 @@ complex<double> G_via_Euler_MacLaurin_I_over_twopi(complex<double> alpha, int n,
     //    return (complex<double>)0;
     //}
 
-    //int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((complex<double>)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 0.0) ) * (1 + j * log(n + 1)/4.0) )), 1);
+    //int N = 4 * max(to_int(ceil(  ( std::abs(alpha) + std::abs((complex<double>)2.0 * b) + max(-LOG(epsilon)/(2 * PI), 0.0) ) * (1 + j * log(n + 1)/4.0) )), 1);
 
-//    int N = 4 * max(to_int(ceil(  ( abs(alpha) + abs((complex<double>)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) )), 1);
+//    int N = 4 * max(to_int(ceil(  ( std::abs(alpha) + std::abs((complex<double>)2.0 * b) + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) )), 1);
 
-    int N = to_int(ceil(  ( abs(alpha) + 1/PI + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
+    int N = to_int(ceil(  ( std::abs(alpha) + 1/PI + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
     N = 2 * max(N, 1);
 
 
