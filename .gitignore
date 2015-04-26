@@ -4,3 +4,9 @@ build/
 zetacalc
 *.swp
 thetatest
+thetatime
+*.prof
+*.pdf
+Htest
+zc_partial_sum
+mainsum_tests

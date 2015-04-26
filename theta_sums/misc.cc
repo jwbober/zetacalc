@@ -1,15 +1,22 @@
 #include <cmath>
 #include <iostream>
 #include <complex>
-#include "mpfr.h"
-
+//#include "mpfr.h"
 
 //#include "misc.h"
 #include "theta_sums.h"
 #include "precomputed_tables.h"
 #include "log.h"
 
-using namespace std;
+//using namespace std;
+
+using std::max;
+using std::min;
+using std::endl;
+using std::cout;
+using std::log;
+
+using misc::pow;
 
 Double infinite_sum_of_differenced_inverse_powers(Double a1, Double a2, int m, int j, Double epsilon) {
     //
@@ -29,8 +36,7 @@ Double infinite_sum_of_differenced_inverse_powers(Double a1, Double a2, int m, i
         S += pow( k + a1, -j ) - pow(k + a2, -j);
     }
 
-//    cout << "Length of direct computation: " << new_m - m << endl;
-
+    // cout << "Length of direct computation: " << new_m - m << endl;
     m = new_m;
 
     if(j == 1) {
@@ -62,14 +68,15 @@ Double infinite_sum_of_differenced_inverse_powers(Double a1, Double a2, int m, i
         m_plus_a1_power *= m_plus_a1_pow_minus_2;
         m_plus_a2_power *= m_plus_a2_pow_minus_2;
 
-        error = abs(z);
+        error = std::abs(z);
         //cout << error << endl;
         //cout << a1 << "   " << a2 << "   " << m << "   " << j << endl;
         S = S + z;
         r++;
     }
 
-//    cout << "Number of correction terms: " << r - 1 << endl;
+    //cout << j << " " << r << " " << epsilon << " " << S <<  endl;
+
     return S;
 
 }
@@ -82,11 +89,11 @@ Double sum_of_offset_inverse_powers(Double a, int m, int M, int j, Double epsilo
     // method = 0 corresponds to a general method which may evaluate the first few terms
     //    directly and then use Euler-Maclaurin summation for the tail.
     // method = anything else uses direct evaluation, and is just there for debugging purposes.
-    
+
     Double S = 0;
 
 
-    /* It doesn't seem good to put in the following code. 
+    /* It doesn't seem good to put in the following code.
      * It has just about no effect, but might slow things down
      * just a little bit. Probably in the cases where we
      * could return zero immediately we end up computing
@@ -121,7 +128,7 @@ Double sum_of_offset_inverse_powers(Double a, int m, int M, int j, Double epsilo
 
         return S;
     }
-    
+
     // We calculate a few terms directly before we use Euler-Maclaurin summation,
     // so that the Euler-Maclaurin summation can calculate a good enough error term.
 
@@ -200,7 +207,7 @@ Double sum_of_offset_inverse_powers(Double a, int m, int M, int j, Double epsilo
             m_plus_a_power *= one_over_m_plus_a_squared;
             M_plus_a_power *= one_over_M_plus_a_squared;
 
-            error = abs(z);
+            error = std::abs(z);
             S = S + z;
             r++;
         }
@@ -210,7 +217,7 @@ Double sum_of_offset_inverse_powers(Double a, int m, int M, int j, Double epsilo
             Double z = bernoulli_table[2 * r] / ( factorial(2 * r) * factorial(j - 1) ) * factorial(2 * r - 2 + j) * m_plus_a_power;
             m_plus_a_power *= one_over_m_plus_a_squared;
 
-            error = abs(z);
+            error = std::abs(z);
             S = S + z;
             r++;
         }
@@ -273,7 +280,7 @@ Complex ExpAB(mpfr_t A, mpfr_t B) {
     mpfr_div(tmp, tmp, B, GMP_RNDN);
 
     mpfr_frac(tmp, tmp, GMP_RNDN);
-    
+
     Complex S = EXP(-2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
     mpfr_clear(tmp);
     return S;
@@ -291,7 +298,7 @@ Complex ExpABK(mpfr_t A, mpfr_t B, int K) {
 
     mpfr_init2(real_part, 53);
     mpfr_init2(imag_part, 53);
-    
+
     mpfr_init2(t1, mpfr_get_prec(A));
     mpfr_init2(t2, mpfr_get_prec(A));
 

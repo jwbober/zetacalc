@@ -12,7 +12,7 @@
 
 using namespace std;
 
-Complex H_Integral_0(int j, Double a, int M, Double epsilon) {
+complex<double> H_Integral_0(int j, double a, int M, double epsilon) {
     //
     // Compute the integral int_0^1 t^j exp(-2 pi a t) (1 - exp(-2 pi M t))/(exp(2 pi t) - 1)dt,
     // which can be written (by expanding the geometric sum) as
@@ -33,20 +33,19 @@ Complex H_Integral_0(int j, Double a, int M, Double epsilon) {
     // small m is just m < C = max(j, ceil(-log(epsilon)/2pi)
     //
 
-    Complex S = (Complex)0;
+    complex<double> S = 0.0;
 
     //int C = max(to_int(ceil(j/(2 * PI * E))), to_int(ceil(-LOG(epsilon)/(2 * PI))) );
     int C = max(to_int(ceil(j/(2 * PI * E))), to_int(ceil(-fastlog(epsilon)/(2 * PI))) );
-    //int C = ceil(max(j/E, -(Double)(fastlog(epsilon)))/2 * PI) ;
+    //int C = ceil(max(j/E, -(double)(fastlog(epsilon)))/2 * PI) ;
 
     if(M != -1) {
         C = min(M, C);
     }
 
     if(j == 0) {
-
-        // compute H(j, a + m) as )1 - exp(-2pi(a + m)))/(2pi(a + m))
-        // 
+        // compute H(j, a + m) as (1 - exp(-2pi(a + m)))/(2pi(a + m))
+        //
         // since a + m > 1, this will work ok, and when we increase m we can
         // compute the exponential just by multiplying
 
@@ -67,7 +66,7 @@ Complex H_Integral_0(int j, Double a, int M, Double epsilon) {
             return 0.0;
 
         for(int m = 1; m <= C; m++) {
-            Complex z = H(j, a + m, epsilon/(C + 1));
+            complex<double> z = H(j, a + m, epsilon/(C + 1));
             S = S + z;
         }
     }
@@ -75,8 +74,8 @@ Complex H_Integral_0(int j, Double a, int M, Double epsilon) {
     if(C == M) {
         return S;
     }
-    
-    Double z = factorial(j)/two_pi_power(j + 1);
+
+    double z = factorial(j)/two_pi_power(j + 1);
 
     S = S + z * sum_of_offset_inverse_powers(a, C + 1, M, j+1, epsilon/z);
 
@@ -84,19 +83,95 @@ Complex H_Integral_0(int j, Double a, int M, Double epsilon) {
 
 }
 
-Complex H_Integral_2(int j, Double a1, Double a2, Double epsilon) {
+void H_Integral_0(double * HI, int j, double a, int M, double * epsilon) {
+    // For each l <= j, compute the integral
+    //
+    // int_0^1 t^l exp(-2 pi a t) (1 - exp(-2 pi M t))/(exp(2 pi t) - 1)dt,
+    //
+    // and set HI[l] equal to it. This integral can be written
+    // (by expanding the geometric sum) as
+    //
+    // sum_{m=1}^M int_0^1 t^j exp(-2 pi (a + m) t) dt
+    //
+    // In terms of our function H(j, a, epsilon), this is
+    //
+    // sum_{m=1}^M H(j, a + m, epsilon/(2 l + 1)
+    //
+    // We don't want to compute all of these terms directly, however, because
+    // M can be large. We separate this into the case of small m, where
+    // we compute directly, and then large m, where the antiderivative
+    // can be approximated simply. We compute "simple" approximation
+    // with Euler-Maclaurin summation.
+    //
+    // small m is just m < C = max(l, ceil(-log(epsilon)/2pi)
+    //
 
-    Complex S = (Complex)0;
+    // dummy implementation for the moment...
+
+    //cout << 2*PI*(a + 1) << " " << j/2.0 << endl;
+
+    for(int l = 0; l <= j; l++) {
+        //HI[l] = real(H_Integral_0(l, a, M, epsilon[l]));
+        HI[l] = 0;
+    }
+
+    double min_epsilon = 1000;
+    for(int k = 0; k <= j; k++) if(epsilon[k] < min_epsilon) min_epsilon = epsilon[k];
+
+    int C = ceil( max( (j * (1.0/(2 * PI * E))),
+                        -fastlog(min_epsilon) * (1.0/(2 * PI))) );
+
+    if(M != -1) {
+        C = min(M, C);
+    }
+
+    // For l == 0, we compute H(0, a + m) as (1 - exp(-2pi(a + m)))/(2pi(a + m))
+    //
+    // since a + m > 1, this will work ok. When we increase m we can compute
+    // the exponential just by multiplying.
+    //
+    // For larger l, we use H(l, a + m) = 1/(2*pi*(a + m)) (l*H(j - 1, a + m) - exp(-2 pi (a + m))).
+    // I hope this works ok. I'm pretty sure it won't introduce any bad loss of precision...
+
+    double exp_m2pi_alpha = exp(-2 * M_PI * (a + 1));
+    double exp_m2pi = exp(-2 * M_PI);
+
+    for(int m = 1; m <= C; m++) {
+        double one_over_two_pi_alpha = 1.0/(2.0 * M_PI * (a + m));
+        double Hvalue = (1 - exp_m2pi_alpha) * one_over_two_pi_alpha; // H(0, a + m)
+        HI[0] += Hvalue;
+
+        for(int l = 1; l <= j; l++) {
+            Hvalue = (l*Hvalue - exp_m2pi_alpha) * one_over_two_pi_alpha;
+            //cout << l << " " << Hvalue << " " << H(l, a + m, min_epsilon) << endl;
+            HI[l] += Hvalue;
+        }
+        exp_m2pi_alpha *= exp_m2pi;
+    }
+
+    if(C == M) {
+        return;
+    }
+
+    for(int l = 0; l <= j; l++) {
+        double z = factorial(l)/two_pi_power(l + 1);
+        HI[l] = HI[l] + z * sum_of_offset_inverse_powers(a, C + 1, M, l+1, epsilon[l]/z);
+    }
+}
+
+complex<double> H_Integral_2(int j, double a1, double a2, double epsilon) {
+
+    complex<double> S = (complex<double>)0;
 
     int C = max(to_int(ceil(j/(2*PI*E))), to_int(ceil(-fastlog(epsilon)/(2 * PI) ) ));
 
     if(epsilon*j > 2 * C) {
         return 0.0;
     }
-    
+
     if(j == 0) {
         // compute H(j, a + m) as )1 - exp(-2pi(a + m)))/(2pi(a + m))
-        // 
+        //
         // since a + m > 1, this will work ok, and when we increase m we can
         // compute the exponential just by multiplying
 
@@ -128,7 +203,7 @@ Complex H_Integral_2(int j, Double a1, Double a2, Double epsilon) {
     }
     else if(j % 2 == 0) {
         for(int m = 1; m <= C; m++) {
-            Complex z = H(j, m + a1, epsilon/(C + 1)) - H(j, m + a2, epsilon/(C + 1));
+            complex<double> z = H(j, m + a1, epsilon/(C + 1)) - H(j, m + a2, epsilon/(C + 1));
             S = S + z;
         }
 
@@ -136,7 +211,7 @@ Complex H_Integral_2(int j, Double a1, Double a2, Double epsilon) {
     }
     else {
         for(int m = 1; m <= C; m++) {
-            Complex z = H(j, m + a1, epsilon/(C + 1)) + H(j, m + a2, epsilon/(C + 1));
+            complex<double> z = H(j, m + a1, epsilon/(C + 1)) + H(j, m + a2, epsilon/(C + 1));
             S = S + z;
         }
         S = S + factorial(j)/two_pi_power(j + 1) * (sum_of_offset_inverse_powers(a1, C + 1, -1, j + 1, epsilon) + sum_of_offset_inverse_powers(a2, C + 1, -1, j + 1, epsilon));
@@ -172,9 +247,9 @@ void J_Integral_0(complex<double> * J, double a, double b, int j, int M, theta_c
     // To compute the integral for a given value of j, we do a taylor
     // expansion on the term exp(-2pi i b t^2), and rewrite the integral as
     //
-    //  oo           
+    //  oo
     // ---         r /1
-    // \   (-2pi b)  |   j + 2r                  1 - exp(-2 pi M t)  
+    // \   (-2pi b)  |   j + 2r                  1 - exp(-2 pi M t)
     //  )   ------   |  t       exp( - 2pi a t) ------------------- dt
     // /      r!     |                             exp(2 pi t) - 1
     // ---           /0
@@ -203,7 +278,7 @@ void J_Integral_0(complex<double> * J, double a, double b, int j, int M, theta_c
 
     // -- then compute a list of values (2 pi b)^r / r! until they are
     //    smaller than small_epsilon
-    
+
     vector<double> Z; Z.reserve(30); //  I expect that it should be rare for r to be this
                                      //  large. (I don't know what is optimal here. We
                                      //  could just allocate space for an array of size
@@ -251,16 +326,18 @@ void J_Integral_0(complex<double> * J, double a, double b, int j, int M, theta_c
     }
     for(int l = 0; l <= j; l++) {
         for(int r = 0; r <= R; r++) {
-            new_epsilon[l + 2 * r] = min(epsilon[l]/Z[r], new_epsilon[l + 2*r]);
+            new_epsilon[l + 2 * r] = min(epsilon[l]/Z[r], new_epsilon[l + 2*r])/Z.size();
         }
     }
     //double smaller_epsilon = small_epsilon/(largest_Z + Z.size());
-    for(int l = 0; l <= j + 2 * R; l++) {
-        H_integrals[l] = real(H_Integral_0(l, a, M, new_epsilon[l]/Z.size())); // REMARK: H_Integral_0
-                                                                               // is always real, so
-                                                                               // it is stupid that it
-                                                                               // does complex arithmetic.
-    }
+    //for(int l = 0; l <= j + 2 * R; l++) {
+    //    H_integrals[l] = real(H_Integral_0(l, a, M, new_epsilon[l])); // REMARK: H_Integral_0
+    //                                                                           // is always real, so
+    //                                                                           // it is stupid that it
+    //                                                                           // does complex arithmetic.
+    //}
+
+    H_Integral_0(H_integrals, j + 2*R, a, M, new_epsilon);
 
     // -- Now we finally compute the integrals that we are looking for. We have
     //
@@ -271,12 +348,12 @@ void J_Integral_0(complex<double> * J, double a, double b, int j, int M, theta_c
         for(int r = 0; r <= R; r += 4) {
             double x = J[l].real();
             double y = J[l].imag();
-            
+
             //real(J[l]) += Z[r]     * H_integrals[l + 2*r];          // (-i)^0 ==  1
             //imag(J[l]) -= Z[r + 1] * H_integrals[l + 2*(r + 1)];    // (-i)^1 == -i
             //real(J[l]) -= Z[r + 2] * H_integrals[l + 2*(r + 2)];    // (-i)^2 == -1
             //imag(J[l]) += Z[r + 3] * H_integrals[l + 2*(r + 3)];    // (-i)^3 == i
-            
+
             x += Z[r]     * H_integrals[l + 2*r];          // (-i)^0 ==  1
             y -= Z[r + 1] * H_integrals[l + 2*(r + 1)];    // (-i)^1 == -i
             x -= Z[r + 2] * H_integrals[l + 2*(r + 2)];    // (-i)^2 == -1
@@ -337,7 +414,7 @@ void J_Integral_2(complex<double> * J, double a1, double a2, double b, int j, th
 
     // -- then compute a list of values (2 pi b)^r / r! until they are
     //    smaller than small_epsilon
-    
+
     vector<double> Z; Z.reserve(30); //  I expect that it should be rare for r to be this
                                      //  large. (I don't know what is optimal here. We
                                      //  could just allocate space for an array of size
@@ -405,12 +482,12 @@ void J_Integral_2(complex<double> * J, double a1, double a2, double b, int j, th
         for(int r = 0; r <= R; r += 4) {
             double x = J[l].real();
             double y = J[l].imag();
-            
+
             //real(J[l]) += Z[r]     * H_integrals[l + 2*r];          // (-i)^0 ==  1
             //imag(J[l]) -= Z[r + 1] * H_integrals[l + 2*(r + 1)];    // (-i)^1 == -i
             //real(J[l]) -= Z[r + 2] * H_integrals[l + 2*(r + 2)];    // (-i)^2 == -1
             //imag(J[l]) += Z[r + 3] * H_integrals[l + 2*(r + 3)];    // (-i)^3 == i
-            
+
             x += Z[r]     * H_integrals[l + 2*r];          // (-i)^0 ==  1
             y -= Z[r + 1] * H_integrals[l + 2*(r + 1)];    // (-i)^1 == -i
             x -= Z[r + 2] * H_integrals[l + 2*(r + 2)];    // (-i)^2 == -1
@@ -433,7 +510,7 @@ void J_Integral_2(complex<double> * J, double a1, double a2, double b, int j, th
     //}
 }
 
-Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon) {
+complex<double> J_Integral_0(double a, double b, int j, int M, int K, theta_cache * cache, double epsilon) {
     //
     // Compute the integral (1/K^j) int_0^1 t^j exp(-2 pi a t - 2 pi i b t^2) (1 - exp(-2 pi M t))/(exp(2 pi t) - 1) dt
     //
@@ -444,8 +521,8 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cach
     //
     // -1 corresponds to infinity
 
-    Double K_pow_j;
-    Double K_pow_minus_j;
+    double K_pow_j;
+    double K_pow_minus_j;
     if(cache) {
         K_pow_j = K_power(j, cache);
         K_pow_minus_j = K_power(-j, cache);
@@ -455,30 +532,30 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cach
         K_pow_minus_j = 1.0/K_pow_j;
     }
 
-    
 
-    //if(2 * pow(K, -j) * log(abs((Double)M) + 10) < epsilon) {
+
+    //if(2 * pow(K, -j) * log(abs((double)M) + 10) < epsilon) {
     if( 3 + fastlog2(K_pow_minus_j) + fastlog2(fastlog(abs(M) + 10.0)) < fastlog2(epsilon)) {
         return 0.0;
     }
     epsilon = epsilon * K_pow_j;
 
-    Complex S = (Complex)0;
+    complex<double> S = (complex<double>)0;
 
     int r = 0;
-    Double error = 2 * epsilon;
-    
+    double error = 2 * epsilon;
+
     if(b == 0) {
-        Complex answer = H_Integral_0(j, a, M, epsilon)*K_pow_minus_j;
+        complex<double> answer = H_Integral_0(j, a, M, epsilon)*K_pow_minus_j;
         return answer;
     }
-    
+
     int N = max(1, to_int(ceil(-fastlog(epsilon))));    // an approximation of the number of terms
                                                         // we compute in the taylor expansion
 
-    Double b_power = (Double)1.0;
+    double b_power = (double)1.0;
     while(error > epsilon) {
-        Complex z = minus_I_power(r) * two_pi_over_factorial_power(r) * b_power;
+        complex<double> z = minus_I_power(r) * two_pi_over_factorial_power(r) * b_power;
         error = abs(z);
         z *= H_Integral_0(2 * r + j, a, M, epsilon/(error *N));     // TODO: We really don't need to compute this term to
                                                                     // this much precision usually. We really should figure
@@ -496,13 +573,13 @@ Complex J_Integral_0(Double a, Double b, int j, int M, int K, theta_cache * cach
 }
 
 
-Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cache, Double epsilon) {
+complex<double> J_Integral_1(double a, double b, int j, int M, int K, theta_cache * cache, double epsilon) {
     //
     // Compute the integral int_1^K t^j exp(-2 pi a t - 2 pi i b t^2)(1 - exp(-2 pi M t))/(exp(2 pi t) - 1) dt
     //
     // If M == -1, then we treat it as positive infinity.
     //
-    
+
     // We truncate the integral at L, where L is given by
 
     //int L = min(K, max(1, to_int(ceil(-LOG(epsilon)/(2 * PI * (1 + a))))));
@@ -511,7 +588,7 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
     if(L <= 1) {
         return 0.0;
     }
-    L = max(1.0, L - j * fastlog( (Double)K * inverse(L + 1)) * (1.0/(2 * PI)) );
+    L = max(1.0, L - j * fastlog( (double)K * inverse(L + 1)) * (1.0/(2 * PI)) );
     L = min(K, L);
 
 
@@ -524,9 +601,9 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
     // the range of integration between 0 and 1, and reduce the computation
     // to a sum of exponentials times G()
 
-    Complex S = (Complex)0;
+    complex<double> S = (complex<double>)0;
 
-    Double one_over_K_to_the_j;
+    double one_over_K_to_the_j;
     if(cache)
         one_over_K_to_the_j = K_power(-j, cache);
     else
@@ -536,31 +613,31 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
         return 0.0;
     }
 
-    Double exp_minus_twopi = EXP(-2.0 * PI);
-    Double exp_minus_twopi_n = 1.0;
+    double exp_minus_twopi = EXP(-2.0 * PI);
+    double exp_minus_twopi_n = 1.0;
 
-    for(Double n = (Double)1; n <= L - 1; n = n + 1) {
+    for(double n = (double)1; n <= L - 1; n = n + 1) {
         exp_minus_twopi_n *= exp_minus_twopi;
         int end_point;
         if(M == -1) {
-            end_point = to_int(ceil(-fastlog(epsilon/(2 * L))/(2 * PI * n) -  j * fastlog((Double)K/(n + 1))/(2 * PI) ));
+            end_point = to_int(ceil(-fastlog(epsilon/(2 * L))/(2 * PI * n) -  j * fastlog((double)K/(n + 1))/(2 * PI) ));
         }
         else {
-            end_point = min(M, to_int(ceil(-fastlog(epsilon/(2 * L))/(2 * PI * n) - j * fastlog((Double)K/(n + 1))/(2 * PI))  )  );
+            end_point = min(M, to_int(ceil(-fastlog(epsilon/(2 * L))/(2 * PI * n) - j * fastlog((double)K/(n + 1))/(2 * PI))  )  );
         }
 
         end_point = max(1, end_point);
 
-        Complex S1 = 0;
+        complex<double> S1 = 0;
 
-        Complex x = EXP(-2.0 * PI * n * (1.0 + a + I * b * n));
+        complex<double> x = EXP(-2.0 * PI * n * (1.0 + a + I * b * n));
 
-        for(Double m = (Double)1; m <= end_point; m = m + 1) {
-            
+        for(double m = (double)1; m <= end_point; m = m + 1) {
+
             if(m > 1)
                 x = x * exp_minus_twopi_n;
 
-            Complex z =  G(I*(m + a + (Complex)2.0 * I * b * n), -b, n, j, epsilon/(abs(x) * end_point * Double(L - 1) * one_over_K_to_the_j));
+            complex<double> z =  G(I*(m + a + (complex<double>)2.0 * I * b * n), -b, n, j, epsilon/(abs(x) * end_point * double(L - 1) * one_over_K_to_the_j));
             z *= x;
             S1 = S1 + z;
         }
@@ -572,11 +649,11 @@ Complex J_Integral_1(Double a, Double b, int j, int M, int K, theta_cache * cach
     return S;
 
 }
-Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double epsilon) {
+complex<double> J_Integral_2(double a1, double a2, double b, theta_cache * cache, double epsilon) {
     //
     // Compute the integral int_0^1 exp(-2 pi i b t^2) (exp(-2 pi a1 t) - exp(-2 pi a2 t))(exp(2 pi t) - 1) dt,
     //
-    // which is equal to 
+    // which is equal to
     //
     // lim_{M --> oo} J_Integral_0(a1, b, M) - J_Integral_0(a2, b, M)
     //
@@ -594,26 +671,26 @@ Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double
         }
     }
 
-    Complex S = (Complex)0;
+    complex<double> S = (complex<double>)0;
 
     int r = 0;
-    Double error = 2 * epsilon;
+    double error = 2 * epsilon;
     int sign = -1;
-    
+
     if(b == 0) {
-        Complex answer = H_Integral_2(0, a1, a2, epsilon);
+        complex<double> answer = H_Integral_2(0, a1, a2, epsilon);
         return answer;
     }
-   
+
     int N = max(1, to_int(-fastlog(epsilon)));
 
-    Complex Ib_power = (Complex)1.0/(I * b);
+    complex<double> Ib_power = (complex<double>)1.0/(I * b);
     while(error > epsilon) {
         sign = -sign;
         Ib_power *= (I * b);
-        Complex z = sign * two_pi_over_factorial_power(r) * Ib_power;
+        complex<double> z = sign * two_pi_over_factorial_power(r) * Ib_power;
         error = abs(z);
-        
+
         z *= H_Integral_2(2 * r, a1, a2, epsilon/(error * N));  // TODO: We really don't need to compute this term to
                                                                                 // this much precision usually. We really should figure
                                                                                 // our how many terms we are going to compute
@@ -628,7 +705,7 @@ Complex J_Integral_2(Double a1, Double a2, Double b, theta_cache * cache, Double
 
 }
 
-void JBulk(complex<double> * J, Double a, Double b,
+void JBulk(complex<double> * J, double a, double b,
            int j, int M, int K, theta_cache * cache, double * epsilon) {
 
     for(int l = 0; l <= j; l++) {
@@ -674,10 +751,10 @@ void JBulk(complex<double> * J, Double a, Double b,
         }
         J[l] += B;
     }
-}                                                                                       
+}
 
 
-void JBoundary(complex<double> * J, double a1, double a2, double b, int j, int K, theta_cache * cache, double * epsilon){ 
+void JBoundary(complex<double> * J, double a1, double a2, double b, int j, int K, theta_cache * cache, double * epsilon){
     for(int l = 0; l <= j; l++) {
         J[l] = 0.0;
     }
@@ -703,7 +780,7 @@ void JBoundary(complex<double> * J, double a1, double a2, double b, int j, int K
         //if(l == 0)
         //    z = J_Integral_2(a1, a2, b, cache, epsilon[l]/2);
         //else
-        //    z = J_Integral_0(a1, b, l, -1, K, cache, epsilon[l]/2) + (Double)minus_one_power(l+1) * J_Integral_0(a2, b, l, -1, K, cache, epsilon[l]/2);
+        //    z = J_Integral_0(a1, b, l, -1, K, cache, epsilon[l]/2) + (double)minus_one_power(l+1) * J_Integral_0(a2, b, l, -1, K, cache, epsilon[l]/2);
         //double a = abs(J[l] - z);
         //if(a > epsilon[l]/2) {
         //    cout << z << " " << J[l] << " " << a << endl;
@@ -721,9 +798,9 @@ void JBoundary(complex<double> * J, double a1, double a2, double b, int j, int K
         double x = epsilon[l]/2;
         complex<double> B = 0.0;
         if(!std::isinf(x)) {
-            B = J_Integral_1(a1, b, l, -1, K, cache, x) + (Double)minus_one_power(l+1) * J_Integral_1(a2, b, l, -1, K, cache, x);
+            B = J_Integral_1(a1, b, l, -1, K, cache, x) + (double)minus_one_power(l+1) * J_Integral_1(a2, b, l, -1, K, cache, x);
         }
         J[l] += B;
     }
 
-}                                                                                     
+}

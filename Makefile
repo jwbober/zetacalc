@@ -5,7 +5,7 @@ H_CXXFLAGS = -march=native -Wall -pthread  -O3 -g -std=c++11 -Iinclude
 
 #OPTIONS = -msse2 -mfpmath=sse -Wall -ffast-math -pthread -Winline  -O3 -fno-omit-frame-pointer -g -std=c++11
 
-LDFLAGS = -lmpfr -lgmp -lgmpxx -pthread -g
+LDFLAGS = -lmpfr -lgmp -lgmpxx -pthread -g -Wl,--no-as-needed -lprofiler
 #HOSTNAME = $(shell hostname)
 #ifeq ($(HOSTNAME),riemann)
 #	LIBS += -L `sage -root`/local/lib
@@ -47,7 +47,8 @@ OBJECTS = $(MAIN_SUM_OBJECTS) \
 EXECUTABLES = zetacalc \
 	      test \
 	      tests/mainsum_tests \
-	      tests/Htest
+	      tests/Htest \
+	      tests/thetatime
 
 zetacalc: $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) zetacalc.o
 	$(CXX) -o zetacalc zetacalc.o $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) $(LDFLAGS)
@@ -63,13 +64,16 @@ theta_sums/H_functions.o: theta_sums/H_functions.cc
 test: $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) test.o
 	$(CXX) -o test test.o $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) $(LDFLAGS)
 
-tests: tests/mainsum_tests tests/Htest
+tests: tests/mainsum_tests tests/Htest tests/thetatime
 
 tests/%: tests/%.o $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS)
 	$(CXX) -o $@ $< $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) $(LDFLAGS)
 
 tests/mainsum_tests:  tests/mainsum_tests.o $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS)
 	$(CXX) -o tests/mainsum_tests tests/mainsum_tests.o $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) $(LDFLAGS)
+
+tests/thetatime: tests/thetatime.o $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS)
+	$(CXX) -o tests/thetatime tests/thetatime.o $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) $(LDFLAGS)
 
 #build/mainsum_tests.o: tests/mainsum_tests.cc include/main_sum.h include/theta_sums.h
 #	$(CXX) -c tests/mainsum_tests.cc $(OPTIONS) $(INCLUDEDIR) -o build/mainsum_tests.o

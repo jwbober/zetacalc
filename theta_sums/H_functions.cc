@@ -46,6 +46,7 @@ template <typename T> complex<double> H_method1(int j, T alpha) {
     // In this case we compute an "exact" value using the antiderivative of the integrand.
     // 
 
+    //cout << alpha << " " << j << endl;
     if(real(alpha) == 0) {
         return H_method1_I(j, imag(alpha));
     }
