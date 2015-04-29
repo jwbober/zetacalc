@@ -5,7 +5,11 @@ H_CXXFLAGS = -march=native -Wall -pthread  -O3 -g -std=c++11 -Iinclude
 
 #OPTIONS = -msse2 -mfpmath=sse -Wall -ffast-math -pthread -Winline  -O3 -fno-omit-frame-pointer -g -std=c++11
 
-LDFLAGS = -lmpfr -lgmp -lgmpxx -pthread -g -Wl,--no-as-needed -lprofiler
+LDFLAGS := -lmpfr -lgmp -lgmpxx -pthread -g
+ifdef PROFILE_BUILD
+    LDFLAGS := $(LDFLAGS) -Wl,--no-as-needed -lprofiler
+endif
+
 #HOSTNAME = $(shell hostname)
 #ifeq ($(HOSTNAME),riemann)
 #	LIBS += -L `sage -root`/local/lib
