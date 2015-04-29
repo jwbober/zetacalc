@@ -142,21 +142,43 @@ void H_Integral_0(double * HI, int j, double a, int M, double * epsilon) {
         HI[0] += Hvalue;
 
         for(int l = 1; l <= j; l++) {
-            Hvalue = (l*Hvalue - exp_m2pi_alpha) * one_over_two_pi_alpha;
-            //cout << l << " " << Hvalue << " " << H(l, a + m, min_epsilon) << endl;
+            double x = l*Hvalue - exp_m2pi_alpha;
+
+            if(x < exp_m2pi_alpha/2) {
+                // Without this possible correction, we can have terrible
+                // cancellation and get nonsensical answers. Somehow, it isn't
+                // clear that this matters at all, which is an indication that
+                // this function is being called with epsilons that are much
+                // too small, but checking for cancellation and correcting
+                // when it occurs is not very costly overall.
+
+                Hvalue = real(H(l, m + a, min_epsilon));
+            }
+            else {
+                Hvalue = x * one_over_two_pi_alpha;
+            }
+
             HI[l] += Hvalue;
         }
         exp_m2pi_alpha *= exp_m2pi;
     }
 
     if(C == M) {
-        return;
+            return;
     }
 
     for(int l = 0; l <= j; l++) {
         double z = factorial(l)/two_pi_power(l + 1);
         HI[l] = HI[l] + z * sum_of_offset_inverse_powers(a, C + 1, M, l+1, epsilon[l]/z);
     }
+
+    //for(int l = 0; l <= j; l++) {
+    //    double z = real(H_Integral_0(l, a, M, epsilon[l]));
+    //    if(std::abs(z - HI[l]) > 1000000*epsilon[l]) {
+    //        cout << l << " " << a << " " << M <<  " " << HI[l] << " " << HI[l] - z << " " << epsilon[l] << endl;
+    //    }
+    //}
+
 }
 
 complex<double> H_Integral_2(int j, double a1, double a2, double epsilon) {
@@ -221,8 +243,83 @@ complex<double> H_Integral_2(int j, double a1, double a2, double epsilon) {
 
 }
 
+void H_Integral_2(double * HI, int j, double a1, double a2, double * epsilon) {
+    for(int l = 0; l <= j; l++) {
+        //HI[l] = real(H_Integral_2(l, a1, a2, epsilon[l]));
+        HI[l] = 0;
+    }
 
+    double min_epsilon = 1000;
+    for(int k = 0; k <= j; k++) if(epsilon[k] < min_epsilon) min_epsilon = epsilon[k];
+    int C = ceil( max( (j * (1.0/(2 * PI * E))),
+                        -fastlog(min_epsilon) * (1.0/(2 * PI))) );
 
+    double exp_m2pi_alpha = exp(-2 * M_PI * (a1 + 1));
+    double exp_m2pi = exp(-2 * M_PI);
+
+    for(int m = 1; m <= C; m++) {
+        double one_over_two_pi_alpha = 1.0/(2.0 * M_PI * (a1 + m));
+        double Hvalue = (1 - exp_m2pi_alpha) * one_over_two_pi_alpha; // H(0, a1 + m)
+        HI[0] += Hvalue;
+
+        for(int l = 1; l <= j; l++) {
+            // TODO:
+            // These corrections for lost precision seem to have
+            // more of a cost for H_Integral_2 than they do for
+            // H_Integral_0. This is something that could be looked at more.
+            double x = (l*Hvalue - exp_m2pi_alpha);
+            if(x < exp_m2pi_alpha/2) {
+                Hvalue = real(H(l, a1 + m, min_epsilon));
+            }
+            else {
+                Hvalue = x * one_over_two_pi_alpha;
+            }
+            //cout << l << " " << Hvalue << " " << H(l, a1 + m, min_epsilon) << endl;
+            HI[l] += Hvalue;
+        }
+        exp_m2pi_alpha *= exp_m2pi;
+    }
+
+    exp_m2pi_alpha = exp(-2 * M_PI * (a2 + 1));
+
+    for(int m = 1; m <= C; m++) {
+        double one_over_two_pi_alpha = 1.0/(2.0 * M_PI * (a2 + m));
+        double Hvalue = (1 - exp_m2pi_alpha) * one_over_two_pi_alpha; // H(0, a2 + m)
+        HI[0] -= Hvalue;
+
+        for(int l = 1; l <= j; l++) {
+            double x = (l * Hvalue - exp_m2pi_alpha);
+            if(x < exp_m2pi_alpha/2) {
+                Hvalue = real(H(l, a2 + m, min_epsilon));
+            }
+            else {
+                Hvalue = x * one_over_two_pi_alpha;
+            }
+            //cout << l << " " << Hvalue << " " << H(l, a1 + m, min_epsilon) << endl;
+            if(l % 2 == 0)
+                HI[l] -= Hvalue;
+            else
+                HI[l] += Hvalue;
+        }
+        exp_m2pi_alpha *= exp_m2pi;
+    }
+
+    for(int l = 0; l <= j; l++) {
+        if(l % 2 == 0) {
+            HI[l] += factorial(l)/two_pi_power(l + 1) * infinite_sum_of_differenced_inverse_powers(a1, a2, C + 1, l + 1, epsilon[l]);
+        }
+        else {
+            HI[l] += factorial(l)/two_pi_power(l + 1) * (sum_of_offset_inverse_powers(a1, C + 1, -1, l + 1, epsilon[l]) + sum_of_offset_inverse_powers(a2, C + 1, -1, l + 1, epsilon[l]));
+        }
+    }
+
+    //for(int l = 0; l <= j; l++) {
+    //    double z = real(H_Integral_2(l, a1, a2, epsilon[l]/1000000));
+    //    if(std::abs(z - HI[l]) > 1000000*epsilon[l])
+    //        cout << l << " " << HI[l] << " " << HI[l] - z << " " << epsilon[l] << endl;
+    //}
+
+}
 
 void J_Integral_0(complex<double> * J, double a, double b, int j, int M, theta_cache * cache, double * epsilon) {
     //
@@ -462,16 +559,17 @@ void J_Integral_2(complex<double> * J, double a1, double a2, double b, int j, th
     }
     for(int l = 0; l <= j; l++) {
         for(int r = 0; r <= R; r++) {
-            new_epsilon[l + 2 * r] = min(epsilon[l]/Z[r], new_epsilon[l + 2*r]);
+            new_epsilon[l + 2 * r] = min(epsilon[l]/Z[r], new_epsilon[l + 2*r])/Z.size();
         }
     }
     //double smaller_epsilon = small_epsilon/(largest_Z + Z.size());
-    for(int l = 0; l <= j + 2 * R; l++) {
-        H_integrals[l] = real(H_Integral_2(l, a1, a2, new_epsilon[l]/Z.size())); // REMARK: H_Integral_0
+    H_Integral_2(H_integrals, j + 2*R, a1, a2, new_epsilon);
+    //for(int l = 0; l <= j + 2 * R; l++) {
+    //    H_integrals[l] = real(H_Integral_2(l, a1, a2, new_epsilon[l]/Z.size())); // REMARK: H_Integral_2
                                                                                // is always real, so
                                                                                // it is stupid that it
                                                                                // does complex arithmetic.
-    }
+    //}
 
     // -- Now we finally compute the integrals that we are looking for. We have
     //
