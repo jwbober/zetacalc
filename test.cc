@@ -794,9 +794,14 @@ void test1() {
 
 }
 
-int main() {
+int main(int argc, char ** argv) {
 
     unsigned int seed = time(NULL);
+
+    if(argc > 1) {
+        seed = strtoul(argv[1], NULL, 10);
+    }
+
     //seed = 1276487827;
     //seed = 1276414014;
     //seed = 1277852897;

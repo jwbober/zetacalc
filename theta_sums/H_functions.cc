@@ -145,7 +145,10 @@ template<typename T> T H_method4(int j, T alpha, double epsilon) {
     T w = 2.0 * PI * alpha;
 
     int n=0;
+    T exp_minus_w = EXP(-w);
+
     double error = epsilon + 1;
+    T g = 0.0; T prev_g = 0.0;
     while( (error > epsilon || n < 3) && n < 1000000) {
         n++;
         P3=(z+n)*P2-(z+(n-1)*.5)*w*P1;
@@ -170,11 +173,13 @@ template<typename T> T H_method4(int j, T alpha, double epsilon) {
 
         }
 
-        error = abs( ((P1 * Q2) - (P2 * Q1))/(Q1 * Q2) );
-
+        g = P2/Q2;
+        error = abs(g - prev_g);
+        error = abs(error * exp_minus_w/(g * (g + error)));
+        prev_g = g;
+        //error = abs( ((P1 * Q2) - (P2 * Q1))/(Q1 * Q2) );
     }
-
-    T g=P2/Q2;
+    //T g=P2/Q2;
 
     if(n>999999){
          cout << "Mofu. Continued fraction for g(z,w) failed to converge. z = "
@@ -182,7 +187,7 @@ template<typename T> T H_method4(int j, T alpha, double epsilon) {
          //exit(1);
     }
 
-    g = EXP(-w)/g;
+    g = exp_minus_w/g;
     return g;
 }
 
