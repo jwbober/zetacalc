@@ -103,12 +103,11 @@ void H_Integral_0(double * HI, int j, double a, int M, double * epsilon) {
     // can be approximated simply. We compute "simple" approximation
     // with Euler-Maclaurin summation.
     //
-    // small m is just m < C = max(l, ceil(-log(epsilon)/2pi)
-    //
+    // As with other functions, we treat M == -1 as infinity. However, when
+    // M == oo, this function doesn't converge with j == 0, so we don't
+    // compute it. Functions calling this function with M == -1 won't try to
+    // make use of this value anyway.
 
-    // dummy implementation for the moment...
-
-    //cout << 2*PI*(a + 1) << " " << j/2.0 << endl;
 
     for(int l = 0; l <= j; l++) {
         //HI[l] = real(H_Integral_0(l, a, M, epsilon[l]));
@@ -167,7 +166,7 @@ void H_Integral_0(double * HI, int j, double a, int M, double * epsilon) {
             return;
     }
 
-    for(int l = 0; l <= j; l++) {
+    for(int l = (M == -1 ? 1 : 0); l <= j; l++) {
         double z = factorial(l)/two_pi_power(l + 1);
         HI[l] = HI[l] + z * sum_of_offset_inverse_powers(a, C + 1, M, l+1, epsilon[l]/z);
     }

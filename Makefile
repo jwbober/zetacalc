@@ -52,7 +52,8 @@ EXECUTABLES = zetacalc \
 	      test \
 	      tests/mainsum_tests \
 	      tests/Htest \
-	      tests/thetatime
+	      tests/thetatime \
+	      tests/thetatest
 
 zetacalc: $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) zetacalc.o
 	$(CXX) -o zetacalc zetacalc.o $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) $(LDFLAGS)
@@ -68,7 +69,7 @@ theta_sums/H_functions.o: theta_sums/H_functions.cc
 test: $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) test.o
 	$(CXX) -o test test.o $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) $(LDFLAGS)
 
-tests: tests/mainsum_tests tests/Htest tests/thetatime
+tests: tests/mainsum_tests tests/Htest tests/thetatime tests/thetatest
 
 tests/%: tests/%.o $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS)
 	$(CXX) -o $@ $< $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) $(LDFLAGS)
@@ -78,6 +79,9 @@ tests/mainsum_tests:  tests/mainsum_tests.o $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJE
 
 tests/thetatime: tests/thetatime.o $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS)
 	$(CXX) -o tests/thetatime tests/thetatime.o $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) $(LDFLAGS)
+
+tests/thetatest: tests/thetatest.o $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS)
+	$(CXX) -o tests/thetatest tests/thetatest.o $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) $(LDFLAGS)
 
 #build/mainsum_tests.o: tests/mainsum_tests.cc include/main_sum.h include/theta_sums.h
 #	$(CXX) -c tests/mainsum_tests.cc $(OPTIONS) $(INCLUDEDIR) -o build/mainsum_tests.o
