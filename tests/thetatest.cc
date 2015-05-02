@@ -238,6 +238,8 @@ int main(int argc, char ** _argv) {
                 threads[k].join();
             }
         }
+
+        print_histogram();
         return 0;
     }
 
