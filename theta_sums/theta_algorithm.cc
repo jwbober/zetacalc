@@ -5,7 +5,6 @@
 #include <cmath>
 #include <iostream>
 
-
 using namespace std;
 
 
@@ -147,6 +146,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 
     }
 
+
     Complex JBulk_term2 = 0;
 
     JBulk(X, w1, b, j, p1, K, cache, V_epsilon);
@@ -188,14 +188,24 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 
 
     //s1 = s1 + z * compute_exponential_sum(a1, b1, q, (epsilon/12) * sqrt((Double)2 * b));
+    //mpfr_t A1, B1;
+    //mpfr_init2(A1, mpfr_get_prec(a1));
+    //mpfr_set(A1, a1, GMP_RNDN);
+    //mpfr_init2(B1, mpfr_get_prec(b1));
+    //mpfr_set(B1, b1, GMP_RNDN);
     Complex subsum = compute_exponential_sums(a1, b1, j, q, v2, epsilon, _Kmin);
+    //complex<double> subsum2 = compute_exponential_sums(A1, B1, j, q, v2, epsilon, _Kmin, 4);
+    //cout << mpfr_get_d(A1, GMP_RNDN) << " " << mpfr_get_d(B1, GMP_RNDN) << " " << j << " " << q << " " << epsilon << " ";
+    //for(int l = 0; l <= j; l++) {
+    //    cout << "\\(" << v2[l].real() << "," << v[l].imag() << "\\)" << " ";
+    //}
+    //cout << endl;
+    //cout << "*" << subsum - subsum2 << endl;
     S1 = S1 + subsum;
     //cout << "--------------------" << abs(v2[0]) * .5 << endl;
-
     if(p == 1) {
         S1 = S1 - v2[0];
     }
-
 
     mpfr_clear(a1);
     mpfr_clear(b1);
@@ -211,10 +221,9 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     JBoundary(X, 2 * b * K - w1, 1 - w, b, j, K, cache, Z_epsilon);
     for(int l = 0; l <= j; l++) {
         Complex x = 0.0;
-        if(Z[l] != 0.0)
-            //x = Z[l] * ((Double)minus_one_power(l) * IC9H(K, l, 1 - w, b, cache, Z_epsilon[l] ) - JBoundary(2 * b * K - w1, 1 - w, b, l, K, cache, Z_epsilon[l] )); 
+        if(Z[l] != 0.0) {
             x = Z[l] * ((Double)minus_one_power(l) * IC9H(K, l, 1 - w, b, cache, Z_epsilon[l] ) - X[l] ); 
-
+        }
         IC9H_term1 += x;
     }
     IC9H_term1 *= -C5;
@@ -242,8 +251,6 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
         boundary_terms += v[l];
     }
     boundary_terms = .5 * (boundary_terms * C_ABK + v[0]);
-
-    //cout << "Boundary terms = " << boundary_terms << endl;
 
     Complex S = S1 + S2 + boundary_terms;
 

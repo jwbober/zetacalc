@@ -51,7 +51,9 @@ Complex compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex
         //else if(2.0 * b * K < 1 && b > pow((-log(epsilon))/((Double)K/(Double)8), 2)) {
         //else if(2.0 * b * K < 1) {
         else if(q <= p) {
-            method = 3;
+            if(K <= 1000) {method = 1;} // we need some bound here, but I'm
+                                        // sure exactly what it should be.
+            else {method = 3;}
         }
         else {
             method = 2;
@@ -79,14 +81,14 @@ Complex compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex
         }
     }
 
-    if(method == 1) {
+    if(method == 1 || method > 3) {
         // direct evaluation
 
-        S = compute_exponential_sums_directly(mp_a, mp_b, j, K, v2, epsilon);
+        S = compute_exponential_sums_directly(mp_a, mp_b, j, K, v2, epsilon, method);
     }
     else if(method == 3) {
         //S = compute_exponential_sum_for_small_b(mp_a, mp_b, K, epsilon);
-        S =  compute_exponential_sums_for_small_b(mp_a, mp_b, j, K, v2, epsilon);
+        S = compute_exponential_sums_for_small_b(mp_a, mp_b, j, K, v2, epsilon);
     }
     else {
         //S = S1(K, mp_a, mp_b, epsilon) + S2(K, mp_a, mp_b, epsilon)  + .5 + .5 / (ExpA(mp_a, K) * ExpB(mp_b, K));

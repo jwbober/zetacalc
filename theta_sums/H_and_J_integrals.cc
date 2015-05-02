@@ -173,7 +173,7 @@ void H_Integral_0(double * HI, int j, double a, int M, double * epsilon) {
 
     //for(int l = 0; l <= j; l++) {
     //    double z = real(H_Integral_0(l, a, M, epsilon[l]));
-    //    if(std::abs(z - HI[l]) > 1000000*epsilon[l]) {
+    //    if(std::abs(z - HI[l]) > 100*epsilon[l]) {
     //        cout << l << " " << a << " " << M <<  " " << HI[l] << " " << HI[l] - z << " " << epsilon[l] << endl;
     //    }
     //}
@@ -311,10 +311,10 @@ void H_Integral_2(double * HI, int j, double a1, double a2, double * epsilon) {
             HI[l] += factorial(l)/two_pi_power(l + 1) * (sum_of_offset_inverse_powers(a1, C + 1, -1, l + 1, epsilon[l]) + sum_of_offset_inverse_powers(a2, C + 1, -1, l + 1, epsilon[l]));
         }
     }
-
+    
     //for(int l = 0; l <= j; l++) {
     //    double z = real(H_Integral_2(l, a1, a2, epsilon[l]/1000000));
-    //    if(std::abs(z - HI[l]) > 1000000*epsilon[l])
+    //    if(std::abs(z - HI[l]) > 100*epsilon[l])
     //        cout << l << " " << HI[l] << " " << HI[l] - z << " " << epsilon[l] << endl;
     //}
 

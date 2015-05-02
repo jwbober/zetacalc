@@ -433,7 +433,7 @@ inline std::complex<double> compute_C12(mpfr_t mp_a, mpfr_t mp_b, int K) {
 std::complex<double> direct_exponential_sum_evaluation2(double a, double b, int j, int m, int M, int working_precision = 53);
 std::complex<double> compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b, int j, int K, std::complex<double> * v, double epsilon, int _Kmin);
 std::complex<double> compute_exponential_sums_using_theta_algorithm2(mpfr_t mp_a, mpfr_t mp_b, int j, int K, std::complex<double> * v, double epsilon, int _Kmin);
-std::complex<double> compute_exponential_sums_directly(mpfr_t mp_a, mpfr_t mp_b, int j, int K, std::complex<double> * v, double epsilon);
+std::complex<double> compute_exponential_sums_directly(mpfr_t mp_a, mpfr_t mp_b, int j, int K, std::complex<double> * v, double epsilon, int method);
 std::complex<double> compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, int K, std::complex<double> * v, double epsilon);
 std::complex<double> compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, std::complex<double> * v, double epsilon, int _Kmin = 0, int method=0);
 std::complex<double> compute_exponential_sums(double a, double b, int j, int K, std::complex<double> * v, double epsilon, int _Kmin = 0, int method=0);

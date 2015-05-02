@@ -13,7 +13,7 @@
 //      1. If n != 0 and j != 0, do a binomial expansion to
 //         write the integral as a linear combination of
 //         integrals of the same form, but with n = 0.
-//      
+//
 //      2. In the n = 0 case, do a taylor expansion of the integrand
 //         in the "b" variable, which reduces the the integral to a sum
 //         of integrals of the form
@@ -54,7 +54,7 @@ complex<double> G_deprecated(complex<double> alpha, complex<double> b, int n, in
     // OLD METHOD NO LONGER USED, SINCE b is ALWAYS EITHER REAL OR PURELY
     // IMAGINARY.
     //
-    
+
     // We compute the integral int_0^1 g(t),
     // where g(t) = (t + n)^j exp(2 pi i alpha t + 2 pi i b t^2)
     //
@@ -63,7 +63,7 @@ complex<double> G_deprecated(complex<double> alpha, complex<double> b, int n, in
     // gets expanded as a power series in b and the computation is reduced
     // to a bunch of calls to H().
     //
-    
+
     // Note b is _always_ (I think) either real or purely imaginary.
     // We should take advantage of this.
     //
@@ -144,7 +144,7 @@ complex<double> G(complex<double> alpha, double b, int n, int j, double epsilon,
     // gets expanded as a power series in b and the computation is reduced
     // to a bunch of calls to H().
     //
-    
+
     // Note b is _always_ (I think) either real or purely imaginary.
     // We should take advantage of this.
     //
@@ -204,7 +204,7 @@ complex<double> G_I(complex<double> alpha, double b, int n, int j, double epsilo
     // gets expanded as a power series in b and the computation is reduced
     // to a bunch of calls to H().
     //
-    
+
     // Note b is _always_ (I think) either real or purely imaginary.
     // We should take advantage of this.
     //
@@ -264,7 +264,7 @@ complex<double> G_I_over_twopi(complex<double> alpha, int n, int j, double epsil
     // gets expanded as a power series in b and the computation is reduced
     // to a bunch of calls to H().
     //
-    
+
     // Note b is _always_ (I think) either real or purely imaginary.
     // We should take advantage of this.
     //
@@ -353,7 +353,7 @@ complex<double> G_method1_deprecated(complex<double> alpha, complex<double> b, i
 
 complex<double> G_method1_R(complex<double> alpha, double b, int n, int j, double epsilon) {
     // Specialized for b real.
-    
+
 
     if(n > 0) {
         complex<double> S = 0;
@@ -386,7 +386,7 @@ complex<double> G_method1_R(complex<double> alpha, double b, int n, int j, doubl
             //Ib_power *= (I * b);
             b_power *= b;
         }
-    
+
         //Ib_power = (ib)^r
 
         double s = b_power * two_pi_over_factorial_power(r);
@@ -484,7 +484,6 @@ complex<double> G_method1_I_over_twopi(complex<double> alpha, int n, int j, doub
         r++;
         error = std::abs(s/max( PI * std::abs(alpha) / (r + 1.0 + j/2),  (double)(2.0 * r + 1.0 + j)));
     }
-
 
     return S;
 }
@@ -608,7 +607,7 @@ complex<double> G_via_Euler_MacLaurin_deprecated(complex<double> alpha, complex<
                         t += t_increment;
                     }
                 }
-            
+
         }
 
 
@@ -862,7 +861,7 @@ complex<double> G_via_Euler_MacLaurin_R(complex<double> alpha, double b, int n, 
                     t += t_increment;
                 }
                 break;
-   
+
             default:
                 for(int s = 1; s < N; s++) {
                     double a = (n + t);
@@ -873,7 +872,7 @@ complex<double> G_via_Euler_MacLaurin_R(complex<double> alpha, double b, int n, 
         }
     }
     //S = S - (double)(.5) * (g(alpha, b, n, j, 0) + g(alpha, b, n, j, 1)) * one_over_two_n_to_the_j;
-    
+
     complex<double> exp_factor_at_one = alpha_term * complex<double>(cos(2 * PI * b), sin(2 * PI * b));
     //S = S - .5 * (pow(n, j) + pow(n + 1, j) * EXP(2 * PI * I * (alpha + b)));
     S = S + .5 * (pow(n, j) + pow(n + 1, j) * exp_factor_at_one);
@@ -959,7 +958,7 @@ complex<double> G_via_Euler_MacLaurin_R(complex<double> alpha, double b, int n, 
 
 complex<double> G_via_Euler_MacLaurin_I(complex<double> alpha, double b, int n, int j, double epsilon) {
     // I don't think that this function is ever used.
- 
+
     // We compute the integral int_0^1 g(t),
     // where g(t) = (t + n)^j exp(2 pi i alpha t + 2 pi i b t^2)
     // using euler maclaurin summation
@@ -1175,9 +1174,10 @@ complex<double> G_via_Euler_MacLaurin_I_over_twopi(complex<double> alpha, int n,
                 }
         }
     }
+
     //S = S - (double)(.5) * (g(alpha, b, n, j, 0) + g(alpha, b, n, j, 1)) * one_over_two_n_to_the_j;
     //S = S - (double)(.5) * (g(alpha, I/(2 * PI), n, j, 0) + g(alpha, I/(2 * PI), n, j, 1));
-    
+
     //complex<double> exp_factor_at_1 = exp(2 * PI * I * alpha - 1.0);
     complex<double> exp_factor_at_1 = alpha_term/E;
     S = S + .5 * (pow(n, j) + pow(1 + n, j) * exp_factor_at_1);

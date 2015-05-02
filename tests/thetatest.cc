@@ -46,7 +46,7 @@ complex<double> test_one(complex<double> * S1,
                          double epsilon ) {
 
     *S1 = compute_exponential_sums(a, b, j, K, v, epsilon, 100, 0);
-    *S2 = compute_exponential_sums(a, b, j, K, v, epsilon, 0, 1);
+    *S2 = compute_exponential_sums(a, b, j, K, v, epsilon, 0, 4);
     
     cout << "./thetatest one ";
     cout << a << " ";

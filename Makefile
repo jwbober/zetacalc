@@ -58,8 +58,8 @@ EXECUTABLES = zetacalc \
 zetacalc: $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) zetacalc.o
 	$(CXX) -o zetacalc zetacalc.o $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) $(LDFLAGS)
 
-$(THETA_SUM_OBJECTS): include/theta_sums.h include/log.h include/misc.h
-$(MAIN_SUM_OBJECTS): include/theta_sums.h include/log.h include/main_sum.h include/misc.h
+$(THETA_SUM_OBJECTS): include/theta_sums.h include/log.h include/misc.h theta_sums/precomputed_tables.h
+$(MAIN_SUM_OBJECTS): include/theta_sums.h include/log.h include/main_sum.h include/misc.h theta_sums/precomputed_tables.h
 log/log.o: include/log.h
 $(EXECUTABLES): include/theta_sums.h include/log.h include/main_sum.h include/misc.h
 

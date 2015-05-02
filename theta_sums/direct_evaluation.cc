@@ -5,13 +5,21 @@
 
 using namespace std;
 
-Complex compute_exponential_sums_directly(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon) {
+Complex compute_exponential_sums_directly(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon, int method) {
+    //
+    // method == 1: automatically choose whether or not to use mpfr
+    // method == 4: use mpfr
+    // method == 5: don't use mpfr
+    //
+    // (these numbers are nonconsecutive so that they can be directly passed
+    // from the function compute_exponential_sums();
+    //
     Complex S = 0;
 
     Double a = mpfr_get_d(mp_a, GMP_RNDN);
     Double b = mpfr_get_d(mp_b, GMP_RNDN);
 
-    if (K > mpfr_Kmin) {
+    if ( (method == 1 && K > mpfr_Kmin) || method == 4) {
         for(int l = 0; l <= j; l++) {
             Complex x = 0.0;
             if(v[l] != 0.0) {
