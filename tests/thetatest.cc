@@ -279,6 +279,7 @@ int main(int argc, char ** _argv) {
         complex<double> S2;
         string teststring;
         test_one(&S1, &S2, a, b, j, K, v, epsilon, teststring);
+        cout << teststring;
 
         delete [] v;
         return 0;

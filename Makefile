@@ -5,16 +5,17 @@ H_CXXFLAGS = -march=native -Wall -pthread  -O3 -g -std=c++11 -Iinclude
 
 #OPTIONS = -msse2 -mfpmath=sse -Wall -ffast-math -pthread -Winline  -O3 -fno-omit-frame-pointer -g -std=c++11
 
+
+
 LDFLAGS := -lmpfr -lgmp -lgmpxx -pthread -g
 ifdef PROFILE_BUILD
     LDFLAGS := $(LDFLAGS) -Wl,--no-as-needed -lprofiler
 endif
 
-#HOSTNAME = $(shell hostname)
-#ifeq ($(HOSTNAME),riemann)
-#	LIBS += -L `sage -root`/local/lib
-#	INCLUDEDIR += -I`sage -root`/local/include
-#endif
+HOSTNAME = $(shell hostname)
+ifeq ($(HOSTNAME),lmfdb5.maths.bris.ac.uk)
+    LDFLAGS := -L/data/local/lib $(LDFLAGS)
+endif
 
 THETA_SUM_OBJECTS = \
 		    theta_sums/cache.o \
