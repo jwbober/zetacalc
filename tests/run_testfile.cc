@@ -82,7 +82,16 @@ void print_histogram() {
     }
 
     cout << "Error histogram:" << endl;
+
+    int first_nonzero = 0;
+    int last_nonzero = 0;
     for(int n = 0; n < histogram_size; n++) {
+        if(error_histogram[n] > 0) last_nonzero = n;
+    }
+    for(int n = histogram_size - 1; n >= 0; n--) {
+        if(error_histogram[n] > 0) first_nonzero = n;
+    }
+    for(int n = first_nonzero; n <= last_nonzero; n++) {
         cout << n + histogram_start << "\t";
         for(int m = 0; m < ceil(error_histogram[n]/hist_normalization); m++) {
             cout << "+";
