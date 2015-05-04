@@ -57,6 +57,7 @@ TESTS =       tests/mainsum_tests \
 	      tests/thetatime \
 	      tests/thetatest \
 	      tests/write_testfile \
+	      tests/write_testfile2 \
 	      tests/run_testfile
 
 zetacalc: $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) zetacalc.o
