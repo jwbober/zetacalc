@@ -43,6 +43,13 @@ Complex compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex
     int q = to_int(a + 2 * b * K); // note that a and b will always be positive, so this will do the right thing.
     int p = to_int(ceil(a));
 
+    //cout << "compute exponential sums called with" << endl
+    //    << "a = " << a << endl
+    //    << "b = " << b << endl
+    //    << "j = " << j << endl
+    //    << "K = " << K << endl
+    //    << "method = " << method << endl;
+
     if(method == 0) {
         //if(K <= 2 * pow((-LOG(epsilon)/(2 * PI)), 2) || K <= _Kmin || K <= 5 * (j + 1)) {
         if(K <= _Kmin || K <= 5 * (j + 1)) {
@@ -50,7 +57,7 @@ Complex compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex
         }
         //else if(2.0 * b * K < 1 && b > pow((-log(epsilon))/((Double)K/(Double)8), 2)) {
         //else if(2.0 * b * K < 1) {
-        else if(q <= p) {
+        else if(q <= 3) {
             if(K <= 1000) {method = 1;} // we need some bound here, but I'm
                                         // sure exactly what it should be.
             else {method = 3;}
@@ -58,7 +65,9 @@ Complex compute_exponential_sums(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex
         else {
             method = 2;
         }
+    //    cout << "selecting method = " << method << endl;
     }
+
 
     Complex S = (Complex)0;
 

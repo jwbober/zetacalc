@@ -60,6 +60,7 @@ void report(double a, double b, int j, int K, complex<double> * v, complex<doubl
     cout.write((char*)&K, sizeof(K));
     cout.write((char*)v, sizeof(complex<double>)*(j+1));
     cout.write((char*)&S, sizeof(S));
+    cout.flush();
     report_mutex.unlock();
 }
 

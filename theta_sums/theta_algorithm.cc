@@ -201,6 +201,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
     //}
     //cout << endl;
     //cout << "*" << subsum - subsum2 << endl;
+
     S1 = S1 + subsum;
     //cout << "--------------------" << abs(v2[0]) * .5 << endl;
     if(p == 1) {

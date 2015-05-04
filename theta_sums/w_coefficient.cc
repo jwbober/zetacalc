@@ -84,7 +84,8 @@ void compute_subsum_coefficients(Complex * v2, Complex * v, const theta_cache * 
         else
             l = 1;
         for(; l <= k; l+=2) {
-            S = S + a_powers[l] * sqrt_b_powers[l] * B[k][l];
+            complex<double> z = a_powers[l] * sqrt_b_powers[l] * B[k][l];
+            S = S + z;
         }
         inner_sums[k] = S;
     }
