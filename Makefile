@@ -1,6 +1,7 @@
 CC = g++
 CXX = g++
 CXXFLAGS = -march=native -Wall -ffast-math -pthread -Winline -O3 -g -std=c++11 -Iinclude
+#CXXFLAGS = -march=native -Wall -pthread -Winline -O3 -g -std=c++11 -Iinclude
 H_CXXFLAGS = -march=native -Wall -pthread  -O3 -g -std=c++11 -Iinclude
 
 #OPTIONS = -msse2 -mfpmath=sse -Wall -ffast-math -pthread -Winline  -O3 -fno-omit-frame-pointer -g -std=c++11
@@ -99,6 +100,7 @@ tests/%: tests/%.o $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS)
 clean:
 	-rm $(OBJECTS)
 	-rm $(EXECUTABLES)
+	-rm $(TESTS)
 
 
 build/blfi.o: blfi.cc include/main_sum.h

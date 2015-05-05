@@ -1,5 +1,5 @@
 #include "theta_sums.h"
-
+#include <iomanip>
 using namespace std;
 
 
@@ -48,7 +48,7 @@ theta_cache * build_theta_cache(mpfr_t mp_a, mpfr_t mp_b, int j, int K) {
     cache->b = mpfr_get_d(mp_b, GMP_RNDN);
     cache->K = K;
     cache->j = j;
-    cache->q = to_int(cache->a + 2 * cache->b * K);
+    cache->q = int(cache->a + 2 * cache->b * K);
     cache->ExpAK = ExpAK(mp_a, K);
     cache->ExpBK = ExpBK(mp_b, K);
     cache->ExpAK_inverse = conj(cache->ExpAK);

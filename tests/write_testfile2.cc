@@ -45,7 +45,7 @@ double last_a = 0;
 double last_b = 0;
 double a_step = .01;
 double b_step = .0001;
-long total_tests = 1/a_step + .25/b_step;
+long total_tests = (1.0/a_step)*(.25/b_step);
 long count = 0;
 int last_percent_printed = 0;
 

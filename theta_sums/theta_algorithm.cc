@@ -39,6 +39,14 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 
     int q = cache->q;
     Double w = a + 2 * b * K - (Double)q;
+    if(w < 0) {
+        // It is "impossible" for this to happen, because q = floor(2 + abK).
+        // But because of unpredictable rounding with the FPU, this can
+        // actually happen.
+        w = w + 1;
+        q = q - 1;
+        cache->q = q;
+    }
     
     int p = to_int(ceil(a));
     Double w1 = ceil(a) - a;
@@ -146,7 +154,7 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 
     }
 
-
+    
     Complex JBulk_term2 = 0;
 
     JBulk(X, w1, b, j, p1, K, cache, V_epsilon);
@@ -252,7 +260,6 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
         boundary_terms += v[l];
     }
     boundary_terms = .5 * (boundary_terms * C_ABK + v[0]);
-
     Complex S = S1 + S2 + boundary_terms;
 
     free_theta_cache(cache);
