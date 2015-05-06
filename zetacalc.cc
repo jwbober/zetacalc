@@ -125,7 +125,7 @@ int main(int argc, char * argv[]) {
     int zeta_flag = 0;
     int verbose = 1;
     int number_of_threads = 2;
-    int fraction = -1;
+    int fraction = 0;
 
     mpfr_t t;
     mpfr_init2(t, 250);
