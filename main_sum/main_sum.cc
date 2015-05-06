@@ -26,14 +26,15 @@
  * 
  */
 
-#include <queue>
-#include <fstream>
+#include <iostream>
+#include <random>
 #include "theta_sums.h"
 #include "main_sum.h"
 #include "log.h"
 
 using namespace std;
 
+typedef std::mt19937 RNG;
 
     // This function is declared here and defined at the end of the file
 template<int stage> Complex partial_zeta_sum_stage(mpz_t start, mpz_t length, mpfr_t t, double delta, int M, Complex * S, int number_of_threads, double epsilon, int fraction, int verbose);
@@ -209,8 +210,11 @@ template<int stage> struct sum_data_t {
     int percent_finished;
     int fraction;
 
+    RNG rng;
+    std::uniform_int_distribution<> randint;
+
     // a struct constructor: sets variable values and initializes a thread
-    sum_data_t(mpz_t start, mpz_t _length, mpfr_t _t, double _delta , int _M, complex<double> * _S, double _epsilon, int _fraction, int _verbose) {
+    sum_data_t(mpz_t start, mpz_t _length, mpfr_t _t, double _delta , int _M, complex<double> * _S, double _epsilon, int _fraction, int _verbose, unsigned int seed) {
         mpz_init(next);
         mpz_init(end);
         mpfr_init2(t, mpfr_get_prec(_t));
@@ -221,6 +225,8 @@ template<int stage> struct sum_data_t {
         tt = mpfr_get_d(t, GMP_RNDN); 
         length = mpz_get_d(_length);
         fraction = _fraction;
+        rng = RNG(seed);
+        randint = std::uniform_int_distribution<>(0, fraction - 1);
 
         delta = _delta;
         M = _M;
@@ -252,40 +258,47 @@ template<int stage> struct sum_data_t {
         pthread_mutex_lock(next_mutex);
         unsigned int max_block_size;
         
-        if(stage == 1) {
-            max_block_size = 10000; 
-        }
-        else if(stage == 2) {
-            max_block_size = 1000000; 
-        }
-        else if(stage == 3) {
-            max_block_size = 10000000;
-        }
+        if(stage == 1) { max_block_size = 10000;}
+        else if(stage == 2) { max_block_size = 1000000;}
+        else if(stage == 3) { max_block_size = 10000000;}
         else {
             cout << "this segment of the code should never be reached, exiting" << endl;
             exit(-1);
         }
         
         unsigned int block_size;
-        mpz_sub(start, end, next); // start = end - next (notice this is an abuse of notation since 
-                                   // now start denotes the length of the remaining partial sum)
+        bool got_next_block = false;
+        while(!got_next_block) {
+            mpz_sub(start, end, next); // start = end - next (notice this is
+                                       // an abuse of notation since now start
+                                       // denotes the length of the remaining
+                                       // partial sum)
 
-        if(mpz_cmp_ui(start, max_block_size) < 0) { // if start < max_block_size, set block_size = start
-            block_size = mpz_get_ui(start);
-        }
-        else {
-            block_size = max_block_size;
-        }
+            if(mpz_cmp_ui(start, max_block_size) < 0) { // if start < max_block_size,
+                block_size = mpz_get_ui(start);         // set block_size = start
+            }
+            else {
+                block_size = max_block_size;
+            }
 
-        double remainder = mpz_get_d(start);
-        int current_percent_finished = 1000 * (1.0 - remainder/length);
-        if(percent_finished != current_percent_finished) {
-            cout << "stage" << stage << " percent complete: " << current_percent_finished/10.0 << endl;
+            double remainder = mpz_get_d(start);
+            int current_percent_finished = 1000 * (1.0 - remainder/length);
+            if(percent_finished != current_percent_finished && verbose) {
+                cout << "stage" << stage << " percent complete: "
+                     << current_percent_finished/10.0 << endl;
+            }
+            percent_finished = current_percent_finished;
+            
+            mpz_set(start, next);               // start = next (start is now the
+                                                // beginning point of the remainder
+                                                // of the partial sum) 
+            
+            mpz_add_ui(next, next, block_size); // next = next + block_size
+            if(fraction == 0) got_next_block = true;
+            else {
+                got_next_block = (randint(rng) == 0);
+            }
         }
-        percent_finished = current_percent_finished;
-        
-        mpz_set(start, next); // start = next (start is now the beginning point of the remainder of the partial sum) 
-        mpz_add_ui(next, next, block_size); // next = next + block_size
 
         pthread_mutex_unlock(next_mutex);
         return block_size;
@@ -321,9 +334,6 @@ template<int stage> void * zeta_sum_thread(void * data) {
     // increments "next" in sum_data to "next + length"
     unsigned long length = sum_data->next_block(v);
 
-    // for debugging purposes
-    unsigned int seed = mpz_fdiv_ui(v, 123456789) + time(NULL);
-
     // array where thread output will be stored
     complex<double> * S = new complex<double>[sum_data->M];
 
@@ -339,26 +349,12 @@ template<int stage> void * zeta_sum_thread(void * data) {
 
     // compute the partial sum in "chunks" 
     while(length != 0) {
-        if(sum_data->fraction > 0) {
-            int n = rand_r(&seed);
-            if(n % sum_data->fraction == 0) {
-                if(stage==1) 
-                    zeta_block_stage1(v, length, sum_data->t, sum_data->delta, sum_data->M, S);
-                if(stage==2) 
-                    zeta_block_stage2(v, length, sum_data->t, sum_data->delta, sum_data->M, S);
-                if(stage==3) 
-                    zeta_block_stage3(v, length, sum_data->t, Z, sum_data->delta, sum_data->M, S);
-            }
-        }
-        else {
             if(stage==1) 
                 zeta_block_stage1(v, length, sum_data->t, sum_data->delta, sum_data->M, S);
             if(stage==2) 
                 zeta_block_stage2(v, length, sum_data->t, sum_data->delta, sum_data->M, S);
             if(stage==3) 
                 zeta_block_stage3(v, length, sum_data->t, Z, sum_data->delta, sum_data->M, S);
-        }
-
         length = sum_data->next_block(v);
     }
 
@@ -387,7 +383,7 @@ template<int stage> Complex partial_zeta_sum_stage(mpz_t start, mpz_t length, mp
 
     for(int l = 0; l < M; l++) S[l] = 0;
 
-    sum_data_t<stage> sum(start, length, t, delta, M, S, epsilon, fraction, verbose);
+    sum_data_t<stage> sum(start, length, t, delta, M, S, epsilon, fraction, verbose, 0);
     pthread_t threads[number_of_threads];
 
     for(int n = 0; n < number_of_threads; ++n) 
