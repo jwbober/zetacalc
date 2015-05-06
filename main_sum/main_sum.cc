@@ -211,7 +211,7 @@ template<int stage> struct sum_data_t {
     int fraction;
 
     RNG rng;
-    std::uniform_int_distribution<> randint;
+    std::uniform_int_distribution<unsigned long> randint;
 
     // a struct constructor: sets variable values and initializes a thread
     sum_data_t(mpz_t start, mpz_t _length, mpfr_t _t, double _delta , int _M, complex<double> * _S, double _epsilon, int _fraction, int _verbose, unsigned int seed) {
@@ -226,7 +226,7 @@ template<int stage> struct sum_data_t {
         length = mpz_get_d(_length);
         fraction = _fraction;
         rng = RNG(seed);
-        randint = std::uniform_int_distribution<>(0, fraction - 1);
+        randint = std::uniform_int_distribution<unsigned long>(0, 2 * fraction);
 
         delta = _delta;
         M = _M;
@@ -256,7 +256,7 @@ template<int stage> struct sum_data_t {
     // available "chunk", then unlocks thread 
     unsigned long next_block(mpz_t start) {
         pthread_mutex_lock(next_mutex);
-        unsigned int max_block_size;
+        unsigned long max_block_size;
         
         if(stage == 1) { max_block_size = 10000;}
         else if(stage == 2) { max_block_size = 1000000;}
@@ -267,36 +267,36 @@ template<int stage> struct sum_data_t {
         }
         
         unsigned int block_size;
-        bool got_next_block = false;
-        while(!got_next_block) {
-            mpz_sub(start, end, next); // start = end - next (notice this is
-                                       // an abuse of notation since now start
-                                       // denotes the length of the remaining
-                                       // partial sum)
+        mpz_sub(start, end, next); // start = end - next (notice this is
+                                   // an abuse of notation since now start
+                                   // denotes the length of the remaining
+                                   // partial sum)
 
-            if(mpz_cmp_ui(start, max_block_size) < 0) { // if start < max_block_size,
-                block_size = mpz_get_ui(start);         // set block_size = start
-            }
-            else {
-                block_size = max_block_size;
-            }
+        if(mpz_cmp_ui(start, max_block_size) < 0) { // if start < max_block_size,
+            block_size = mpz_get_ui(start);         // set block_size = start
+        }
+        else {
+            block_size = max_block_size;
+        }
 
-            double remainder = mpz_get_d(start);
-            int current_percent_finished = 1000 * (1.0 - remainder/length);
-            if(percent_finished != current_percent_finished && verbose) {
-                cout << "stage" << stage << " percent complete: "
-                     << current_percent_finished/10.0 << endl;
-            }
-            percent_finished = current_percent_finished;
-            
-            mpz_set(start, next);               // start = next (start is now the
-                                                // beginning point of the remainder
-                                                // of the partial sum) 
-            
-            mpz_add_ui(next, next, block_size); // next = next + block_size
-            if(fraction == 0) got_next_block = true;
-            else {
-                got_next_block = (randint(rng) == 0);
+        double remainder = mpz_get_d(start);
+        int current_percent_finished = 1000 * (1.0 - remainder/length);
+        if(percent_finished != current_percent_finished && verbose) {
+            cout << "stage" << stage << " percent complete: "
+                 << current_percent_finished/10.0 << endl;
+        }
+        percent_finished = current_percent_finished;
+        
+        mpz_set(start, next);               // start = next (start is now the
+                                            // beginning point of the remainder
+                                            // of the partial sum) 
+        
+        mpz_add_ui(next, next, block_size); // next = next + block_size
+        
+        if(fraction > 1) {
+            mpz_add_ui(next, next, block_size*randint(rng));
+            if(mpz_cmp(next, end) > 0) {
+                mpz_set(next, end);
             }
         }
 
