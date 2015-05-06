@@ -31,12 +31,15 @@ const int j_max = 18;
 const int histogram_size = 60;
 const int histogram_start = 0;
 int error_histogram[histogram_size] = {0};
-complex<double> maxerror = 0.0;
+double maxerror = 0.0;
 std::mutex report_mutex;
 void report(double a, double b, int j, int K, complex<double> * v, double epsilon, complex<double> S, complex<double> S1) {
     std::lock_guard<std::mutex> lock(report_mutex);
-    complex<double> error = S - S1;
-    double logerror = -log2(abs(error));
+    complex<double> diff = S - S1;
+    double abserror = abs(diff);
+    double relerror = abserror/abs(S);
+    double error = std::min(abserror, relerror);
+    double logerror = -log2(error);
     if(logerror < histogram_start) {
         error_histogram[0]++;
     }
@@ -46,7 +49,7 @@ void report(double a, double b, int j, int K, complex<double> * v, double epsilo
     else {
         error_histogram[int(floor(logerror)) + histogram_start]++;
     }
-    if(abs(error) > abs(maxerror)) {
+    if(error > maxerror) {
         maxerror = error;
         cout << "Worst so far:" << endl;
         cout << std::setprecision(17);
@@ -61,8 +64,11 @@ void report(double a, double b, int j, int K, complex<double> * v, double epsilo
         }
         cout << "\\(" << v[j].real() << "," << v[j].imag() << "\\)" << endl;
 
-        cout << "               ERROR: " << error << endl;
-        cout << "         log2(ERROR): " << log2(abs(error)) << endl;
+        cout << "      RELATIVE ERROR: " << relerror << endl;
+        cout << "               ERROR: " << abserror << endl;
+        cout << "          DIFFERENCE: " << diff << endl;
+        cout << "         log2(ERROR): " << log2(abserror) << endl;
+        cout << "log2(RELATIVE ERROR): " << log2(relerror) << endl;
         cout << "    algorithm answer: " << S1 << endl;
         cout << "       direct answer: " << S << endl;
         cout << endl;
@@ -118,7 +124,7 @@ void get_next(double * a, double * b, int * j, int * K, complex<double> * v, com
     if(!infile.read((char*)S, sizeof(complex<double>))) {*j = -1; return;}
 }
 
-void run_tests(double epsilon) {
+void run_tests(double epsilon, const int Kmin) {
     double a, b;
     int j, K;
     complex<double> v[j_max];
@@ -126,7 +132,8 @@ void run_tests(double epsilon) {
 
     get_next(&a, &b, &j, &K, v, &S);
     while(j != -1) {
-        complex<double> S1 = compute_exponential_sums(a, b, j, K, v, epsilon, 100, 0);
+        complex<double> S1 = compute_exponential_sums(a, b, j, K, v, epsilon, Kmin, 0);
+        //complex<double> S1 = compute_exponential_sums(a, b, j, K, v, epsilon, 100, 0);
         report(a, b, j, K, v, epsilon, S, S1);
         get_next(&a, &b, &j, &K, v, &S);
     }
@@ -147,13 +154,17 @@ int main(int argc, char ** argv) {
     if(argc > 3) {
         nthreads = atoi(argv[3]);
     }
+    int Kmin = 100;
+    if(argc > 4) {
+        Kmin = atoi(argv[4]);
+    }
     if(nthreads == 1) {
-        run_tests(epsilon);
+        run_tests(epsilon, Kmin);
     }
     else {
         std::thread threads[nthreads];
         for(int k = 0; k < nthreads; k++) {
-            threads[k] = std::thread(run_tests, epsilon);
+            threads[k] = std::thread(run_tests, epsilon, Kmin);
         }
         for(int k = 0; k < nthreads; k++) {
             threads[k].join();
