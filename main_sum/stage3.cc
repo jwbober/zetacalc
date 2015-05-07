@@ -77,12 +77,11 @@ Complex zeta_block_stage3_basic(mpz_t v, unsigned int *K, mpfr_t t, Complex ZZ[3
     }
 
     // Compute the linea and quadratic arguments a & b in the theta sum
-    mpfr_t a, b, x;
     int precision = mpfr_get_prec(t);
 
-    mpfr_init2(a, precision);
-    mpfr_init2(b, precision);
-    mpfr_init2(x, precision);
+    MPFR_DECL_INIT(a, precision);
+    MPFR_DECL_INIT(b, precision);
+    MPFR_DECL_INIT(x, precision);
 
     mpfr_const_pi(x, GMP_RNDN); // x = pi
     mpfr_mul_si(x, x, 2, GMP_RNDN); // x = 2 pi
@@ -101,10 +100,6 @@ Complex zeta_block_stage3_basic(mpz_t v, unsigned int *K, mpfr_t t, Complex ZZ[3
     Complex z = exp_itlogn(v);
     z = z / sqrt(mpz_get_d(v));
     S = S * z;
-
-    mpfr_clear(a);
-    mpfr_clear(b);
-    mpfr_clear(x);
 
     return S;
 }

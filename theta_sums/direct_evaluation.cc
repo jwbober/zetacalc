@@ -56,31 +56,17 @@ Complex compute_exponential_sums_directly(mpfr_t mp_a, mpfr_t mp_b, int j, int K
 }
 
 
-Complex direct_exponential_sum_evaluation2(Double a, Double b, int j, int m, int M, int working_precision) {
+complex<double> direct_exponential_sum_evaluation2(double a, double b, int j, int m, int M, int working_precision) {
     // return the sum 
     //
     // Sum_{n=0}^N exp(2 pi i alpha t + 2 pi i beta t^2)
     //
     // computed by direct evaluation
     
-    Complex S = (Complex)0.0;
-
-    /*
-    if(working_precision > 53) {
-        mpfr_t a, b;
-        mpfr_init2(a, working_precision);
-        mpfr_init2(b, working_precision);
-        mpfr_set_d(a, to_double(alpha), GMP_RNDN);
-        mpfr_set_d(b, to_double(beta), GMP_RNDN);
-        S = direct_exponential_sum_evaluation(a, b, m, M);
-        mpfr_clear(a);
-        mpfr_clear(b);
-        return S;
-    }
-    */
+    complex<double> S = (Complex)0.0;
 
     for(int n = m; n <= M; n++) {
-        S = S + pow(n, j) * EXP( (Complex)2.0 * PI * I * (Double)n * (a + b * (Double)n) );
+        S = S + pow(n, j) * EXP( 2.0 * PI * I * (double)n * (a + b * (double)n) );
     }
 
     S = S/pow(M, j);
@@ -89,19 +75,15 @@ Complex direct_exponential_sum_evaluation2(Double a, Double b, int j, int m, int
 
 }
 
-Complex direct_exponential_sum_evaluation2(mpfr_t a, mpfr_t b, int j, int m, int M) {
-    mpfr_t real_part, imaginary_part;
-    mpfr_t t;
-    mpfr_t t2;
-    mpfr_t t3;
-    mpfr_init2(real_part, mpfr_get_prec(a));
-    mpfr_init2(imaginary_part, mpfr_get_prec(a));
+complex<double> direct_exponential_sum_evaluation2(mpfr_t a, mpfr_t b, int j, int m, int M) {
+    MPFR_DECL_INIT(real_part, mpfr_get_prec(a));
+    MPFR_DECL_INIT(imaginary_part, mpfr_get_prec(a));
+    MPFR_DECL_INIT(t, mpfr_get_prec(a));
+    MPFR_DECL_INIT(t2, mpfr_get_prec(a));
+    MPFR_DECL_INIT(t3, mpfr_get_prec(a));
+    
     mpfr_set_ui(real_part, 0, GMP_RNDN);
     mpfr_set_ui(imaginary_part, 0, GMP_RNDN);
-
-    mpfr_init2(t, mpfr_get_prec(a));
-    mpfr_init2(t2, mpfr_get_prec(a));
-    mpfr_init2(t3, mpfr_get_prec(a));
 
     for(int k = m; k <= M; k++) {
         mpfr_mul_si(t, a, k, GMP_RNDN);         // t = ak
@@ -127,11 +109,6 @@ Complex direct_exponential_sum_evaluation2(mpfr_t a, mpfr_t b, int j, int m, int
     mpfr_div(real_part, real_part, t3, GMP_RNDN);
     mpfr_div(imaginary_part, imaginary_part, t3, GMP_RNDN);
 
-    Complex S(mpfr_get_d(real_part, GMP_RNDN), mpfr_get_d(imaginary_part, GMP_RNDN));
-    mpfr_clear(real_part);
-    mpfr_clear(imaginary_part);
-    mpfr_clear(t);
-    mpfr_clear(t2);
-    mpfr_clear(t3);
+    complex<double> S(mpfr_get_d(real_part, GMP_RNDN), mpfr_get_d(imaginary_part, GMP_RNDN));
     return S;
 }

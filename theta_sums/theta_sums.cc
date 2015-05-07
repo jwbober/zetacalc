@@ -8,17 +8,14 @@
 using namespace std;
 Complex compute_exponential_sums(Double a, Double b, int j, int K, Complex * v, Double epsilon, int _Kmin, int method) {
     int working_precision = int(2 * log2(K) + 53 + 5);
+    MPFR_DECL_INIT(mp_a, working_precision);
+    MPFR_DECL_INIT(mp_b, working_precision);
     
-    mpfr_t mp_a, mp_b;
-    mpfr_init2(mp_a, working_precision);
-    mpfr_init2(mp_b, working_precision);
     mpfr_set_d(mp_a, a, GMP_RNDN);
     mpfr_set_d(mp_b, b, GMP_RNDN);
 
     Complex S = compute_exponential_sums(mp_a, mp_b, j, K, v, epsilon, _Kmin, method);
 
-    mpfr_clear(mp_a);
-    mpfr_clear(mp_b);
     return S;
 }
 

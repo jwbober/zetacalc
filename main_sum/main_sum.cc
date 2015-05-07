@@ -78,14 +78,11 @@ void stage_3_start(mpz_t v, mpfr_t t) {
     // With this choice, the block size in stage 3 will be at least 1200.
     //
     
-    mpfr_t x;
-    mpfr_init2(x, mpfr_get_prec(t));
+    MPFR_DECL_INIT(x, mpfr_get_prec(t));
 
     mpfr_cbrt(x, t, GMP_RNDN); // x = t^(1/3)
     mpfr_mul_ui(x, x, 1200u, GMP_RNDN);  // x = stage_3_start * t^(1/3)
     mpfr_get_z(v, x, GMP_RNDN); // v = floor( stage_3_start * t^(1/3) )
-
-    mpfr_clear(x);
 }
 
 

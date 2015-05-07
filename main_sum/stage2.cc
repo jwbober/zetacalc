@@ -92,13 +92,14 @@ Complex zeta_block_stage2_basic(mpz_t v, unsigned int *K, mpfr_t t, Double epsil
     int vsize = mpz_sizeinbase(v, 2);
     int precision = mpfr_get_exp(t) - vsize + 53;       
 
-    mpfr_t mp_v_power, z, twopi, one_over_v, twopi_l, z1;
-    mpfr_init2(mp_v_power, precision);
-    mpfr_init2(one_over_v, precision);
-    mpfr_init2(z, precision);
-    mpfr_init2(twopi, precision);
-    mpfr_init2(twopi_l, precision);
-    mpfr_init2(z1, 53);
+    //mpfr_t mp_v_power, z, twopi, one_over_v, twopi_l, z1;
+    MPFR_DECL_INIT(mp_v_power, precision);
+    MPFR_DECL_INIT(one_over_v, precision);
+    MPFR_DECL_INIT(z, precision);
+    MPFR_DECL_INIT(twopi, precision);
+    MPFR_DECL_INIT(twopi_l, precision);
+    MPFR_DECL_INIT(z1, 53);
+
 
     mpfr_const_pi(twopi, GMP_RNDN);
     mpfr_mul_si(twopi, twopi, 2, GMP_RNDN);
@@ -170,12 +171,12 @@ Complex zeta_block_stage2_basic(mpz_t v, unsigned int *K, mpfr_t t, Double epsil
     S = S / sqrt(vv);
     S = S * exp_itlogn(v);
 
-    mpfr_clear(mp_v_power);
-    mpfr_clear(z);
-    mpfr_clear(twopi);
-    mpfr_clear(twopi_l);
-    mpfr_clear(one_over_v);
-    mpfr_clear(z1);
+    //mpfr_clear(mp_v_power);
+    //mpfr_clear(z);
+    //mpfr_clear(twopi);
+    //mpfr_clear(twopi_l);
+    //mpfr_clear(one_over_v);
+    //mpfr_clear(z1);
 
     return S;
 }

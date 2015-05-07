@@ -170,8 +170,7 @@ Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, in
         }
         Double z = abs(new_a) + 2 * b * K;
         if(z <= .5 + 1.0/6) {
-            mpfr_t mp_new_a;
-            mpfr_init2(mp_new_a, mpfr_get_prec(mp_a));
+            MPFR_DECL_INIT(mp_new_a, mpfr_get_prec(mp_a));
             mpfr_set(mp_new_a, mp_a, GMP_RNDN);
             if(mpfr_cmp_d(mp_new_a, .5) > 0) {
                 mpfr_sub_d(mp_new_a, mp_new_a, 1.0, GMP_RNDN);
@@ -180,7 +179,6 @@ Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, in
             for(int l = 0; l <= j; l++) {
                 S = S + v[l] * compute_exponential_sum_via_Euler_Maclaurin(mp_new_a, mp_b, l, K, epsilon/abs(v[l]));
             }
-            mpfr_clear(mp_new_a);
             return S;
         }
         //    cout << "a = " << a << "   2bK = " << 2 * b * K << "; |a| + 2bK = " << abs(new_a) + 2 * b * K << "***" << endl;
@@ -208,9 +206,7 @@ Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, in
 
     //S2 = S2 + w/(ExpA(mp_a, K2) * ExpB(mp_b, K2));
 
-    mpfr_t tmp;
-    mpfr_init2(tmp, mpfr_get_prec(mp_a));
-
+    MPFR_DECL_INIT(tmp, mpfr_get_prec(mp_a));
     for(int m = 0; m < number_of_divisions; m++) {
         Complex dm = (Complex)1.0/(ExpA(mp_a, m * K2/number_of_divisions) * ExpB(mp_b, m * K2/number_of_divisions));
         mpfr_mul_si(tmp, mp_b, 2 * K2, GMP_RNDN); // tmp = 2 * b * K
@@ -255,10 +251,5 @@ Complex compute_exponential_sums_for_small_b(mpfr_t mp_a, mpfr_t mp_b, int j, in
 
     S = S + S2;
 
-    mpfr_clear(tmp);
-
     return S;
-
 }
-
-

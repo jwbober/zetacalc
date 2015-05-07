@@ -17,6 +17,7 @@ using std::cout;
 using std::log;
 
 using misc::pow;
+using std::complex;
 
 Double infinite_sum_of_differenced_inverse_powers(Double a1, Double a2, int m, int j, Double epsilon) {
     //
@@ -226,81 +227,65 @@ Double sum_of_offset_inverse_powers(Double a, int m, int M, int j, Double epsilo
     return S;
 }
 
-Complex ExpA(mpfr_t A, int K) {
-    mpfr_t tmp;
-    mpfr_init2(tmp, mpfr_get_prec(A));
+complex<double> ExpA(mpfr_t A, int K) {
+    MPFR_DECL_INIT(tmp, mpfr_get_prec(A));
     mpfr_mul_si(tmp, A, K, GMP_RNDN);
     mpfr_frac(tmp, tmp, GMP_RNDN);
-    Complex S = EXP(-2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
-    mpfr_clear(tmp);
+    complex<double> S = EXP(-2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
     return S;
 }
 
-Complex ExpAK(mpfr_t A, int K) {
+complex<double> ExpAK(mpfr_t A, int K) {
     // Return exp(2 pi i A K)
-    mpfr_t tmp;
-    mpfr_init2(tmp, mpfr_get_prec(A));
+    MPFR_DECL_INIT(tmp, mpfr_get_prec(A));
     mpfr_mul_si(tmp, A, K, GMP_RNDN);
     mpfr_frac(tmp, tmp, GMP_RNDN);
-    Complex S = EXP(2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
-    mpfr_clear(tmp);
+    complex<double> S = EXP(2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
     return S;
 }
 
-Complex ExpB(mpfr_t B, int K) {
-    mpfr_t tmp;
-    mpfr_init2(tmp, mpfr_get_prec(B));
+complex<double> ExpB(mpfr_t B, int K) {
+    MPFR_DECL_INIT(tmp, mpfr_get_prec(B));
     mpfr_mul_si(tmp, B, K, GMP_RNDN);
     mpfr_mul_si(tmp, tmp, K, GMP_RNDN);
     mpfr_frac(tmp, tmp, GMP_RNDN);
-    Complex S = EXP(-2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
-    mpfr_clear(tmp);
+    complex<double> S = EXP(-2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
     return S;
 }
 
-Complex ExpBK(mpfr_t B, int K) {
+complex<double> ExpBK(mpfr_t B, int K) {
     // Return exp(2 pi i B K^2)
-    mpfr_t tmp;
-    mpfr_init2(tmp, mpfr_get_prec(B));
+    MPFR_DECL_INIT(tmp, mpfr_get_prec(B));
     mpfr_mul_si(tmp, B, K, GMP_RNDN);
     mpfr_mul_si(tmp, tmp, K, GMP_RNDN);
     mpfr_frac(tmp, tmp, GMP_RNDN);
-    Complex S = EXP(2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
-    mpfr_clear(tmp);
+    complex<double> S = EXP(2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
     return S;
 }
 
 
-Complex ExpAB(mpfr_t A, mpfr_t B) {
+complex<double> ExpAB(mpfr_t A, mpfr_t B) {
     // Return exp(-2 pi i A^2/4B)
-    mpfr_t tmp;
-    mpfr_init2(tmp, mpfr_get_prec(A));
+    MPFR_DECL_INIT(tmp, mpfr_get_prec(A));
     mpfr_mul(tmp, A, A, GMP_RNDN);
     mpfr_mul_d(tmp, tmp, .25, GMP_RNDN);
     mpfr_div(tmp, tmp, B, GMP_RNDN);
 
     mpfr_frac(tmp, tmp, GMP_RNDN);
 
-    Complex S = EXP(-2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
-    mpfr_clear(tmp);
+    complex<double> S = EXP(-2.0 * PI * I * mpfr_get_d(tmp, GMP_RNDN));
     return S;
 
 }
-Complex ExpABK(mpfr_t A, mpfr_t B, int K) {
+complex<double> ExpABK(mpfr_t A, mpfr_t B, int K) {
     //
     //  return exp(2 pi i A K + 2 pi i B K^2)
     //
 
-    mpfr_t real_part;
-    mpfr_t imag_part;
-    mpfr_t t1;
-    mpfr_t t2;
-
-    mpfr_init2(real_part, 53);
-    mpfr_init2(imag_part, 53);
-
-    mpfr_init2(t1, mpfr_get_prec(A));
-    mpfr_init2(t2, mpfr_get_prec(A));
+    MPFR_DECL_INIT(real_part, 53);
+    MPFR_DECL_INIT(imag_part, 53);
+    MPFR_DECL_INIT(t1, mpfr_get_prec(A));
+    MPFR_DECL_INIT(t2, mpfr_get_prec(A));
 
     mpfr_mul_si(t2, B, K, GMP_RNDN);    // t2 = bK
     mpfr_add(t2, t2, A, GMP_RNDN);      // t2 = a + bK
@@ -312,12 +297,7 @@ Complex ExpABK(mpfr_t A, mpfr_t B, int K) {
 
     mpfr_sin_cos(imag_part, real_part, t2, GMP_RNDN);
 
-    Complex S(mpfr_get_d(real_part, GMP_RNDN), mpfr_get_d(imag_part, GMP_RNDN));
-
-    mpfr_clear(real_part);
-    mpfr_clear(imag_part);
-    mpfr_clear(t1);
-    mpfr_clear(t2);
+    complex<double> S(mpfr_get_d(real_part, GMP_RNDN), mpfr_get_d(imag_part, GMP_RNDN));
 
     return S;
 }

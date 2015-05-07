@@ -393,11 +393,10 @@ inline std::complex<double> compute_C11(mpfr_t a, mpfr_t b, int K) {
     //
     // Compute C11 = I exp(2 pi i K a + 2 pi i b K^2)
     //
-    mpfr_t tmp1;
-    mpfr_t tmp2;
-    mpfr_init2(tmp1, mpfr_get_prec(a));
-    mpfr_init2(tmp2, mpfr_get_prec(a));
-    
+
+    MPFR_DECL_INIT(tmp1, mpfr_get_prec(a));
+    MPFR_DECL_INIT(tmp2, mpfr_get_prec(a));
+
     mpfr_const_pi(tmp1, GMP_RNDN);
     mpfr_mul_si(tmp1, tmp1, 2, GMP_RNDN);
     mpfr_mul(tmp1, tmp1, a, GMP_RNDN);
@@ -414,9 +413,6 @@ inline std::complex<double> compute_C11(mpfr_t a, mpfr_t b, int K) {
     mpfr_sin_cos(tmp1, tmp2, tmp1, GMP_RNDN);
     
     std::complex<double> S(mpfr_get_d(tmp2, GMP_RNDN), mpfr_get_d(tmp1, GMP_RNDN));
-    
-    mpfr_clear(tmp1);
-    mpfr_clear(tmp2);
     return I * S;
 }
 

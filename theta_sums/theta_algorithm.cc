@@ -179,9 +179,11 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
 
     //Complex z = exp(-I * PI * (a * a/(2.0 * b) - .25))/sqrt((Double)2 * b);
     
-    mpfr_t a1, b1;
-    mpfr_init2(a1, mpfr_get_prec(mp_a));
-    mpfr_init2(b1, mpfr_get_prec(mp_b));
+    MPFR_DECL_INIT(a1, mpfr_get_prec(mp_a));
+    MPFR_DECL_INIT(b1, mpfr_get_prec(mp_b));
+    //mpfr_t a1, b1;
+    //mpfr_init2(a1, mpfr_get_prec(mp_a));
+    //mpfr_init2(b1, mpfr_get_prec(mp_b));
     mpfr_ui_div(b1, 1, mp_b, GMP_RNDN);
     mpfr_div_2ui(b1, b1, 1, GMP_RNDN);
     mpfr_mul(a1, mp_a, b1, GMP_RNDN);
@@ -216,8 +218,8 @@ Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b,
         S1 = S1 - v2[0];
     }
 
-    mpfr_clear(a1);
-    mpfr_clear(b1);
+    //mpfr_clear(a1);
+    //mpfr_clear(b1);
 
     //-----------------------------------------------------------------------
     // Now we compute S2
@@ -277,9 +279,8 @@ int normalize(Double &a, Double &b) {
 
     // A return of -1 would indicate some strange (impossible) error.
     
-    mpfr_t mp_a, mp_b;
-    mpfr_init2(mp_a, 100);
-    mpfr_init2(mp_b, 100);
+    MPFR_DECL_INIT(mp_a, 100);
+    MPFR_DECL_INIT(mp_b, 100);
 
     mpfr_set_d(mp_a, to_double(a), GMP_RNDN);
     mpfr_set_d(mp_b, to_double(b), GMP_RNDN);
@@ -289,7 +290,6 @@ int normalize(Double &a, Double &b) {
     a = mpfr_get_d(mp_a, GMP_RNDN);
     b = mpfr_get_d(mp_b, GMP_RNDN);
     return return_value;
-
 }
 
 int normalize(mpfr_t a, mpfr_t b) {
