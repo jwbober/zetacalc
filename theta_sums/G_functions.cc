@@ -1143,7 +1143,7 @@ complex<double> G_via_Euler_MacLaurin_I_over_twopi(complex<double> alpha, int n,
     complex<double> alpha_term_multiplier = EXP(2 * PI * I * alpha/(double)N);
     complex<double> alpha_term = alpha_term_multiplier;
     complex<double> S = (complex<double>)0;
-
+    complex<double> exp_factor_at_1;
     {
         double t_increment = 1.0/N;
         double t = t_increment;
@@ -1155,6 +1155,9 @@ complex<double> G_via_Euler_MacLaurin_I_over_twopi(complex<double> alpha, int n,
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
                 }
+                exp_factor_at_1 = alpha_term/E;
+                S = S + .5 + .5*exp_factor_at_1;
+                //S = S + .5 * (pow(n, j) + pow(1 + n, j) * exp_factor_at_1);
                 break;
             case 1:
                 for(int s = 1; s < N; s++) {
@@ -1162,6 +1165,37 @@ complex<double> G_via_Euler_MacLaurin_I_over_twopi(complex<double> alpha, int n,
                     S = S + (n + t) * exp_t_over_N_squared(s, N) * alpha_term;
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
+                }
+                exp_factor_at_1 = alpha_term/E;
+                S = S + .5 * ((double)n + (1.0 + n) * exp_factor_at_1);
+                //S = S + .5 * (pow(n, j) + pow(1 + n, j) * exp_factor_at_1);
+                break;
+            
+            case 2:
+                for(int s = 1; s < N; s++) {
+                    //S = S + pow(t + n, j) * exp(-t * t) * alpha_term;
+                    double x = t + n;
+                    S = S + x*x * exp_t_over_N_squared(s, N) * alpha_term;
+                    alpha_term *= alpha_term_multiplier;
+                    t += t_increment;
+                }
+                exp_factor_at_1 = alpha_term/E;
+                S = S + .5 * ((double)n * n + (1.0 + n)*(1.0 + n) * exp_factor_at_1);
+                break;
+ 
+            case 3:
+                for(int s = 1; s < N; s++) {
+                    //S = S + pow(t + n, j) * exp(-t * t) * alpha_term;
+                    double x = t + n;
+                    S = S + x*x*x * exp_t_over_N_squared(s, N) * alpha_term;
+                    alpha_term *= alpha_term_multiplier;
+                    t += t_increment;
+                }
+                exp_factor_at_1 = alpha_term/E;
+                {
+                double nn = (double)n;
+                double onepn = 1.0 + n;
+                S = S + .5 * (nn*nn*nn + onepn*onepn*onepn * exp_factor_at_1);
                 }
                 break;
 
@@ -1172,6 +1206,8 @@ complex<double> G_via_Euler_MacLaurin_I_over_twopi(complex<double> alpha, int n,
                     alpha_term *= alpha_term_multiplier;
                     t += t_increment;
                 }
+                exp_factor_at_1 = alpha_term/E;
+                S = S + .5 * (pow(n, j) + pow(1 + n, j) * exp_factor_at_1);
         }
     }
 
@@ -1179,8 +1215,7 @@ complex<double> G_via_Euler_MacLaurin_I_over_twopi(complex<double> alpha, int n,
     //S = S - (double)(.5) * (g(alpha, I/(2 * PI), n, j, 0) + g(alpha, I/(2 * PI), n, j, 1));
 
     //complex<double> exp_factor_at_1 = exp(2 * PI * I * alpha - 1.0);
-    complex<double> exp_factor_at_1 = alpha_term/E;
-    S = S + .5 * (pow(n, j) + pow(1 + n, j) * exp_factor_at_1);
+    //S = S + .5 * (pow(n, j) + pow(1 + n, j) * exp_factor_at_1);
     S = S/(double)N;
 
 
