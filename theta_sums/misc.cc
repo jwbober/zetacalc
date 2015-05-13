@@ -29,12 +29,13 @@ Double infinite_sum_of_differenced_inverse_powers(Double a1, Double a2, int m, i
     Double S = 0;
 
     int p = (int)ceil( (-fastlog2(epsilon) + .61 + j * log(2 * PI) - j * (fastlog(j) + 1))/2.0 );
-    int new_m = max(m + 1, (int)ceil((j + 2 * p - 1)/(2 * PI)) + 1);
+    //int new_m = max(m + 1, (int)ceil((j + 2 * p - 1)/(2 * PI)) + 1);
+    int new_m = max(m, (int)ceil((j + 2 * p - 1)/(2 * PI)) + 1);
 
     //int new_m = max(m + 1, to_int(ceil(-fastlog(epsilon)) + 1));
 
     for(int k = m; k < new_m; k++) {
-        S += pow( k + a1, -j ) - pow(k + a2, -j);
+        S += misc::pow( k + a1, -j ) - misc::pow(k + a2, -j);
     }
 
     // cout << "Length of direct computation: " << new_m - m << endl;
@@ -45,14 +46,14 @@ Double infinite_sum_of_differenced_inverse_powers(Double a1, Double a2, int m, i
         S = S + LOG(m + a2) - LOG(m + a1) + .5*( (Double)1/(m + a1) - (Double)1/(m + a2));
     }
     else {
-        S = S + (Double)1.0/(Double)(j - 1) * ( pow(m + a1, 1 - j) - pow(m + a2, 1 - j) ) + .5 * ( pow(m + a1, -j) - pow(m + a2, -j) );
+        S = S + (Double)1.0/(Double)(j - 1) * ( misc::pow(m + a1, 1 - j) - misc::pow(m + a2, 1 - j) ) + .5 * ( misc::pow(m + a1, -j) - misc::pow(m + a2, -j) );
     }
 
     Double error = epsilon + 1;
 
     int r = 1;
-    Double m_plus_a1_power = pow(m + a1, -(j + 1));
-    Double m_plus_a2_power = pow(m + a2, -(j + 1));
+    Double m_plus_a1_power = misc::pow(m + a1, -(j + 1));
+    Double m_plus_a2_power = misc::pow(m + a2, -(j + 1));
 
     Double m_plus_a1_pow_minus_2 = 1.0/((m + a1) * (m + a1));
     Double m_plus_a2_pow_minus_2 = 1.0/((m + a2) * (m + a2));
@@ -93,7 +94,6 @@ Double sum_of_offset_inverse_powers(Double a, int m, int M, int j, Double epsilo
 
     Double S = 0;
 
-
     /* It doesn't seem good to put in the following code.
      * It has just about no effect, but might slow things down
      * just a little bit. Probably in the cases where we
@@ -124,7 +124,7 @@ Double sum_of_offset_inverse_powers(Double a, int m, int M, int j, Double epsilo
     if(method != 0) {
 
         for(int k = m; k <= M; k++) {
-            S += pow( k + a, -j);
+            S += misc::pow( k + a, -j);
         }
 
         return S;
@@ -134,7 +134,8 @@ Double sum_of_offset_inverse_powers(Double a, int m, int M, int j, Double epsilo
     // so that the Euler-Maclaurin summation can calculate a good enough error term.
 
     int p = (int)ceil( (-fastlog2(epsilon) + .61 + j * log(2 * PI) - j * (fastlog(j) + 1))/2.0 );
-    int new_m = max(m + 1, (int)ceil((j + 2 * p - 1)/(2 * PI)) + 1);
+    //int new_m = max(m + 1, (int)ceil((j + 2 * p - 1)/(2 * PI)) + 1);
+    int new_m = max(m, (int)ceil((j + 2 * p - 1)/(2 * PI)) + 1);
 
     //new_m = max(m + 1, to_int(ceil(-fastlog(epsilon) + 1)));
     new_m = max(new_m, 3);
@@ -145,11 +146,14 @@ Double sum_of_offset_inverse_powers(Double a, int m, int M, int j, Double epsilo
     //cout << "M = " << M << endl;
     //cout << "new_m = " << new_m << endl;
     //cout << "epsilon = " << epsilon << endl;
+    
 
     //int new_m = min(M + 1, max(m + 1, to_int(ceil(-LOG(epsilon)) + 1)));
     for(int k = m; k < new_m; k++) {
-        S += pow( k + a, -j );
+        S += misc::pow( k + a, -j );
     }
+    //if(new_m - m == 1)
+    //    cout << new_m - m << endl;
 
     if(new_m == M + 1) {
         return S;
@@ -175,9 +179,9 @@ Double sum_of_offset_inverse_powers(Double a, int m, int M, int j, Double epsilo
         S = S + LOG(M + a) - LOG(m + a) + .5 * (m_plus_a_power + M_plus_a_power);
     }
     else {
-        m_plus_a_power = pow(m + a, 1 - j);
+        m_plus_a_power = misc::pow(m + a, 1 - j);
         if(M != -1) {
-            M_plus_a_power = pow(M + a, 1 - j);
+            M_plus_a_power = misc::pow(M + a, 1 - j);
             S = S + 1.0/(j - 1.0) * (m_plus_a_power - M_plus_a_power);
             M_plus_a_power *= one_over_M_plus_a;
             m_plus_a_power *= one_over_m_plus_a;
@@ -223,6 +227,8 @@ Double sum_of_offset_inverse_powers(Double a, int m, int M, int j, Double epsilo
             r++;
         }
     }
+    //if(r > 5)
+    //    cout << m << " " << M << " " << new_m << " " << r << " " << j << endl;
 
     return S;
 }

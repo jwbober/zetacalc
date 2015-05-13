@@ -67,8 +67,8 @@ template <typename T> complex<double> H_method1(int j, T alpha) {
     alpha_power *= alpha;
     //S = S * j_factorial/(alpha_power * two_pi_power(j+1));
     S = S * j_factorial;
-    S = S/two_pi_power(j+1);
-    S = S/alpha_power;
+    S = S/(two_pi_power(j+1) * alpha_power);
+    //S = S/alpha_power;
 
     return S;
 }

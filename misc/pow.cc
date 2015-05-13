@@ -2,8 +2,8 @@
 
 //#define __pow_stats__
 
-#ifdef __pow_stats__
 #include <iostream>
+#ifdef __pow_stats__
 class Stats {
 public:
     long counter = 0;
