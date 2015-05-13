@@ -92,12 +92,13 @@ Complex zeta_block_stage2_basic(mpz_t v, unsigned int *K, mpfr_t t, Double epsil
     int vsize = mpz_sizeinbase(v, 2);
     int precision = mpfr_get_exp(t) - vsize + 53;       
 
-    //mpfr_t mp_v_power, z, twopi, one_over_v, twopi_l, z1;
-    MPFR_DECL_INIT(mp_v_power, precision);
+    mpfr_t z, mp_v_power, twopi_l;
+    mpfr_init2(z, precision);               // We are going to change the
+    mpfr_init2(mp_v_power, precision);      // precision on these variables,
+    mpfr_init2(twopi_l, precision);         // so we can't use MPFR_DECL_INIT.
+
     MPFR_DECL_INIT(one_over_v, precision);
-    MPFR_DECL_INIT(z, precision);
     MPFR_DECL_INIT(twopi, precision);
-    MPFR_DECL_INIT(twopi_l, precision);
     MPFR_DECL_INIT(z1, 53);
 
 
@@ -171,10 +172,10 @@ Complex zeta_block_stage2_basic(mpz_t v, unsigned int *K, mpfr_t t, Double epsil
     S = S / sqrt(vv);
     S = S * exp_itlogn(v);
 
-    //mpfr_clear(mp_v_power);
-    //mpfr_clear(z);
+    mpfr_clear(mp_v_power);
+    mpfr_clear(z);
     //mpfr_clear(twopi);
-    //mpfr_clear(twopi_l);
+    mpfr_clear(twopi_l);
     //mpfr_clear(one_over_v);
     //mpfr_clear(z1);
 
