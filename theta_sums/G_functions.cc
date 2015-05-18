@@ -862,15 +862,18 @@ complex<double> G_via_Euler_MacLaurin_I_over_twopi(complex<double> alpha, int n,
     int r = 1;
 
     g_derivative_polynomial_I_over_twopi(2 * r - 1 + j, p, p_prev, alpha);
-    double error = 10 * epsilon;
-    //while(4 * error > epsilon * epsilon) {
+    double error = 0.0;
+    complex<double> derivative_at_1 = 0.0;
+    for(int k = 0; k <= 2*r - 1 + j; k++) {
+        derivative_at_1 += p[k];
+        double z = abs(derivative_at_1);
+        if(z > error) error = z;
+    }
+    derivative_at_1 *= exp_factor_at_1;
+    error *= (N_power * bernoulli_over_factorial(2*r));
+    error = std::abs(error);
+
     while(2 * error > epsilon) {
-        
-        complex<double> derivative_at_1 = (complex<double>)0;
-        for(int k = 0; k <= 2 * r - 1 + j; k++) {
-            derivative_at_1 = derivative_at_1 + p[k];
-        }
-        derivative_at_1 *= exp_factor_at_1;
         complex<double> derivative_at_0 = p[0];
 
         complex<double> z = N_power * bernoulli_over_factorial(2*r)
@@ -889,12 +892,24 @@ complex<double> G_via_Euler_MacLaurin_I_over_twopi(complex<double> alpha, int n,
         p = p_prev;
         p_prev = ptmp;
         g_derivative_polynomial_I_over_twopi(2 * r - 1 + j, p, p_prev, alpha);
-        error = 0;
-        for(int k = 0; k <= 2*r - 1 + j; k++) {
-            error += std::abs(p[k]);
-        }
+        //error = 0;
+        //for(int k = 0; k <= 2*r - 1 + j; k++) {
+        //    error += std::abs(p[k]);
+        //}
         N_power *= N_power_multiplier;
-        error *= std::abs((N_power * bernoulli_over_factorial(2*r)));
+        //error *= std::abs((N_power * bernoulli_over_factorial(2*r)));
+
+        error = 0.0;
+        derivative_at_1 = 0.0;
+        for(int k = 0; k <= 2*r - 1 + j; k++) {
+            derivative_at_1 += p[k];
+            //double z = abs(derivative_at_1);
+            double z = std::abs(derivative_at_1.real()) + std::abs(derivative_at_1.imag());
+            if(z > error) error = z;
+        }
+        error *= (N_power * bernoulli_over_factorial(2*r));
+        error = std::abs(error);
+        derivative_at_1 *= exp_factor_at_1;
     }
    
     //if(alpha == complex<double>(2.2093952233900601e-12,2.2093952233900601e-12)
