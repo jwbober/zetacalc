@@ -38,7 +38,8 @@ void report(double a, double b, int j, int K, complex<double> * v, double epsilo
     complex<double> diff = S - S1;
     double abserror = abs(diff);
     double relerror = abserror/abs(S);
-    double error = std::min(abserror, relerror);
+    //double error = std::min(abserror, relerror);
+    double error = abserror;
     double logerror = -log2(error);
     if(logerror < histogram_start) {
         error_histogram[0]++;

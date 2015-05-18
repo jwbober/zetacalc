@@ -147,6 +147,41 @@ double misc::pow(double x, int exponent) {
         case 40:
             {double x2 = x*x; double x4 = x2*x2; double x8 = x4*x4;
              double x20 = x8*x8*x4; return x20*x20;}
+        case 41:
+            {double x2 = x*x; double x4 = x2*x2; double x8 = x4*x4;
+             double x20 = x8*x8*x4; return x*x20*x20;}
+        case 42:
+            {double x3 = x*x*x; double x6 = x3*x3;
+             double x21 = x6*x6*x6*x3; return x21*x21;}
+        case 43:
+            {double x2 = x*x; double x4 = x2*x2;
+             double x8 = x4*x4; double x9 = x8*x; 
+             double x17 = x8*x9; return x17*x17*x9;}
+        case 44:
+            {double x2 = x*x; double x4 = x2*x2;
+             double x11 = x4*x4*x2*x; double x22 = x11*x11;
+             return x22*x22;}
+        case 45:
+            {double x3 = x*x*x; double x6 = x3*x3;
+             double x15 = x6*x6*x3; return x15*x15*x15;}
+        case 46:
+            {double x2 = x*x; double x3 = x*x2; double x5 = x2*x3;
+             double x10 = x5*x5; double x23 = x10*x10*x3;
+             return x23*x23;}
+        case 47:
+            {double x2 = x*x; double x3 = x*x2; double x5 = x2*x3;
+             double x10 = x5*x5; double x23 = x10*x10*x3;
+             return x23*x23*x;}
+        case 48:
+            {double x2 = x*x; double x4 = x2*x2; double x12 = x4*x4*x4;
+             double x24 = x12*x12; return x24*x24;}
+        case 49:
+            {double x2 = x*x; double x4 = x2*x2;
+             double x8 = x4*x4; double x16 = x8*x8;
+             return x*x16*x16*x16;}
+        case 50:
+            {double x2 = x*x; double x4 = x2*x2; double x8 = x4*x4;
+             double x25 = x8*x8*x8*x; return x25*x25;}
 
         default:
             return std::pow(x, exponent);

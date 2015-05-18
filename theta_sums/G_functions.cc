@@ -211,6 +211,7 @@ complex<double> G_I_over_twopi(complex<double> alpha, int n, int j, double epsil
     }
 
 
+
     if(method == 2) {
         return G_via_Euler_MacLaurin_I_over_twopi(alpha, n, j, epsilon);
         //return G_via_Euler_MacLaurin_I(alpha, 1.0/(2 * PI), n, j, epsilon);
@@ -750,7 +751,6 @@ complex<double> G_via_Euler_MacLaurin_I_over_twopi(complex<double> alpha, int n,
     int N = to_int(ceil(  ( std::abs(alpha) + 1/PI + max(-fastlog(epsilon)/(2 * PI), 0.0) ) * (1 + j * (fastlog(n + 1) + 1)/4.0) ));
     N = 2 * max(N, 1);
 
-
     /*
     double two_n_to_the_j = 1;
     if(n != 0)
@@ -827,7 +827,6 @@ complex<double> G_via_Euler_MacLaurin_I_over_twopi(complex<double> alpha, int n,
     S = S/(double)N;
 
 
-    double error = 10 * epsilon * epsilon;
 
     complex<double> p1[bernoulli_range + max_j];            // below p will need to be as big as 2r + j
     complex<double> p2[bernoulli_range + max_j];            // for increasing r. If 2r ever gets as large
@@ -858,19 +857,15 @@ complex<double> G_via_Euler_MacLaurin_I_over_twopi(complex<double> alpha, int n,
         }
     }
 
-    double N_power = 1;
     double N_power_multiplier = 1.0/(N * N);
+    double N_power = N_power_multiplier;
     int r = 1;
 
-    while(4 * error > epsilon * epsilon) {
-        if(r > 1) {
-            g_derivative_polynomial_I_over_twopi(2 * r - 2 + j, p, p_prev, alpha);
-            ptmp = p;
-            p = p_prev;
-            p_prev = ptmp;
-        }
-        g_derivative_polynomial_I_over_twopi(2 * r - 1 + j, p, p_prev, alpha);
-
+    g_derivative_polynomial_I_over_twopi(2 * r - 1 + j, p, p_prev, alpha);
+    double error = 10 * epsilon;
+    //while(4 * error > epsilon * epsilon) {
+    while(2 * error > epsilon) {
+        
         complex<double> derivative_at_1 = (complex<double>)0;
         for(int k = 0; k <= 2 * r - 1 + j; k++) {
             derivative_at_1 = derivative_at_1 + p[k];
@@ -878,17 +873,36 @@ complex<double> G_via_Euler_MacLaurin_I_over_twopi(complex<double> alpha, int n,
         derivative_at_1 *= exp_factor_at_1;
         complex<double> derivative_at_0 = p[0];
 
-        N_power *= N_power_multiplier;
         complex<double> z = N_power * bernoulli_over_factorial(2*r)
                             * (derivative_at_1 - derivative_at_0);
 
         S = S - z;
-        error = norm(z);
+        //error = norm(z);
         r = r + 1;
+        
         ptmp = p;
         p = p_prev;
         p_prev = ptmp;
+        g_derivative_polynomial_I_over_twopi(2 * r - 2 + j, p, p_prev, alpha);
+
+        ptmp = p;
+        p = p_prev;
+        p_prev = ptmp;
+        g_derivative_polynomial_I_over_twopi(2 * r - 1 + j, p, p_prev, alpha);
+        error = 0;
+        for(int k = 0; k <= 2*r - 1 + j; k++) {
+            error += std::abs(p[k]);
+        }
+        N_power *= N_power_multiplier;
+        error *= std::abs((N_power * bernoulli_over_factorial(2*r)));
     }
+   
+    //if(alpha == complex<double>(2.2093952233900601e-12,2.2093952233900601e-12)
+    //        && (n == 0) && (j == 0) ) {
+    //    std::cout << "here" << std::endl;
+    //    std::cout << "N = " << N << std::endl;
+    //    std::cout << "r = " << r << std::endl;
+    //}
 
     return S;
 
