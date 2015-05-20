@@ -27,7 +27,7 @@ unsigned int stage_3_block_size(Double v, Double t) {
     // derivatives that are needed to compute the block
     //
     
-    unsigned int block_size = (unsigned int)(  min(.9 * v * pow(t, -.3333333333333333333333), v/500.0 * 500.0) );
+    unsigned int block_size = (unsigned int)(  min(.9 * v * pow(t, -.3333333333333333333333), v/(500.0 * 500.0)) );
     return block_size;
 }
 
@@ -126,7 +126,7 @@ Complex zeta_block_stage3(mpz_t v0, unsigned int N, mpfr_t t, Complex Z[30], Dou
 
     while(N > 0) {
         // NOTICE: epsilon = exp(-20) has been hard-coded here; it should be passed eventually.
-        Complex current_term = zeta_block_stage3_basic(v, &K, t, Z, exp(-20), Kmin);
+        Complex current_term = zeta_block_stage3_basic(v, &K, t, Z, exp(-5), Kmin);
         Complex multiplier = exp(I * delta * log(mpz_get_d(v)));
 
         for(int l = 0; l < M; l++) {
