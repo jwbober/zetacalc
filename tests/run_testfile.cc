@@ -32,9 +32,11 @@ const int histogram_size = 60;
 const int histogram_start = 0;
 int error_histogram[histogram_size] = {0};
 double maxerror = 0.0;
+unsigned long testcount = 0;
 std::mutex report_mutex;
 void report(double a, double b, int j, int K, complex<double> * v, double epsilon, complex<double> S, complex<double> S1) {
     std::lock_guard<std::mutex> lock(report_mutex);
+    testcount++;
     complex<double> diff = S - S1;
     double abserror = abs(diff);
     double relerror = abserror/abs(S);
@@ -105,6 +107,7 @@ void print_histogram() {
         }
         cout << endl;
     }
+    cout << "Completed " << testcount << " tests." << endl;
 }
 
 ifstream infile;
