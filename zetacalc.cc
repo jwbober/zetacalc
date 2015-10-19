@@ -8,6 +8,7 @@
 #include <sstream>
 #include <iomanip>
 #include <string>
+#include <thread>
 
 using namespace std;
 
@@ -203,6 +204,10 @@ int main(int argc, char * argv[]) {
                 repeat = atoi(optarg);
                 break;
         }
+    }
+
+    if(number_of_threads == 0) {
+        number_of_threads = thread::hardware_concurrency();
     }
 
     if(use_input_file) {
