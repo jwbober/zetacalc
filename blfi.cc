@@ -24,7 +24,7 @@ typedef double Double;
 typedef std::complex<double> Complex;
 using namespace std;
 
-#include "rs_sum.h"
+#include "main_sum.h"
 
 
 double sinc(double x);

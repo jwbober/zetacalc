@@ -51,7 +51,8 @@ OBJECTS = $(MAIN_SUM_OBJECTS) \
 	  tests/mainsum_tests.o
 
 EXECUTABLES = zetacalc \
-	      test
+	      test \
+	      blfi
 
 TESTS =       tests/mainsum_tests \
 	      tests/Htest \
@@ -64,6 +65,9 @@ TESTS =       tests/mainsum_tests \
 
 zetacalc: $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) zetacalc.o
 	$(CXX) -o zetacalc zetacalc.o $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) $(LDFLAGS)
+
+blfi: $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) blfi.o
+	$(CXX) -o blfi blfi.o $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) $(LDFLAGS) gmpfrxx/gmpfrxx.o
 
 $(THETA_SUM_OBJECTS): include/theta_sums.h include/log.h include/misc.h theta_sums/precomputed_tables.h
 $(MAIN_SUM_OBJECTS): include/theta_sums.h include/log.h include/main_sum.h include/misc.h theta_sums/precomputed_tables.h
@@ -104,8 +108,8 @@ clean:
 	-rm $(TESTS)
 
 
-build/blfi.o: blfi.cc include/main_sum.h
-	$(CXX) -c blfi.cc $(OPTIONS) $(INCLUDEDIR) -o build/blfi.o
-
-blfi:  build/theta_sums.o build/G_functions.o build/H_functions.o build/ICn.o build/H_and_J_integrals.o build/derivative_computations.o build/misc.o build/log.o include/main_sum.h include/log.h build/direct_evaluation.o build/exp_sum_euler_maclaurin.o build/theta_algorithm.o build/w_coefficient.o build/cache.o build/zetacalc.o build/main_sum.o build/stage1.o build/stage2.o build/stage3.o build/log.o build/ms_misc.o build/blfi.o gmpfrxx/gmpfrxx.o
-	$(CXX) -O3 -o blfi build/theta_sums.o build/direct_evaluation.o build/exp_sum_euler_maclaurin.o build/theta_algorithm.o build/G_functions.o build/H_functions.o build/ICn.o build/H_and_J_integrals.o build/derivative_computations.o build/misc.o build/ms_misc.o build/stage1.o build/stage2.o build/stage3.o build/main_sum.o build/log.o build/w_coefficient.o build/cache.o build/blfi.o gmpfrxx/gmpfrxx.o $(LIBS)
+#build/blfi.o: blfi.cc include/main_sum.h
+#	$(CXX) -c blfi.cc $(OPTIONS) $(INCLUDEDIR) -o build/blfi.o
+#
+#blfi:  build/theta_sums.o build/G_functions.o build/H_functions.o build/ICn.o build/H_and_J_integrals.o build/derivative_computations.o build/misc.o build/log.o include/main_sum.h include/log.h build/direct_evaluation.o build/exp_sum_euler_maclaurin.o build/theta_algorithm.o build/w_coefficient.o build/cache.o build/zetacalc.o build/main_sum.o build/stage1.o build/stage2.o build/stage3.o build/log.o build/ms_misc.o build/blfi.o gmpfrxx/gmpfrxx.o
+#	$(CXX) -O3 -o blfi build/theta_sums.o build/direct_evaluation.o build/exp_sum_euler_maclaurin.o build/theta_algorithm.o build/G_functions.o build/H_functions.o build/ICn.o build/H_and_J_integrals.o build/derivative_computations.o build/misc.o build/ms_misc.o build/stage1.o build/stage2.o build/stage3.o build/main_sum.o build/log.o build/w_coefficient.o build/cache.o build/blfi.o gmpfrxx/gmpfrxx.o $(LIBS)
