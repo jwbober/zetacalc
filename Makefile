@@ -8,7 +8,7 @@ H_CXXFLAGS = -march=native -Wall -pthread  -O3 -g -std=c++11 -Iinclude
 
 
 
-LDFLAGS := -lmpfr -lgmp -lgmpxx -pthread -g
+LDFLAGS := -L$(HOME)/lib -lmpfr -lgmp -lgmpxx -pthread -g
 ifdef PROFILE_BUILD
     LDFLAGS := $(LDFLAGS) -Wl,--no-as-needed -lprofiler
 endif
