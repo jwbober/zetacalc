@@ -36,5 +36,12 @@ def commands_for_split_computation(t):
 
 
 if __name__ == '__main__':
-    t = mpf(sys.argv[1])
+    if sys.argv[1] == 't':
+        t = mpf(sys.argv[2])
+    elif sys.argv[1] == 'gram':
+        t = floor(grampoint(float(sys.argv[2])) - 20)
+    else:
+        print 'usage: queue-computation.py t [t] or queue-computations.py gram [gram point index]'
+        sys.exit()
+
     commands_for_split_computation(t)
