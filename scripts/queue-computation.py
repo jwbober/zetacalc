@@ -1,11 +1,11 @@
 import sys
 import os
 
-from mpmath import *
-mp.prec = 500
+import mpmath
+mpmath.mp.prec = 500
 
 def full_sum_length(t):
-     return int(sqrt(t/(2*pi)))
+     return int(mpmath.sqrt(t/(2*mpmath.pi)))
 
 command_template = 'zetacalc --t={t} --start={start} --length={length} --N={N} --delta={delta} --number_of_threads=0 --terse'
 
@@ -18,8 +18,10 @@ def commands_for_split_computation(t):
         num_splits = 100
     elif t < 1e28:
         num_splits = 1000
-    else:
+    elif t < 1e33:
         num_splits = 10000
+    else:
+        num_splits = 100000
 
     full_length = full_sum_length(t)
     split_length = full_length/num_splits
@@ -37,9 +39,9 @@ def commands_for_split_computation(t):
 
 if __name__ == '__main__':
     if sys.argv[1] == 't':
-        t = mpf(sys.argv[2])
+        t = mpmath.mpf(sys.argv[2])
     elif sys.argv[1] == 'gram':
-        t = floor(grampoint(float(sys.argv[2])) - 20)
+        t = mpmath.floor(mpmath.grampoint(mpmath.mpf(sys.argv[2])) - 20)
     else:
         print 'usage: queue-computation.py t [t] or queue-computations.py gram [gram point index]'
         sys.exit()
