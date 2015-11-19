@@ -108,7 +108,7 @@ public:
 
     mpfr_class t0;
     double delta;
-    
+
     double tau;
     double beta;
     double lambda;
@@ -127,7 +127,7 @@ public:
     double g0;
 
     ZetaComputation(mpfr_class _t0, double _delta, int _N, Complex * _rs_sum) {
-        
+
         t0 = _t0;
 
         delta = _delta;
@@ -157,7 +157,7 @@ public:
 
     double Z(double t) {
         // return the value of Z(t0 + _t)
-        
+
         if(t > max_t || t < min_t) {
             cout << "t out of range." << endl;
             exit(30);
@@ -169,7 +169,7 @@ public:
 
         for(int n = ceil(t/delta) - 19; n <= ceil(t/delta) + 18; n++) {
             double u = n * delta - t;
-            
+
             Complex z = rs_sum[n] * exp(-I * alpha * u) * sinc(lambda * u) * blfi_kernel(u, c, epsilon1);
             S = S + z;
 
@@ -183,13 +183,13 @@ public:
         mpfr_add_d(temp, t0.get_mpfr_t(), t, GMP_RNDN);
 
         S = 2.0 * S * rs_rotation(temp) + rs_remainder(temp);
-        
+
         mpfr_clear(temp);
 
         double answer = S.real();
 
         answer = answer + intentional_error * sin(2 * M_PI * t /intentional_error_period);
-        
+
         return answer;
     }
 
@@ -205,7 +205,7 @@ public:
 
         for(int n = ceil(t/delta) - 19; n <= ceil(t/delta) + 18; n++) {
             double u = n * delta - t;
-            
+
             Complex z = rs_sum[n] * exp(-I * alpha * u) * sinc(lambda * u) * blfi_kernel(u, c, epsilon1);
             S = S + z;
 
@@ -220,7 +220,7 @@ public:
 
         S = 2.0 * S * rs_rotation(temp) + rs_remainder(temp);
         S = S.real() * rs_rotation(temp);
-        
+
         mpfr_clear(temp);
 
         return S;
@@ -239,7 +239,7 @@ public:
             t1 = t2;
             t2 = t3;
         }
-        
+
         while( abs(t2 - t1) > epsilon) {
             t3 = (t1 + t2)/2.0;
             if(Zprime(t3) > 0)
@@ -277,7 +277,7 @@ public:
         if(Z(t1) * Z(t2) > 0) {
             return -1;
         }
-        
+
         double t3;
         if(Z(t1) < 0) {
             t3 = t1;
@@ -493,7 +493,7 @@ double sinc(double x){
     //Taylor coefficients in sin expansions
     const double sinc_coeff[6]={1, -1.0 / 6.0, 1.0 / 120.0, -1.0 / 5040.0, 1 / 362880.0, -1.0 / 39916800.0};
 
-    //Parameters needed in sinc function; help overcome instability when sinc(x) is called with very small x 
+    //Parameters needed in sinc function; help overcome instability when sinc(x) is called with very small x
     double sinc_tol=1.e-5;
     int sinc_terms = 3;
 
@@ -506,9 +506,9 @@ double sinc(double x){
         //    ans = ans + sinc_coeff[j] * x_power;
         //    x_power = x_squared * x_power;
         //}
-        
+
         //return ans;
-        
+
         return 1/120.0 * pow(x, 4) - 1.0/6.0 * pow(x, 2) + 1;
 
     }
@@ -521,7 +521,7 @@ double sinc(double x){
 double blfi_kernel(double u, double c, double epsilon_1){
     //Taylor coefficients in sinh and sin expansions
     const double sinh_coeff[6]={1, 1 / 6.0, 1 / 120.0, 1 / 5040.0, 1 / 362880.0, 1 / 39916800.0};
-    //Parameters needed in kernel function; help overcome instability when kernel(x) is called with very small x 
+    //Parameters needed in kernel function; help overcome instability when kernel(x) is called with very small x
     double sinh_tol=1.e-5;
     int sinh_terms = 3;
 
@@ -540,7 +540,7 @@ double blfi_kernel(double u, double c, double epsilon_1){
 
         //double x_power = x_squared;
         //double ans = 1;
-        
+
         //for(int j = 1; j < sinh_terms; j++) {
         //    ans = ans + sinh_coeff[j] * x_power;
         //    x_power = x_squared * x_power;
@@ -590,11 +590,13 @@ int main(int argc, char * argv[]) {
     double error_period = 10;
 
     int maxmin = 0;
+    int peaks_and_zeros = 0;
+    int plot = 0;
 
     while(1) {
         enum {FILENAME = 2, ZEROS, S_OPTION, START, END, SPACING, CALCULATE_N, RH_START, RH_END,
                 ZEROS_AND_POINTS, ERROR, ERROR_PERIOD};
-        static struct option options[] = 
+        static struct option options[] =
             {
                 {"filename", required_argument, 0, FILENAME},
                 {"values", no_argument, &list_values, 1},
@@ -616,8 +618,10 @@ int main(int argc, char * argv[]) {
                 {"error", required_argument, 0, ERROR},
                 {"error_period", required_argument, 0, ERROR_PERIOD},
                 {"maxmin", no_argument, &maxmin, 1},
+                {"peaks-and-zeros", no_argument, &peaks_and_zeros, 1},
+                {"plot", no_argument, &plot, 1},
                 {0, 0, 0, 0}
-            }; 
+            };
 
         int option_index = 0;
         int c = getopt_long(argc, argv, "", options, &option_index);
@@ -663,7 +667,7 @@ int main(int argc, char * argv[]) {
     }
 
     ifstream infile(filename);
-    
+
     mpfr_class t0;
     double delta;
     int N = 1000;
@@ -684,7 +688,7 @@ int main(int argc, char * argv[]) {
     Z.intentional_error_period = error_period;
 
     //cout << mpfr_get_d(t, GMP_RNDN) << endl;
-    
+
     //for(int n = 0; n < 10000; n++) {
     //    cout << Z.Z(1 + 38/10000.0 * n) << endl;
     //}
@@ -692,7 +696,7 @@ int main(int argc, char * argv[]) {
     //for(int n = 21; n < N - 21; n++) {
     //    cout << Z.Z(n * delta) << endl;
     //}
-    
+
     if(maxmin) {
         double tmax = 0;
         double xmax = 0;
@@ -766,6 +770,7 @@ int main(int argc, char * argv[]) {
         return 0;
     }
 
+
     if(calculate_N) {
         mpfr_class N = Z.calculate_N(point_to_calculate_N, true);
         cout << "N(" << Z.g0 << ") = " << N << endl;
@@ -781,7 +786,7 @@ int main(int argc, char * argv[]) {
         }
         return 0;
     }
-    
+
     if(check_RH) {
         Z.find_zeros(start, end, spacing, false);
         mpz_class N1 = Z.calculate_N(RH_start, false);
@@ -860,7 +865,7 @@ int main(int argc, char * argv[]) {
             values.push_back( abs(Z.Z( (*i + previous)/2 ) ));
             previous = *i;
         }
-        
+
         sort(values.begin(), values.end(), reverse_cmp);
         for(vector<double>::iterator i = values.begin(); i < values.end(); i++) {
             cout << *i << endl;
@@ -880,6 +885,83 @@ int main(int argc, char * argv[]) {
             previous = *i;
         }
         cout << min_value << endl;
+        return 0;
+    }
+
+    if(peaks_and_zeros) {
+        cout << setprecision(15);
+        vector<double> zeros = Z.find_zeros(start, end, spacing, false);
+
+        double previous = zeros[0];
+        for(vector<double>::iterator i = zeros.begin() + 1; i < zeros.end(); i++) {
+            double t0 = previous;
+            double t2 = *i;
+            double t1 = (t0 + t2)/2;
+
+            int sign = 1;
+            if(Z.Z(t1) < 0) sign = -1;
+
+            while(t2 - t0 > .00001) {
+                if((Z.Z(t1 + .0001) - Z.Z(t1)) * sign > 0) {
+                    t0 = t1;
+                    t2 = t2;
+                    t1 = (t0 + t2)/2;
+                }
+                else {
+                    t2 = t1;
+                    t0 = t0;
+                    t1 = (t0 + t2)/2;
+                }
+            }
+
+            cout << previous << ", " << 0.0 << endl;
+            cout << t1 << ", " << Z.Z(t1) << endl;
+
+            previous = *i;
+        }
+
+        return 0;
+    }
+
+    if(plot) {
+        cout << setprecision(15);
+        vector<double> zeros = Z.find_zeros(start, end, spacing, false);
+
+        double previous = zeros[0];
+        for(vector<double>::iterator i = zeros.begin() + 1; i < zeros.end(); i++) {
+            double t0 = previous;
+            double t2 = *i;
+            double t1 = (t0 + t2)/2;
+
+            int sign = 1;
+            if(Z.Z(t1) < 0) sign = -1;
+
+            while(t2 - t0 > .00001) {
+                if((Z.Z(t1 + .0001) - Z.Z(t1)) * sign > 0) {
+                    t0 = t1;
+                    t2 = t2;
+                    t1 = (t0 + t2)/2;
+                }
+                else {
+                    t2 = t1;
+                    t0 = t0;
+                    t1 = (t0 + t2)/2;
+                }
+            }
+
+            cout << previous << ", " << 0.0 << endl;
+            double delta = (t1 - previous)/10;
+            for(int k = 1; k <= 10; k++) {
+                cout << previous + k*delta << ", " << Z.Z(previous + k*delta) << endl;
+            }
+            delta = (*i - t1)/10;
+            for(int k = 1; k <= 10; k++) {
+                cout << t1 + k*delta << ", " << Z.Z(t1 + k*delta) << endl;
+            }
+
+            previous = *i;
+        }
+
         return 0;
     }
 

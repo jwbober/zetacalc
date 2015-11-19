@@ -7,21 +7,30 @@
 
 using namespace std;
 
-
 Complex compute_exponential_sums_using_theta_algorithm(mpfr_t mp_a, mpfr_t mp_b, int j, int K, Complex * v, Double epsilon, int _Kmin) {
     //
-    // Compute the exponential sum
+    // Compute the linear combination of exponential sums
     //
-    // sum_{k=0}^K exp(2 pi i a k + 2 pi i b k^2)
+    // sum_{i=0}^j v[i] * 1/K^j sum_{k=0}^K k^j exp(2 pi i a k + 2 pi i b k^2)
     //
-    // using Hiary's "theta sum algorithm".
+    // using Hiary's "theta sum algorithm" to an "attempted" precision of
+    // epsilon.
     //
+    // "attempted" precision is defined here as: if all of our code were
+    // correct and every arithmetic operation were exact, then the answer
+    // returned would be accurate to within an absolute precision of +/-
+    // epsilon. The second assumption is, of course, false, and it is not hard
+    // to come up with examples (where the value of the sum is large, e.g.)
+    // where we don't evaulate the sum that accurately.
+
     
-    // The sum is split into S1 + S2 + "boundary terms", which we compute shortly.
+    // The sum is split into S1 + S2 + "boundary terms", which we compute
+    // shortly.
     //
-    // First we compute some constants for later use, trying to keep notation consistant
-    // which Hiary's paper. This "cache" variable contains a bunch of commonly used
-    // quantities, like powers of a, b, and K, which we pass to pretty much every function.
+    // First we compute some constants for later use, trying to keep notation
+    // consistant which Hiary's paper. This "cache" variable contains a bunch
+    // of commonly used quantities, like powers of a, b, and K, which we pass
+    // to pretty much every function.
 
     theta_cache * cache = build_theta_cache(mp_a, mp_b, j, K);
 
