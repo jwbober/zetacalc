@@ -26,7 +26,7 @@ using std::cerr;
 //using std::log2;
 using std::complex;
 
-const int j_max = 18;
+const int j_max = 20;
 
 const int histogram_size = 60;
 const int histogram_start = 0;
@@ -50,7 +50,12 @@ void report(double a, double b, int j, int K, complex<double> * v, double epsilo
         error_histogram[histogram_size - 1]++;
     }
     else {
-        error_histogram[int(floor(logerror)) + histogram_start]++;
+        int z = int(floor(logerror)) + histogram_start;
+        if(z < 0 || z >= histogram_size) {
+            cout << "oops" << endl;
+            exit(0);
+        }
+        error_histogram[z]++;
     }
     if(error > maxerror) {
         maxerror = error;
@@ -117,7 +122,7 @@ void get_next(double * a, double * b, int * j, int * K, complex<double> * v, com
     if(!infile.read((char*)a, sizeof(double))) {*j = -1; return;}
     if(!infile.read((char*)b, sizeof(double))) {*j = -1; return;}
     if(!infile.read((char*)j, sizeof(int))) {*j = -1; return;}
-    if(*j < 0 || *j > 20) {
+    if(*j < 0 || *j > j_max) {
         cout << "possible error reading input." << endl;
         cout << "got j = " << *j << endl;
         cout << "largest allowed j is " << j_max << endl;
@@ -131,13 +136,12 @@ void get_next(double * a, double * b, int * j, int * K, complex<double> * v, com
 void run_tests(double epsilon, const int Kmin) {
     double a, b;
     int j, K;
-    complex<double> v[j_max];
+    complex<double> v[j_max + 1];
     complex<double> S;
 
     get_next(&a, &b, &j, &K, v, &S);
     while(j != -1) {
         complex<double> S1 = compute_exponential_sums(a, b, j, K, v, epsilon, Kmin, 0);
-        //complex<double> S1 = compute_exponential_sums(a, b, j, K, v, epsilon, 100, 0);
         report(a, b, j, K, v, epsilon, S, S1);
         get_next(&a, &b, &j, &K, v, &S);
     }
