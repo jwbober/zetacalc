@@ -434,6 +434,7 @@ void J_Integral_0(complex<double> * J, double a, double b, int j, int M, theta_c
     //}
 
     H_Integral_0(H_integrals, j + 2*R, a, M, new_epsilon);
+    for(int l = j + 2*R + 1; l < j + 2*(Z.size() - 1) + 1; l++) H_integrals[l] = 0.0;
 
     // -- Now we finally compute the integrals that we are looking for. We have
     //
@@ -563,6 +564,7 @@ void J_Integral_2(complex<double> * J, double a1, double a2, double b, int j, th
     }
     //double smaller_epsilon = small_epsilon/(largest_Z + Z.size());
     H_Integral_2(H_integrals, j + 2*R, a1, a2, new_epsilon);
+    for(int l = j + 2*R + 1; l < j + 2 * (Z.size() - 1) + 1; l++) H_integrals[l] = 0.0;
     //for(int l = 0; l <= j + 2 * R; l++) {
     //    H_integrals[l] = real(H_Integral_2(l, a1, a2, new_epsilon[l]/Z.size())); // REMARK: H_Integral_2
                                                                                // is always real, so
