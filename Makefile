@@ -1,6 +1,6 @@
 CC = g++
 CXX = g++
-CXXFLAGS = -march=native -Wall -ffast-math -pthread -Winline -O3 -g -std=c++11 -Iinclude
+CXXFLAGS = -march=native -Wall -pthread -Winline -O3 -ffast-math -g -std=c++11 -Iinclude
 #CXXFLAGS = -march=native -Wall -pthread -Winline -O3 -g -std=c++11 -Iinclude
 H_CXXFLAGS = -march=native -Wall -pthread  -O3 -g -std=c++11 -Iinclude
 
@@ -61,7 +61,7 @@ TESTS =       tests/mainsum_tests \
 	      tests/write_testfile \
 	      tests/write_testfile2 \
 	      tests/run_testfile \
-	      tests/generate_zeta-type_tests
+#	      tests/generate_zeta-type_tests
 
 zetacalc: $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) zetacalc.o
 	$(CXX) -o zetacalc zetacalc.o $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) $(LDFLAGS)
