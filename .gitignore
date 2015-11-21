@@ -10,3 +10,9 @@ thetatime
 Htest
 zc_partial_sum
 mainsum_tests
+run_testfile
+write_testfile
+write_testfile2
+testfiles
+libgmpfrxx.a
+gmpfrxx/example
