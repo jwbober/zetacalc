@@ -311,7 +311,7 @@ void H_Integral_2(double * HI, int j, double a1, double a2, double * epsilon) {
             HI[l] += factorial(l)/two_pi_power(l + 1) * (sum_of_offset_inverse_powers(a1, C + 1, -1, l + 1, epsilon[l]) + sum_of_offset_inverse_powers(a2, C + 1, -1, l + 1, epsilon[l]));
         }
     }
-    
+
     //for(int l = 0; l <= j; l++) {
     //    double z = real(H_Integral_2(l, a1, a2, epsilon[l]/1000000));
     //    if(std::abs(z - HI[l]) > 100*epsilon[l])
@@ -476,10 +476,10 @@ void J_Integral_2(complex<double> * J, double a1, double a2, double b, int j, th
     //
     // Compute and add to J[l] the integral
     //
-    //   /1
-    //   |  j                2    (exp(-2 pi a1 t) - exp(-2 pi a2 t))
-    //   | t  exp(- 2pi i b t  ) ------------------------------------- dt
-    //   |                                   exp(2 pi t) - 1
+    //   /1                                              (j + 1)
+    //   |  j                2    (exp(-2 pi a1 t) + (-1)        exp(-2 pi a2 t))
+    //   | t  exp( -2pi i b t  ) ------------------------------------------------ dt
+    //   |                                         exp(2 pi t) - 1
     //   /0
     //
     // to precision at least epsilon[j].
@@ -491,9 +491,9 @@ void J_Integral_2(complex<double> * J, double a1, double a2, double b, int j, th
     //
     // This integral is in fact the same as
     //
-    //   lim_{M ---> oo} J_Integral_0(a1, b, j, M) - J_Integral_0(a2, b, j, M)
+    //   lim_{M ---> oo} J_Integral_0(a1, b, j, M) -/+ J_Integral_0(a2, b, j, M)
     //
-    // and we could compute it as a different of 2 such integrals, but this
+    // and we could compute it as a difference/sum of 2 such integrals, but this
     // will not work in the j = 0 case, and in any event it may be more efficient
     // to just compute the difference directly.
     //
