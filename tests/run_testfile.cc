@@ -51,13 +51,13 @@ void report(double a, double b, int j, int K, complex<double> * v, double epsilo
     }
     else {
         int z = int(floor(logerror)) + histogram_start;
-        if(z < 0 || z >= histogram_size) {
-            cout << "oops" << endl;
-            exit(0);
+        if(z < 0) {
+            z = 0;
         }
+        if(z >= histogram_size) z = histogram_size - 1;
         error_histogram[z]++;
     }
-    if(error > maxerror) {
+    if(error > maxerror || isnan(error)) {
         maxerror = error;
         cout << "Worst so far:" << endl;
         cout << std::setprecision(17);
@@ -137,6 +137,7 @@ void run_tests(double epsilon, const int Kmin) {
     double a, b;
     int j, K;
     complex<double> v[j_max + 1];
+    for(int j = 0; j <= j_max; j++) v[j] = 0.0;
     complex<double> S;
 
     get_next(&a, &b, &j, &K, v, &S);
