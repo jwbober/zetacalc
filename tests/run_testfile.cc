@@ -31,6 +31,7 @@ const int j_max = 20;
 const int histogram_size = 60;
 const int histogram_start = 0;
 int error_histogram[histogram_size] = {0};
+int relerror_histogram[histogram_size] = {0};
 double maxerror = 0.0;
 unsigned long testcount = 0;
 std::mutex report_mutex;
@@ -43,6 +44,7 @@ void report(double a, double b, int j, int K, complex<double> * v, double epsilo
     //double error = std::min(abserror, relerror);
     double error = abserror;
     double logerror = -log2(error);
+    double logrelerror = -log2(relerror);
     if(logerror < histogram_start) {
         error_histogram[0]++;
     }
@@ -57,7 +59,23 @@ void report(double a, double b, int j, int K, complex<double> * v, double epsilo
         if(z >= histogram_size) z = histogram_size - 1;
         error_histogram[z]++;
     }
-    if(error > maxerror || isnan(error)) {
+
+    if(logrelerror < histogram_start) {
+        relerror_histogram[0]++;
+    }
+    else if(logrelerror >= histogram_size - histogram_start){
+        relerror_histogram[histogram_size - 1]++;
+    }
+    else {
+        int z = int(floor(logrelerror)) + histogram_start;
+        if(z < 0) {
+            z = 0;
+        }
+        if(z >= histogram_size) z = histogram_size - 1;
+        relerror_histogram[z]++;
+    }
+
+    if(error > maxerror || isnan(error) || maxerror == 0) {
         maxerror = error;
         cout << "Worst so far:" << endl;
         cout << std::setprecision(17);
@@ -112,6 +130,25 @@ void print_histogram() {
         }
         cout << endl;
     }
+
+    cout << "Relative error histogram:" << endl;
+
+    first_nonzero = 0;
+    last_nonzero = 0;
+    for(int n = 0; n < histogram_size; n++) {
+        if(relerror_histogram[n] > 0) last_nonzero = n;
+    }
+    for(int n = histogram_size - 1; n >= 0; n--) {
+        if(relerror_histogram[n] > 0) first_nonzero = n;
+    }
+    for(int n = first_nonzero; n <= last_nonzero; n++) {
+        cout << n + histogram_start << "\t";
+        for(int m = 0; m < ceil(relerror_histogram[n]/hist_normalization); m++) {
+            cout << "+";
+        }
+        cout << endl;
+    }
+
     cout << "Completed " << testcount << " tests." << endl;
 }
 
