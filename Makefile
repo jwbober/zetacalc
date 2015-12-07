@@ -62,6 +62,9 @@ zetacalc: $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) zetacalc.o
 
 blfi: $(MAIN_SUM_OBJECTS) $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS) blfi.o gmpfrxx/gmpfrxx.o
 
+theta_sums.a: $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS)
+	ar rs theta_sums.a $(THETA_SUM_OBJECTS) $(OTHER_OBJECTS)
+
 $(THETA_SUM_OBJECTS): include/theta_sums.h include/log.h include/misc.h theta_sums/precomputed_tables.h
 $(MAIN_SUM_OBJECTS): include/theta_sums.h include/log.h include/main_sum.h include/misc.h theta_sums/precomputed_tables.h
 log/log.o: include/log.h
