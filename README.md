@@ -4,6 +4,6 @@ didn't write it.
 
 See
 
-http://arxiv.org/abs/1607.00709
-https://people.math.osu.edu/hiary.1/fastmethods.html
-https://people.maths.bris.ac.uk/~jb12407/data/zeta/
+- http://arxiv.org/abs/1607.00709
+- https://people.math.osu.edu/hiary.1/fastmethods.html
+- https://people.maths.bris.ac.uk/~jb12407/data/zeta/
