@@ -123,6 +123,13 @@ void print_histogram() {
     for(int n = histogram_size - 1; n >= 0; n--) {
         if(error_histogram[n] > 0) first_nonzero = n;
     }
+
+    for(int n = first_nonzero; n <= last_nonzero; n++) {
+        cout << n + histogram_start << " " << error_histogram[n] << endl;
+    }
+    cout << endl;
+    cout << endl;
+
     for(int n = first_nonzero; n <= last_nonzero; n++) {
         cout << n + histogram_start << "\t";
         for(int m = 0; m < ceil(error_histogram[n]/hist_normalization); m++) {

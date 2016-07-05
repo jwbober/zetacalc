@@ -459,7 +459,7 @@ public:
 
     }
 
-    double calculate_S_values(bool verbose = true) {
+    double calculate_S_values(double * maxt, bool verbose = true) {
         double current_max = 0;
         cout << setprecision(10);
         mpz_class current_zero_index;
@@ -471,12 +471,14 @@ public:
             double S_value = x.get_d();
             if(abs(S_value) > abs(current_max)) {
                 current_max = S_value;
+                if(maxt) *maxt = *i;
             }
             if(verbose)
                 cout << *i << ", " << S_value << endl;
             S_value += 1;
             if(abs(S_value) > abs(current_max)) {
                 current_max = S_value;
+                if(maxt) *maxt = *i;
             }
             if(verbose)
                 cout << *i << ", "  << S_value << endl;
@@ -697,7 +699,7 @@ int main(int argc, char * argv[]) {
     //    cout << Z.Z(n * delta) << endl;
     //}
 
-    if(maxmin) {
+    if(0 && maxmin) {
         double tmax = 0;
         double xmax = 0;
 
@@ -797,9 +799,11 @@ int main(int argc, char * argv[]) {
         double g2 = Z.g0;
 
         unsigned int count = 0;
+        cout << setprecision(0);
         for(vector<double>::iterator i = Z.zeros.begin(); i < Z.zeros.end(); i++) {
             if( *i > g1 && *i < g2) {
                 count++;
+                cout << N1 + count << " " << t0 + *i << endl;
             }
         }
 
@@ -843,7 +847,7 @@ int main(int argc, char * argv[]) {
     if(list_S_values) {
         Z.find_zeros(start, end, spacing, verbose);
         Z.calculate_N(7);
-        double S = Z.calculate_S_values();
+        double S = Z.calculate_S_values(NULL);
         if(verbose)
             cout << "maximal value of S was " << S << endl;
     }
@@ -852,8 +856,9 @@ int main(int argc, char * argv[]) {
     if(largest_S_value) {
         Z.find_zeros(start, end, spacing, false);
         Z.calculate_N(7);
-        double S = Z.calculate_S_values(false);
-        cout << S << endl;
+        double maxt;
+        double S = Z.calculate_S_values(&maxt, false);
+        cout << S << " " << maxt << endl;
         return 0;
     }
 
@@ -888,11 +893,13 @@ int main(int argc, char * argv[]) {
         return 0;
     }
 
-    if(peaks_and_zeros) {
+    if(peaks_and_zeros || maxmin) {
         cout << setprecision(15);
         vector<double> zeros = Z.find_zeros(start, end, spacing, false);
 
         double previous = zeros[0];
+        double tmax = 0;
+        double zmax = 0;
         for(vector<double>::iterator i = zeros.begin() + 1; i < zeros.end(); i++) {
             double t0 = previous;
             double t2 = *i;
@@ -901,23 +908,40 @@ int main(int argc, char * argv[]) {
             int sign = 1;
             if(Z.Z(t1) < 0) sign = -1;
 
-            while(t2 - t0 > .00001) {
-                if((Z.Z(t1 + .0001) - Z.Z(t1)) * sign > 0) {
+            while(t2 - t0 > .00000000001) {
+            //while(t2 != t0) {
+                double x = (Z.Z(t1 + .00000000001) - Z.Z(t1)) * sign;
+                if(x > 0) {
                     t0 = t1;
                     t2 = t2;
                     t1 = (t0 + t2)/2;
                 }
-                else {
+                else if (x < 0){
                     t2 = t1;
                     t0 = t0;
                     t1 = (t0 + t2)/2;
                 }
+                else {
+                    t0 = t1;
+                    t2 = t1;
+                }
             }
 
-            cout << previous << ", " << 0.0 << endl;
-            cout << t1 << ", " << Z.Z(t1) << endl;
+            double z = Z.Z(t1);
+            if(abs(z) > zmax) {
+                tmax = t1;
+                zmax = abs(z);
+            }
+            if(verbose) {
+                if(peaks_and_zeros)
+                    cout << previous << ", " << 0.0 << endl;
+                cout << t1 << ", " << Z.Z(t1) << endl;
+            }
 
             previous = *i;
+        }
+        if(!verbose) {
+            cout << filename << " " << tmax << " " << Z.Z(tmax) << " " << Z.zeta(tmax) << endl;
         }
 
         return 0;

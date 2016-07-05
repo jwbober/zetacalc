@@ -53,6 +53,7 @@ EXECUTABLES = zetacalc \
 TESTS =       tests/mainsum_tests \
 	      tests/Htest \
 	      tests/thetatime \
+	      tests/thetatime2 \
 	      tests/thetatest \
 	      tests/write_testfile \
 	      tests/write_testfile2 \
